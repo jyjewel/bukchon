@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>고전현대이것저것연구소 · 마을 시안</title>
+<style>
+@font-face{font-family:"GowunBatang";src:url(fonts/batang400.ttf);font-weight:400}
+@font-face{font-family:"GowunBatang";src:url(fonts/batang700.ttf);font-weight:700}
+@font-face{font-family:"GowunDodum";src:url(fonts/dodum.ttf)}
+:root{--ink:#6B4535;--paper:#FFF6E4;--wood:#E6CDA3;--pink:#F08BA8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#F7E8CC;overflow:hidden}
+body{font-family:"GowunDodum","Gowun Dodum",sans-serif;color:var(--ink)}
+svg{display:block;width:100%;height:100%}
+.bubble text{font-family:"GowunDodum";font-size:12px;fill:var(--ink)}
+.sign text{font-family:"GowunBatang";font-weight:700;font-size:12.5px;fill:var(--ink)}
+.tag text{font-family:"GowunDodum";font-size:9.5px;fill:#fff}
+.house{cursor:pointer}
+@media (prefers-reduced-motion:no-preference){
+  .petal{animation:fall 9s linear infinite}
+  .bob{animation:bob 3.2s ease-in-out infinite}
+  @keyframes fall{from{transform:translate(0,-20px) rotate(0)}to{transform:translate(-30px,860px) rotate(220deg)}}
+  @keyframes bob{50%{transform:translateY(-2px)}}
+}
+.label{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  display:flex;gap:10px;align-items:center;white-space:nowrap;
+  background:var(--paper);border:2.5px solid var(--ink);border-radius:999px;padding:6px 14px;
+  font-family:"GowunBatang";font-weight:700;font-size:12px;box-shadow:0 3px 0 rgba(107,69,53,.25)}
+.label a{font-family:"GowunDodum";font-weight:400;color:#fff;background:var(--pink);border-radius:999px;padding:2px 10px;text-decoration:none;font-size:11.5px}
+</style>
+</head>
+<body>
+<svg id="s" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"></svg>
+<div class="label">고전현대이것저것연구소 <a href="#">로그인</a></div>
+<script>
+const INK="#6B4535";
+const W=390,H=844;
+let o="";
+const add=s=>o+=s;
+
+/* ---------- defs ---------- */
+add(`<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="#FCEFD9"/><stop offset=".55" stop-color="#F4E6C6"/><stop offset="1" stop-color="#DCE5BE"/>
+</linearGradient>
+<filter id="paper"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/>
+ <feColorMatrix values="0 0 0 0 .42  0 0 0 0 .27  0 0 0 0 .2  0 0 0 .09 0"/></filter>
+</defs>`);
+add(`<rect width="${W}" height="${H}" fill="url(#bg)"/>`);
+
+/* grass patches */
+[[40,300,70,26],[350,520,80,30],[60,640,60,22],[330,250,60,20],[195,470,40,14]].forEach(([x,y,rx,ry])=>
+ add(`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#E4EBC4" opacity=".7"/>`));
+
+/* stone path */
+add(`<path d="M195 70 C 165 190, 225 290, 195 400 S 165 560, 195 740" fill="none" stroke="#F8E9CB" stroke-width="30" stroke-linecap="round"/>`);
+add(`<path d="M195 70 C 165 190, 225 290, 195 400 S 165 560, 195 740" fill="none" stroke="#E7D2AA" stroke-width="30" stroke-linecap="round" stroke-dasharray="1 17" opacity=".9"/>`);
+
+/* blob helper: unified outline */
+function blobs(list,fill,sw=5){
+  let a="",b="";
+  list.forEach(([x,y,r])=>{a+=`<circle cx="${x}" cy="${y}" r="${r}"/>`;});
+  return `<g fill="${INK}" stroke="${INK}" stroke-width="${sw*2}" stroke-linejoin="round">${a}</g><g fill="${fill}">${a}</g>`;
+}
+function tree(x,y,s=1,col="#F7C3D0",hi="#FBDCE3"){
+  return `<g transform="translate(${x},${y}) scale(${s})">
+   <path d="M-5 0 C-4 -20 -8 -34 -14 -46 L-6 -46 C-2 -36 2 -34 4 -50 L10 -50 C6 -34 8 -20 7 0Z" fill="#8C5E45" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+   ${blobs([[-30,-62,20],[0,-82,26],[30,-62,21],[-12,-56,22],[16,-50,20]],col)}
+   ${blobs([[-6,-86,9],[-26,-66,7],[22,-64,8]],hi,0)}
+   <g fill="#fff" opacity=".6"><circle cx="-18" cy="-74" r="2.5"/><circle cx="14" cy="-92" r="2.5"/><circle cx="26" cy="-60" r="2.5"/><circle cx="-34" cy="-56" r="2"/></g>
+  </g>`;
+}
+function bush(x,y,s=1){
+  return `<g transform="translate(${x},${y}) scale(${s})">${blobs([[-12,0,10],[0,-5,12],[12,0,10]],"#A9CFA0",3)}
+  <g fill="#F7C3D0"><circle cx="-8" cy="-4" r="2"/><circle cx="6" cy="-9" r="2"/><circle cx="14" cy="-1" r="2"/></g></g>`;
+}
+function lantern(x,y){
+  return `<g transform="translate(${x},${y})"><rect x="-1.5" y="-26" width="3" height="26" fill="${INK}"/>
+  <rect x="-7" y="-40" width="14" height="16" rx="5" fill="#FFD98A" stroke="${INK}" stroke-width="2.5"/>
+  <path d="M-7 -32h14" stroke="${INK}" stroke-width="1.5" opacity=".5"/></g>`;
+}
+
+/* ---------- back decor ---------- */
+add(tree(34,118,1.05));
+add(tree(358,108,1.1,"#F4B8C8","#FBD6DF"));
+add(tree(195,60,.8,"#F7C3D0"));
+
+/* ---------- people & houses ---------- */
+const P=[
+ {n:"최주영",roof:"#E9A0A8",dress:"#F3A0BE",hair:"#8A5A3C",acc:"bow",say:"역주 하는 중!"},
+ {n:"연구자 2",roof:"#B7A5DA",dress:"#B9A5E0",hair:"#5A3558",acc:"buns",say:"오늘은 쉬어요"},
+ {n:"연구자 3",roof:"#9ED0B0",dress:"#A9DCC0",hair:"#F0A9C0",acc:"long",say:"벚꽃 보러 와요"},
+ {n:"연구자 4",roof:"#9CC8E4",dress:"#A8D2EE",hair:"#E48A4A",acc:"side",say:"의견 들려주세요",fb:1},
+ {n:"연구자 5",roof:"#EDCF82",dress:"#F5D77A",hair:"#7B5BB0",acc:"beret",say:"차 한잔 해요"},
+ {n:"연구자 6",roof:"#F2B796",dress:"#F7BFA0",hair:"#7A4E34",acc:"braid",say:"개념사 정리 중"},
+];
+const COLS=[98,292], ROWS=[178,392,606];
+
+function house(cx,cy,c){
+  const r=c.roof;
+  return `<g transform="translate(${cx},${cy})">
+  <ellipse cx="0" cy="66" rx="66" ry="8" fill="${INK}" opacity=".14"/>
+  <!-- wall -->
+  <rect x="-48" y="4" width="96" height="54" fill="#FFF3DC" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="-52" y="56" width="104" height="9" rx="2" fill="#DCC6A2" stroke="${INK}" stroke-width="3"/>
+  <!-- door -->
+  <rect x="-40" y="14" width="34" height="42" fill="#FFFBEF" stroke="${INK}" stroke-width="2.5"/>
+  <path d="M-23 14V56M-40 27H-6M-40 40H-6M-31.5 14V56M-14.5 14V56" stroke="${INK}" stroke-width="1.4" opacity=".75"/>
+  <!-- window -->
+  <rect x="8" y="16" width="30" height="24" fill="#FFFBEF" stroke="${INK}" stroke-width="2.5"/>
+  <path d="M23 16V40M8 28H38" stroke="${INK}" stroke-width="1.4" opacity=".75"/>
+  <rect x="-48" y="4" width="96" height="7" fill="${INK}" opacity=".1"/>
+  <!-- posts -->
+  <rect x="-50" y="4" width="5" height="54" fill="#B98A63" stroke="${INK}" stroke-width="2"/>
+  <rect x="45" y="4" width="5" height="54" fill="#B98A63" stroke="${INK}" stroke-width="2"/>
+  <!-- roof -->
+  <path d="M-84 0 C-66 -4 -52 -22 -38 -50 L38 -50 C52 -22 66 -4 84 0 C72 9 56 10 44 8 L-44 8 C-56 10 -72 9 -84 0Z" fill="${r}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M-30 -46 L-44 6 M-20 -46 L-30 6 M-10 -46 L-14 6 M0 -46 V6 M10 -46 L14 6 M20 -46 L30 6 M30 -46 L44 6" stroke="${INK}" stroke-width="1.6" opacity=".32" fill="none"/>
+  <path d="M-62 -6 C-52 -12 -44 -24 -36 -44" stroke="#fff" stroke-width="3" opacity=".35" fill="none" stroke-linecap="round"/>
+  <rect x="-42" y="-57" width="84" height="9" rx="4.5" fill="${r}" stroke="${INK}" stroke-width="3"/>
+  <rect x="-42" y="-57" width="84" height="9" rx="4.5" fill="${INK}" opacity=".18"/>
+  <path d="M-84 0 C-72 9 -56 10 -44 8 L44 8 C56 10 72 9 84 0" fill="none" stroke="${INK}" stroke-width="3" opacity=".0"/>
+  </g>`;
+}
+
+function chibi(x,y,c){
+  const h=c.hair;
+  let back="",front="";
+  if(c.acc=="long")back=`<path d="M-14 -34 Q-17 -8 -12 -4 L12 -4 Q17 -8 14 -34Z" fill="${h}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(c.acc=="buns")back=`<circle cx="-12" cy="-45" r="6" fill="${h}" stroke="${INK}" stroke-width="2.5"/><circle cx="12" cy="-45" r="6" fill="${h}" stroke="${INK}" stroke-width="2.5"/>`;
+  if(c.acc=="side")back=`<path d="M12 -38 Q22 -34 20 -20 Q16 -26 12 -26Z" fill="${h}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(c.acc=="braid")back=`<path d="M-10 -26 Q-18 -18 -14 -8 Q-12 -2 -9 -8 Q-10 -16 -6 -24Z" fill="${h}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(c.acc=="bow")front=`<g transform="translate(9,-43)"><path d="M0 0 L-8 -5 L-8 5Z M0 0 L8 -5 L8 5Z" fill="#FF7EB6" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle r="2.4" fill="#FF7EB6" stroke="${INK}" stroke-width="1.6"/></g>`;
+  if(c.acc=="long")front=`<g transform="translate(-10,-42)"><path d="M0 0 L-7 -4 L-7 4Z M0 0 L7 -4 L7 4Z" fill="#fff" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/></g>`;
+  if(c.acc=="beret")front=`<path d="M-13 -40 Q-14 -54 2 -53 Q16 -52 13 -40Z" fill="#8F7BC4" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="1" cy="-55" r="2.2" fill="#8F7BC4" stroke="${INK}" stroke-width="1.8"/>`;
+  const glasses=(c.acc=="beret"||c.acc=="braid")?`<g fill="none" stroke="${INK}" stroke-width="1.6"><circle cx="-5" cy="-27" r="4.2"/><circle cx="5" cy="-27" r="4.2"/><path d="M-1 -27h2"/></g>`:"";
+  return `<g transform="translate(${x},${y})" class="bob">
+   <ellipse cx="0" cy="1" rx="13" ry="3.5" fill="${INK}" opacity=".2"/>
+   ${back}
+   <rect x="-6" y="-4" width="5" height="5" rx="2" fill="#fff" stroke="${INK}" stroke-width="2"/>
+   <rect x="1" y="-4" width="5" height="5" rx="2" fill="#fff" stroke="${INK}" stroke-width="2"/>
+   <path d="M-8 -20 Q-10 -6 -11 -4 L11 -4 Q10 -6 8 -20Z" fill="${c.dress}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
+   <circle cx="0" cy="-31" r="13" fill="${h}" stroke="${INK}" stroke-width="2.5"/>
+   <ellipse cx="0" cy="-28" rx="10.5" ry="9.5" fill="#FFE6D3"/>
+   <path d="M-11 -31 Q-10 -43 0 -42 Q10 -43 11 -31 Q5 -37 0 -34 Q-6 -37 -11 -31Z" fill="${h}" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+   <circle cx="-4.2" cy="-27" r="1.7" fill="${INK}"/><circle cx="4.2" cy="-27" r="1.7" fill="${INK}"/>
+   <ellipse cx="-7.5" cy="-23.5" rx="2.4" ry="1.5" fill="#FF9DB8" opacity=".75"/><ellipse cx="7.5" cy="-23.5" rx="2.4" ry="1.5" fill="#FF9DB8" opacity=".75"/>
+   <path d="M-1.6 -23.2 Q0 -21.6 1.6 -23.2" fill="none" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>
+   ${glasses}${front}
+  </g>`;
+}
+
+function bubble(cx,headTop,text,fb){
+  const w=Math.max(60,text.length*12+22), h=26;
+  let x=cx-w/2; x=Math.max(6,Math.min(W-6-w,x));
+  const y=headTop-h-9;
+  const fill=fb?"#FFF3B8":"#FFFFFF";
+  const tx=Math.max(x+10,Math.min(x+w-10,cx));
+  let s=`<g class="bubble">
+   <path d="M${tx-5} ${y+h-1} L${tx} ${y+h+7} L${tx+5} ${y+h-1}Z" fill="${INK}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+   <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${INK}" stroke="${INK}" stroke-width="3"/>
+   <path d="M${tx-5} ${y+h-1} L${tx} ${y+h+7} L${tx+5} ${y+h-1}Z" fill="${fill}"/>
+   <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${fill}"/>
+   <path d="M${tx-4} ${y+h-1.5} h8" stroke="${fill}" stroke-width="3"/>
+   <text x="${x+w/2}" y="${y+h/2+4.3}" text-anchor="middle">${text}</text>`;
+  if(fb) s+=`<g class="tag"><rect x="${x-4}" y="${y-13}" width="38" height="15" rx="7.5" fill="#FF7EB6" stroke="${INK}" stroke-width="2"/><text x="${x+15}" y="${y-2.5}" text-anchor="middle">피드백</text></g>`;
+  return s+`</g>`;
+}
+
+function sign(cx,cy,name){
+  const w=Math.max(70,name.length*13+26);
+  return `<g class="sign" transform="translate(${cx},${cy})">
+   <rect x="-1.5" y="-4" width="3" height="8" fill="${INK}"/>
+   <rect x="${-w/2}" y="2" width="${w}" height="22" rx="7" fill="#E6CDA3" stroke="${INK}" stroke-width="2.8"/>
+   <path d="M${-w/2+6} 7 H${w/2-6}" stroke="#fff" stroke-width="2" opacity=".45" stroke-linecap="round"/>
+   <text x="0" y="17.5" text-anchor="middle">${name}</text></g>`;
+}
+
+let k=0;
+ROWS.forEach((cy,ri)=>COLS.forEach((cx,ci)=>{
+  const c=P[k++];
+  add(`<g class="house">`);
+  add(house(cx,cy,c));
+  const px=cx+30, py=cy+60;
+  add(chibi(px,py,c));
+  add(bubble(px,py-46,c.say,c.fb));
+  add(sign(cx,cy+78,c.n));
+  add(`</g>`);
+}));
+
+/* side decor */
+add(bush(14,300,1)); add(bush(376,205,1)); add(bush(18,520,1.1)); add(bush(372,420,1)); add(bush(26,730,1));
+add(lantern(172,262)); add(lantern(218,470)); add(lantern(176,672));
+add(tree(372,640,.7,"#F7C3D0")); add(tree(24,420,.75,"#F4B8C8"));
+/* flowers */
+[[40,262],[330,318],[150,330],[240,150],[60,510],[330,660],[110,540],[270,560],[84,715],[310,712]].forEach(([x,y],i)=>
+ add(`<g transform="translate(${x},${y})"><circle cx="0" cy="0" r="3.2" fill="${i%2?'#FFE08A':'#F7C3D0'}" stroke="${INK}" stroke-width="1.4"/><circle cx="0" cy="0" r="1" fill="${INK}"/></g>`));
+
+/* stream & bridge */
+add(`<path d="M-20 770 C 70 735, 140 790, 195 770 S 330 735, 410 772" fill="none" stroke="${INK}" stroke-width="54" stroke-linecap="round"/>`);
+add(`<path d="M-20 770 C 70 735, 140 790, 195 770 S 330 735, 410 772" fill="none" stroke="#AFD8E4" stroke-width="47" stroke-linecap="round"/>`);
+add(`<path d="M10 762 q18 -8 36 0 M250 780 q18 -8 36 0 M310 758 q14 -6 28 0 M90 786 q14 -6 28 0" stroke="#fff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>`);
+add(`<path d="M138 780 Q195 722 252 776" fill="none" stroke="${INK}" stroke-width="26" stroke-linecap="round"/>`);
+add(`<path d="M138 780 Q195 722 252 776" fill="none" stroke="#D2A777" stroke-width="19" stroke-linecap="round"/>`);
+add(`<path d="M150 770 Q195 730 242 766" fill="none" stroke="#fff" stroke-width="2.4" opacity=".4" stroke-linecap="round"/>`);
+[[142,774],[248,770]].forEach(([x,y])=>add(`<rect x="${x-6}" y="${y-18}" width="12" height="22" rx="5" fill="#C28F60" stroke="${INK}" stroke-width="2.8"/>`));
+add(bush(60,800,1.2)); add(bush(334,806,1.2));
+
+/* petals */
+for(let i=0;i<14;i++){
+  const x=(i*47+20)%W, d=(i*1.3)%9;
+  add(`<g transform="translate(${x},0)"><ellipse class="petal" cx="0" cy="0" rx="3.2" ry="2" fill="#F7B5C6" style="animation-delay:-${d}s;animation-duration:${8+i%4}s;transform:translate(0,${60+i*55}px) rotate(${i*30}deg)"/></g>`);
+}
+
+/* paper grain */
+add(`<rect width="${W}" height="${H}" filter="url(#paper)" opacity=".8" pointer-events="none"/>`);
+document.getElementById("s").innerHTML=o;
+</script>
+</body>
+</html>
