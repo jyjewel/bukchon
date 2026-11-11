@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>尙古圖會 · 의고문 주사위놀이</title>
+<style>
+:root{--bg:#f4ecdc;--paper:#fbf6ea;--ink:#2b2118;--mute:#7b6a58;--red:#a8381f;--line:#d9c9a8;--gold:#b8892b}
+@media(prefers-color-scheme:dark){:root{--bg:#1d1813;--paper:#2a231b;--ink:#efe4cf;--mute:#a89880;--red:#e0745a;--line:#4a3f31;--gold:#d9a94a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Serif KR","Noto Serif CJK KR","Batang",serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:8px 0 0;letter-spacing:.2em;text-align:center}
+.sub{text-align:center;color:var(--mute);font-size:14px;margin-bottom:16px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px;margin:12px 0}
+.card h2{margin:0 0 8px;font-size:18px}
+button{font:inherit;background:var(--red);color:#fff;border:0;border-radius:6px;padding:8px 16px;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.4;cursor:default}
+input,textarea{font:inherit;width:100%;padding:8px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+textarea{min-height:160px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:14px;background:transparent;color:var(--ink)}
+.chip.on{background:var(--red);color:#fff;border-color:var(--red)}
+.chip.taken{opacity:.35}
+.mute{color:var(--mute);font-size:14px}
+.classic{font-size:18px;line-height:2;white-space:pre-wrap}
+.gyusu{border-left:3px solid var(--gold);padding-left:12px;color:var(--mute);white-space:pre-wrap;margin-top:12px}
+.dice{font-size:72px;line-height:1;text-align:center}
+.dice.roll{animation:spin .6s}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(720deg)}}
+.genre{font-size:22px;color:var(--red);text-align:center;margin:4px 0}
+.track{position:relative;height:14px;background:var(--line);border-radius:7px;margin:26px 8px 36px}
+.tok{position:absolute;top:-10px;transform:translateX(-50%);font-size:12px;background:var(--red);color:#fff;border-radius:999px;padding:0 8px;white-space:nowrap}
+.tok.me{outline:2px solid var(--gold)}
+.entry{border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0;white-space:pre-wrap}
+.entry.picked{border-color:var(--red);box-shadow:0 0 0 2px var(--red) inset}
+.entry b{color:var(--red)}
+table{width:100%;border-collapse:collapse}td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+.timer{float:right;font-variant-numeric:tabular-nums;color:var(--red)}
+.err{color:var(--red);min-height:1.5em}
+</style>
+</head>
+<body>
+<main>
+<h1>尙古圖會</h1>
+<div class="sub">朴珪壽 『尙古圖會文義例』 · 의고문 주사위놀이 (시범판)</div>
+<div id="app"></div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const DICE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+const GENRE_HELP = [
+  ['謝表', '임금의 은혜에 감사하는 글(表)'], ['賀表', '경사를 축하하는 글(表)'], ['表', '신하가 임금께 올리는 글'],
+  ['疏', '임금께 의견을 아뢰는 상소문'], ['頌', '덕을 기리는 운문'], ['論', '이치를 따져 논하는 글'], ['議', '의견을 개진하는 글'],
+  ['記', '사건·사물을 기록하는 글'], ['墓志銘', '묘지에 새기는 글'], ['哀辭', '죽음을 슬퍼하는 글'], ['輓辭', '죽은 이를 애도하는 시'], ['祭', '제사 때 읽는 글'],
+  ['琴操', '거문고 곡조에 얹는 노래'], ['歌', '노래 형식의 운문'], ['賦', '사물을 길게 서술하는 운문'],
+  ['四言', '4자 구의 시'], ['五言', '5자 구의 시'], ['五古', '5언 고시'], ['七古', '7언 고시'], ['七律', '7언 8구, 평측과 대구를 맞춘 시'], ['七絕', '7언 4구의 시'], ['五排', '5언 장편 배율'], ['律', '율시'],
+];
+const help = (g) => (GENRE_HELP.find(([k]) => g.includes(k)) || [])[1] || '';
+
+let S = null, es = null, errMsg = '', clockOffset = 0;
+const sess = () => { try { return JSON.parse(localStorage.getItem('sg') || 'null'); } catch { return null; } };
+const save = (o) => { try { localStorage.setItem('sg', JSON.stringify(o)); } catch {} };
+
+async function post(path, body) {
+  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || '오류'); return j;
+}
+async function act(o) { const s = sess(); try { errMsg = ''; await post('/api/act', { room: s.room, pid: s.pid, ...o }); } catch (e) { errMsg = e.message; render(); } }
+function connect() {
+  const s = sess(); if (!s) return; if (es) es.close();
+  es = new EventSource(`/api/events?room=${s.room}&pid=${s.pid}`);
+  es.onmessage = (e) => { S = JSON.parse(e.data); clockOffset = S.serverNow - Date.now(); render(); };
+  es.onerror = () => { if (es.readyState === 2) { save(null); S = null; es.close(); render(); } };
+}
+async function enter(kind) {
+  const name = $('#name').value.trim() || '무명'; const code = ($('#code')?.value || '').trim().toUpperCase();
+  try {
+    const j = kind === 'create' ? await post('/api/create', { name }) : await post('/api/join', { name, room: code });
+    save({ room: j.room, pid: j.pid }); location.hash = j.room; connect();
+  } catch (e) { errMsg = e.message; render(); }
+}
+
+const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const pname = (id) => S.players.find((p) => p.id === id)?.name || '?';
+
+function render() {
+  const app = $('#app');
+  if (!S) {
+    app.innerHTML = `<div class="card"><h2>입장</h2>
+      <p class="mute">여러 사람이 같은 방에 들어와, 같은 고사를 읽고 주사위가 정한 문체로 의고문을 지어 겨룹니다.</p>
+      <p><input id="name" placeholder="이름" maxlength="12"></p>
+      <div class="row"><button onclick="enter('create')">새 방 만들기</button>
+      <input id="code" placeholder="방 코드" maxlength="4" style="width:110px;text-transform:uppercase" value="${esc(location.hash.slice(1))}">
+      <button class="ghost" onclick="enter('join')">입장</button></div>
+      <div class="err">${esc(errMsg)}</div></div>`;
+    return;
+  }
+  const me = S.players.find((p) => p.id === S.you); const host = S.hostId === S.you;
+  let h = `<div class="card"><div class="row"><b>방 ${S.code}</b><span class="mute">${S.phase === 'lobby' ? '대기 중' : `${S.round}/${S.rounds} 라운드`}</span>
+    <span class="mute" style="margin-left:auto">${S.players.map((p) => `${esc(p.name)}${p.id === S.hostId ? '★' : ''}${p.connected ? '' : '(끊김)'}`).join(' · ')}</span></div></div>`;
+  h += track();
+  h += ({ lobby, roll, write, vote, result, end }[S.phase])(me, host);
+  h += `<div class="err">${esc(errMsg)}</div>`;
+  app.innerHTML = h;
+  tick();
+}
+
+function track() {
+  if (S.phase === 'lobby') return '';
+  return `<div class="card"><div class="mute">말판 — 점수가 ${S.board}에 닿으면 즉시 종료</div><div class="track">${S.players.map((p, i) =>
+    `<span class="tok ${p.id === S.you ? 'me' : ''}" style="left:${Math.min(100, p.score / S.board * 100)}%;top:${i % 2 ? 14 : -10}px">${p.piece || ''} ${esc(p.name)} ${p.score}</span>`).join('')}</div></div>`;
+}
+
+function lobby(me, host) {
+  return `<div class="card"><h2>말을 고르세요</h2>
+    <p class="mute">자기 말과 테마가 같은 고사가 나오면 +1점. 말은 겹칠 수 없습니다.</p>
+    <div class="row">${S.pieces.map((pc) => {
+      const own = S.players.find((p) => p.piece === pc);
+      return `<button class="chip ${me.piece === pc ? 'on' : ''} ${own && own !== me ? 'taken' : ''}" onclick="act({type:'piece',piece:${me.piece === pc ? 'null' : `'${pc}'`}})">${pc}${own && own !== me ? ' · ' + esc(own.name) : ''}</button>`;
+    }).join('')}</div></div>
+    <div class="card"><h2>규칙</h2><ol class="mute">
+      <li>라운드마다 고사 카드 한 장이 공개되고, 차례인 사람이 주사위를 굴립니다.</li>
+      <li>나온 눈이 이번 라운드의 <b>문체</b>를 정합니다 (카드마다 눈별 문체가 다름).</li>
+      <li>모두 고사와 안설을 읽고 그 문체로 글을 짓습니다.</li>
+      <li>글은 익명으로 공개되고, 자기 글을 뺀 마음에 드는 글에 투표합니다.</li>
+      <li>제출 +1, 득표 1표당 +2, 말 테마 일치 +1.</li></ol></div>
+    <div class="card">${host ? `<button onclick="act({type:'start'})">게임 시작 (${S.players.length}명)</button>` : '<span class="mute">방장이 시작하길 기다리는 중…</span>'}
+      <p class="mute">초대 링크: ${esc(location.origin + '/#' + S.code)}</p></div>`;
+}
+
+function cardHtml() {
+  const c = S.card;
+  return `<div class="card"><div class="mute">${esc(c.part)} · 테마 ${esc(c.theme)}</div><h2>${esc(c.title)}</h2>
+    <div class="classic">${esc(c.text)}</div><div class="mute">— ${esc(c.source)}</div>
+    <div class="gyusu">${esc(c.gyusu)}</div></div>`;
+}
+function genreHtml() {
+  return `<div class="card"><div class="dice">${DICE[S.face]}</div><div class="genre">${esc(S.genre)}</div><div class="mute" style="text-align:center">${esc(help(S.genre))}</div></div>`;
+}
+
+function roll(me) {
+  const mine = S.rollerId === S.you;
+  return cardHtml() + `<div class="card" style="text-align:center"><div class="dice">🎲</div>
+    <p>${mine ? '당신 차례입니다. 주사위를 굴려 문체를 정하세요.' : `${esc(pname(S.rollerId))} 님이 주사위를 굴릴 차례입니다…`}</p>
+    ${mine ? `<button onclick="act({type:'roll'})">주사위 굴리기</button>` : ''}
+    <details class="mute"><summary>이 고사의 눈별 문체</summary>${S.card.dice.map((g, i) => `<div>${DICE[i + 1]} ${esc(g)}</div>`).join('')}</details></div>`;
+}
+
+function write(me) {
+  const done = !!S.mySub;
+  return `<div class="card"><span class="timer" id="timer"></span><b>짓기</b> <span class="mute">(${S.players.filter((p) => p.submitted).length}/${S.players.length} 제출)</span></div>` + genreHtml() + cardHtml() +
+    `<div class="card"><textarea id="txt" placeholder="${esc(S.genre)}으로 짓기 — 한자·한글 모두 가능" ${done ? 'readonly' : ''}>${esc(S.mySub || '')}</textarea>
+    <div class="row" style="margin-top:8px"><button ${done ? 'disabled' : ''} onclick="submitText()">${done ? '제출 완료' : '제출'}</button>
+    <span class="mute">${done ? '다른 사람을 기다리는 중…' : ''}</span></div></div>`;
+}
+function submitText() { act({ type: 'submit', text: $('#txt').value }); }
+
+function entryHtml(e, pickable) {
+  const picked = S.myVoteLabel === e.label;
+  return `<div class="entry ${picked ? 'picked' : ''}"><b>${esc(e.label)}</b>${e.mine ? ' <span class="mute">(내 글)</span>' : ''}${e.author ? ` <span class="mute">— ${esc(pname(e.author))}${e.votes != null ? ` · ${e.votes}표` : ''}</span>` : ''}
+    <div class="classic">${esc(e.text)}</div>${pickable && !e.mine ? `<button ${picked ? 'disabled' : ''} onclick="act({type:'vote',label:'${e.label}'})">${picked ? '투표함' : '이 글에 투표'}</button>` : ''}</div>`;
+}
+
+function vote(me) {
+  const canVote = S.mySub;
+  return `<div class="card"><span class="timer" id="timer"></span><b>투표</b> <span class="mute">문체 ${esc(S.genre)} · ${S.players.filter((p) => p.voted).length}/${S.entries.length} 투표</span>
+    <p class="mute">${canVote ? '마음에 드는 글 하나에 투표하세요 (내 글 제외).' : '이번 라운드에 글을 내지 않아 투표할 수 없습니다.'}</p></div>` +
+    S.entries.map((e) => entryHtml(e, canVote)).join('');
+}
+
+function result(me, host) {
+  const g = S.gain || {};
+  return `<div class="card"><h2>결과 — ${esc(S.card.title)} · ${esc(S.genre)}</h2>
+    <table>${S.players.map((p) => { const x = g[p.id]; return `<tr><td>${esc(p.name)}</td><td class="mute">${x ? `제출 +${x.base} · ${x.votes}표 +${x.votes * 2}${x.bonus ? ' · 말 일치 +1' : ''}` : '미제출'}</td><td><b>${x ? '+' + x.total : '+0'}</b></td><td>합계 ${p.score}</td></tr>`; }).join('')}</table></div>` +
+    (S.entries || []).map((e) => entryHtml(e, false)).join('') +
+    `<div class="card">${host ? `<button onclick="act({type:'next'})">${S.round >= S.rounds ? '결과 보기' : '다음 라운드'}</button>` : '<span class="mute">방장이 다음으로 넘기길 기다리는 중…</span>'}</div>`;
+}
+
+function end(me, host) {
+  const rank = S.players.slice().sort((a, b) => b.score - a.score);
+  return `<div class="card"><h2>終局 — ${esc(pname(S.winner))} 님 승리</h2><table>${rank.map((p, i) => `<tr><td>${i + 1}</td><td>${p.piece || ''} ${esc(p.name)}</td><td><b>${p.score}</b></td></tr>`).join('')}</table>
+    ${host ? `<p><button onclick="act({type:'again'})">로비로 돌아가기</button></p>` : ''}</div>`;
+}
+
+function tick() {
+  const t = $('#timer'); if (!t || !S.deadline) return;
+  const left = Math.max(0, Math.ceil((S.deadline - (Date.now() + clockOffset)) / 1000));
+  t.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+}
+setInterval(tick, 500);
+
+if (sess()) connect(); else render();
+</script>
+</body>
+</html>
