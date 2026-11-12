@@ -7,11 +7,17 @@ import { CharacterIcon } from "./Character";
 import { Choices, Notice, Swatches } from "./ui";
 
 export default function ProfileForm({
-  profile, submitLabel, onSaved, markOnboarded = false,
-}: { profile: Profile; submitLabel: string; onSaved: () => void | Promise<void>; markOnboarded?: boolean }) {
+  profile, submitLabel, onSaved, markOnboarded = false, status, onSaveStatus,
+}: {
+  profile: Profile; submitLabel: string; onSaved: () => void | Promise<void>; markOnboarded?: boolean;
+  /** 마을에 살고 있을 때만: 지금 하는 연구(주제·읽는 책) */
+  status?: { topic: string; reading: string }; onSaveStatus?: (patch: { topic: string; reading: string }) => Promise<string | null>;
+}) {
   const [name, setName] = useState(profile.display_name);
   const [field, setField] = useState(profile.field);
   const [bio, setBio] = useState(profile.bio);
+  const [topic, setTopic] = useState(status?.topic ?? "");
+  const [reading, setReading] = useState(status?.reading ?? "");
   const [avatar, setAvatar] = useState<Avatar>({
     skin: SKINS[0], hair: "short", hairColor: HAIR_COLORS[0], outfit: OUTFITS[0], accessory: "none", ...profile.avatar,
   });
@@ -30,6 +36,10 @@ export default function ProfileForm({
       .eq("id", profile.id);
     setBusy(false);
     if (error) return setError(errorMessage(error));
+    if (onSaveStatus) {
+      const msg = await onSaveStatus({ topic: topic.trim(), reading: reading.trim() });
+      if (msg) return setError(msg);
+    }
     setSaved(true);
     await onSaved();
   };
@@ -57,6 +67,18 @@ export default function ProfileForm({
         <label className="label" htmlFor="pf-field">연구 분야</label>
         <input id="pf-field" className="input" value={field} onChange={(e) => { setField(e.target.value); setSaved(false); }} maxLength={60} placeholder="예: 한국사, 번역학" />
       </div>
+      {status && (
+        <>
+          <div>
+            <label className="label" htmlFor="pf-topic">현재 연구 주제</label>
+            <input id="pf-topic" className="input" maxLength={120} value={topic} onChange={(e) => { setTopic(e.target.value); setSaved(false); }} placeholder="예: 조선 후기 방각본의 유통" />
+          </div>
+          <div>
+            <label className="label" htmlFor="pf-reading">읽고 있는 책</label>
+            <input id="pf-reading" className="input" maxLength={120} value={reading} onChange={(e) => { setReading(e.target.value); setSaved(false); }} />
+          </div>
+        </>
+      )}
       <div>
         <label className="label" htmlFor="pf-bio">자기소개</label>
         <textarea id="pf-bio" className="input" rows={3} value={bio} onChange={(e) => { setBio(e.target.value); setSaved(false); }} maxLength={300} />

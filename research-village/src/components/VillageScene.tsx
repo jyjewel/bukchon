@@ -296,6 +296,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           aria-label={`${r.profile.display_name}${r.user_id === myId ? " (나)" : ""} — ${STATUS_META[r.shown].label}. 눌러서 프로필 보기`}
           onClick={() => onCharacter(r.user_id)}
         >
+          {r.say && <span className={`scene-say ${r.user_id === myId ? "scene-say-mine" : ""}`}>{r.say}</span>}
           <span className={`scene-label scene-label-name ${r.user_id === myId ? "scene-label-mine" : ""}`} style={{ top: r.shown === "open" ? "128%" : "104%" }}>
             {r.profile.display_name}
           </span>

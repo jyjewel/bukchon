@@ -3,6 +3,9 @@ import type { DiaryKind, DiaryVisibility, ResearchState } from "./types";
 /** heartbeat 가 이 시간(ms) 넘게 끊기면 오프라인으로 본다. DB 의 enter_village 와 같은 값. */
 export const STALE_MS = 150_000;
 export const HEARTBEAT_MS = 25_000;
+/** 머리 위 한마디가 화면에 남아 있는 시간 */
+export const SAY_MS = 12 * 3600_000;
+export const SAY_MAX = 30;
 export const VILLAGE_CAPACITY = 6;
 
 export const STATUS_META: Record<ResearchState, { label: string; icon: string; where: string; talk: string; color: string }> = {

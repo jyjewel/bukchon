@@ -87,6 +87,19 @@ await t("상태: 본인 것만 바꿀 수 있고, 주민에게만 보인다", as
   assert.ok((await m1.c.from("research_status").update({ last_seen_at: "2000-01-01" }).eq("user_id", m1.id)).error);
 });
 
+await t("머리 위 한마디: 본인만, 30자 이하, 올린 시각 기록", async () => {
+  ok(await m1.c.from("research_status").update({ message: "  점심 먹고 올게요  " }).eq("user_id", m1.id));
+  const row = ok(await m2.c.from("research_status").select("message, message_at").eq("user_id", m1.id).single());
+  assert.equal(row.message, "점심 먹고 올게요"); assert.ok(row.message_at);
+  assert.ok((await m1.c.from("research_status").update({ message: "가".repeat(31) }).eq("user_id", m1.id)).error);
+  assert.equal((await m2.c.from("research_status").update({ message: "해킹" }).eq("user_id", m1.id).select()).data.length, 0);
+  assert.equal(ok(await outside[0].c.from("research_status").select("message")).length, 0);
+  ok(await m1.c.from("research_status").update({ message: "" }).eq("user_id", m1.id));
+  const cleared = ok(await m1.c.from("research_status").select("message, message_at").eq("user_id", m1.id).single());
+  assert.equal(cleared.message, ""); assert.equal(cleared.message_at, null);
+  assert.ok((await m1.c.from("research_status").update({ message_at: "2000-01-01" }).eq("user_id", m1.id)).error); // 시각은 서버만 정한다
+});
+
 await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => {
   ok(await m1.c.from("houses").update({ style: { roof: "#f00" } }).eq("owner_id", m1.id));
   assert.equal((await m1.c.from("houses").update({ style: { roof: "#0f0" } }).eq("owner_id", a.id).select()).data.length, 0);

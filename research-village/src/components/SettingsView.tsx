@@ -147,7 +147,14 @@ export default function SettingsView({
         {error && <Notice kind="error">{error}</Notice>}
         <Window title="내 프로필과 캐릭터" icon="" tone="lilac">
           <div className="p-3">
-            <ProfileForm profile={profile} submitLabel="저장" onSaved={async () => { await reloadProfile(); await reloadVillage(); }} />
+            <ProfileForm
+              profile={profile} submitLabel="저장" status={{ topic: me.status.topic, reading: me.status.reading }}
+              onSaveStatus={async (patch) => {
+                const { error } = await supabase().from("research_status").update(patch).eq("village_id", village.id).eq("user_id", me.user_id);
+                return error ? errorMessage(error) : null;
+              }}
+              onSaved={async () => { await reloadProfile(); await reloadVillage(); }}
+            />
           </div>
         </Window>
       </div>

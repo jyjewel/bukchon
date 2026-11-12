@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
-import { HEARTBEAT_MS, STALE_MS } from "@/lib/constants";
+import { HEARTBEAT_MS, SAY_MS, STALE_MS } from "@/lib/constants";
 import { PROFILE_COLUMNS } from "./useAuth";
 import type { House, Profile, ResearchState, Resident, StatusRow, Village } from "@/lib/types";
 
@@ -139,7 +139,8 @@ export function useVillage(userId: string | null, accessToken: string | null) {
       const status = statuses[m.user_id];
       if (!profile || !house || !status) continue;
       const online = !status.left_at && serverNow - new Date(status.last_seen_at).getTime() < STALE_MS;
-      list.push({ ...m, slot: house.slot, profile, house, status, online, shown: online ? status.status : "offline" });
+      const say = status.message && status.message_at && serverNow - new Date(status.message_at).getTime() < SAY_MS ? status.message : "";
+      list.push({ ...m, slot: house.slot, profile, house, status, online, say, shown: online ? status.status : "offline" });
     }
     return list.sort((a, b) => a.slot - b.slot);
   }, [raw, statuses, now, skew]);
@@ -147,11 +148,11 @@ export function useVillage(userId: string | null, accessToken: string | null) {
   const me = residents.find((r) => r.user_id === userId) ?? null;
 
   const updateMyStatus = useCallback(
-    async (patch: Partial<Pick<StatusRow, "status" | "topic" | "reading">>) => {
+    async (patch: Partial<Pick<StatusRow, "status" | "topic" | "reading" | "message">>) => {
       if (!villageId || !userId) return;
       setStatuses((prev) =>
         prev[userId]
-          ? { ...prev, [userId]: { ...prev[userId], ...patch, left_at: null, last_seen_at: new Date(Date.now() + skew).toISOString() } }
+          ? { ...prev, [userId]: { ...prev[userId], ...patch, ...(patch.message !== undefined ? { message: patch.message.trim(), message_at: patch.message.trim() ? new Date(Date.now() + skew).toISOString() : null } : { left_at: null, last_seen_at: new Date(Date.now() + skew).toISOString() }) } }
           : prev,
       );
       const { error } = await supabase().from("research_status").update(patch).eq("village_id", villageId).eq("user_id", userId);

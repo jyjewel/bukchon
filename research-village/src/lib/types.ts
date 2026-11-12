@@ -40,6 +40,8 @@ export interface StatusRow {
   last_seen_at: string;
   left_at: string | null;
   updated_at: string;
+  message: string;
+  message_at: string | null;
 }
 
 export interface House {
@@ -57,6 +59,8 @@ export interface Resident {
   profile: Profile;
   house: House;
   status: StatusRow;
+  /** 머리 위 말풍선 (12시간이 지나면 빈 문자열) */
+  say: string;
   /** 접속 여부를 반영한 실제 표시 상태 */
   shown: ResearchState;
   online: boolean;
