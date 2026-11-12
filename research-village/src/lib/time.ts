@@ -50,3 +50,16 @@ export function currentPhase(d = new Date()): DayPhase {
   const h = d.getHours();
   return h >= 5 && h < 7 ? "dawn" : h >= 7 && h < 17 ? "day" : h >= 17 && h < 20 ? "dusk" : "night";
 }
+
+/** 브라우저 현지 날짜를 YYYY-MM-DD 로 */
+export function dateKey(d = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+export function dateLabel(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+}
+export function clockLabel(iso: string): string {
+  return new Date(iso).toLocaleString("ko-KR", { month: "long", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit" });
+}

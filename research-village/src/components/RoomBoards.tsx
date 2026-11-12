@@ -11,15 +11,14 @@ type Room = ReturnType<typeof useRoom>;
 
 const TABS: { id: BoardTab; label: string }[] = [
   { id: "whiteboard", label: "화이트보드" },
-  { id: "postits", label: "포스트잇" },
   { id: "shelf", label: "책장" },
 ];
 
 /** 화이트보드(고민과 댓글) · 포스트잇 · 책장(연구 성과) 패널. 주인이면 쓰고 지울 수 있고, 방문자는 댓글과 포스트잇을 남길 수 있다. */
 export default function RoomBoards({
-  owner, myId, villageId, residents, room, tab, onTab, postitsOnly = false,
+  owner, myId, villageId, residents, room, tab, onTab,
 }: {
-  owner: Resident; myId: string; villageId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void; postitsOnly?: boolean;
+  owner: Resident; myId: string; villageId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void;
 }) {
   const isOwner = owner.user_id === myId;
   const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
@@ -32,11 +31,47 @@ export default function RoomBoards({
   };
   const sb = supabase();
 
+  // ── 포스트잇 (화이트보드에 붙는다) ──
+  const [pi, setPi] = useState("");
+  const [color, setColor] = useState(POSTIT_COLORS[0]);
+  const postitsBlock = (
+    <div className="space-y-3">
+      <form className="space-y-2" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("postits").insert({ village_id: villageId, owner_id: owner.user_id, author_id: myId, body: pi.trim(), color }))) setPi(""); }}>
+        <label className="label" htmlFor="pi-new">{isOwner ? "화이트보드에 붙이는 메모" : `${owner.profile.display_name}님의 화이트보드에 포스트잇 붙이기`}</label>
+        <textarea id="pi-new" className="input" rows={2} maxLength={140} value={pi} onChange={(e) => setPi(e.target.value)} placeholder="응원, 질문, 읽어 볼 만한 자료…" />
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="포스트잇 색">
+          {POSTIT_COLORS.map((c) => (
+            <button key={c} type="button" aria-label={`색 ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} className="px-box m-[3px] h-6 w-6" style={{ background: c, ["--bd" as string]: color === c ? "#3a2a33" : "#d9c39a" }} />
+          ))}
+          <span className="flex-1" />
+          <span className="text-xs text-ink-soft">{pi.length}/140</span>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={!pi.trim()}>붙이기</button>
+        </div>
+      </form>
+      <>
+          {room.loaded && room.postits.length === 0 && <p className="py-1 text-center text-xs text-ink-soft">아직 붙은 포스트잇이 없어요.</p>}
+          {room.postits.length > 0 && <ul className="px-box grid gap-3 p-3 sm:grid-cols-2" style={{ background: "#fdfdfb", ["--bd" as string]: "#8a8fa3" }}>
+            {room.postits.map((p, i) => (
+              <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "2px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
+                <p className="whitespace-pre-wrap break-words">{p.body}</p>
+                <p className="mt-1 text-xs">— {who(p.author_id)} · {relativeTime(p.created_at)}</p>
+                {(p.author_id === myId || isOwner) && (
+                  <button type="button" className="text-xs underline" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
+                )}
+              </li>
+            ))}
+          </ul>}
+        </>
+    </div>
+  );
+
   // ── 화이트보드 ──
   const [wb, setWb] = useState("");
   const [cm, setCm] = useState<Record<string, string>>({});
   const whiteboard = (
     <div className="space-y-3">
+      {postitsBlock}
+      <h3 className="label dotted pt-3">고민하는 문제</h3>
       {isOwner ? (
         <form className="space-y-1" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("whiteboard_items").insert({ village_id: villageId, owner_id: myId, body: wb.trim() }))) setWb(""); }}>
           <label className="label" htmlFor="wb-new">요즘 고민하는 문제를 적어 보세요</label>
@@ -85,42 +120,6 @@ export default function RoomBoards({
           </article>
         );
       })}
-    </div>
-  );
-
-  // ── 포스트잇 ──
-  const [pi, setPi] = useState("");
-  const [color, setColor] = useState(POSTIT_COLORS[0]);
-  const postits = (
-    <div className="space-y-3">
-      <form className="space-y-2" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("postits").insert({ village_id: villageId, owner_id: owner.user_id, author_id: myId, body: pi.trim(), color }))) setPi(""); }}>
-        <label className="label" htmlFor="pi-new">{isOwner ? "나에게 남기는 메모" : `${owner.profile.display_name}님의 ${postitsOnly ? "문" : "벽"}에 포스트잇 붙이기`}</label>
-        <textarea id="pi-new" className="input" rows={2} maxLength={140} value={pi} onChange={(e) => setPi(e.target.value)} placeholder="응원, 질문, 읽어 볼 만한 자료…" />
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="포스트잇 색">
-          {POSTIT_COLORS.map((c) => (
-            <button key={c} type="button" aria-label={`색 ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} className="px-box m-[3px] h-6 w-6" style={{ background: c, ["--bd" as string]: color === c ? "#3a2a33" : "#d9c39a" }} />
-          ))}
-          <span className="flex-1" />
-          <span className="text-xs text-ink-soft">{pi.length}/140</span>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={!pi.trim()}>붙이기</button>
-        </div>
-      </form>
-      {!postitsOnly && (
-        <>
-          {room.loaded && room.postits.length === 0 && <p className="py-3 text-center text-sm text-ink-soft">아직 붙은 포스트잇이 없어요.</p>}
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {room.postits.map((p, i) => (
-              <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "2px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
-                <p className="whitespace-pre-wrap break-words">{p.body}</p>
-                <p className="mt-1 text-xs">— {who(p.author_id)} · {relativeTime(p.created_at)}</p>
-                {(p.author_id === myId || isOwner) && (
-                  <button type="button" className="text-xs underline" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
     </div>
   );
 
@@ -190,21 +189,19 @@ export default function RoomBoards({
     </div>
   );
 
-  const count = { whiteboard: room.items.length, postits: room.postits.length, shelf: room.achievements.length };
+  const count = { whiteboard: room.items.length + room.postits.length, shelf: room.achievements.length };
   return (
     <div>
-      {!postitsOnly && (
-        <div role="tablist" aria-label="연구실 게시판" className="flex flex-wrap border-b-[3px] border-ink bg-[#fff3c4] px-1 pt-1">
-          {TABS.map((t) => (
-            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => onTab(t.id)} className={`btn btn-sm ${tab === t.id ? "btn-primary" : ""}`}>
-              {t.label}{room.loaded ? ` ${count[t.id]}` : ""}
-            </button>
-          ))}
-        </div>
-      )}
+      <div role="tablist" aria-label="연구실 게시판" className="flex flex-wrap border-b-[3px] border-ink bg-[#fff3c4] px-1 pt-1">
+        {TABS.map((t) => (
+          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => onTab(t.id)} className={`btn btn-sm ${tab === t.id ? "btn-primary" : ""}`}>
+            {t.label}{room.loaded ? ` ${count[t.id]}` : ""}
+          </button>
+        ))}
+      </div>
       <div className="space-y-3 p-3">
         {error && <Notice kind="error">{error}</Notice>}
-        {postitsOnly ? postits : tab === "whiteboard" ? whiteboard : tab === "postits" ? postits : shelf}
+        {tab === "whiteboard" ? whiteboard : shelf}
       </div>
     </div>
   );

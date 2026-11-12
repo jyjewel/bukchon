@@ -110,23 +110,18 @@ export default function SettingsView({
     if (error) setError(errorMessage(error));
     await reloadVillage();
   };
-  const toggleShare = async (share: boolean) => {
-    const { error } = await supabase().from("profiles").update({ share_study_time: share }).eq("id", profile.id);
-    if (error) setError(errorMessage(error));
-    await reloadProfile();
-    await reloadVillage();
-  };
   const exportData = async () => {
     const sb = supabase();
-    const [sessions, notes, diary, board, postits, shelf] = await Promise.all([
-      sb.from("study_sessions").select("*").eq("user_id", profile.id).order("started_at"),
-      sb.from("study_notes").select("*").eq("user_id", profile.id).maybeSingle(),
+    const [logs, rnotes, diary, board, postits, shelf, entries] = await Promise.all([
+      sb.from("daily_logs").select("*").eq("user_id", profile.id).order("log_date"),
+      sb.from("research_notes").select("*").eq("user_id", profile.id).order("created_at"),
       sb.from("diary_entries").select("*").eq("author_id", profile.id).order("created_at"),
       sb.from("whiteboard_items").select("*").eq("owner_id", profile.id).order("created_at"),
       sb.from("postits").select("*").eq("author_id", profile.id).order("created_at"),
       sb.from("achievements").select("*").eq("owner_id", profile.id).order("created_at"),
+      sb.from("book_entries").select("*").eq("author_id", profile.id).order("created_at"),
     ]);
-    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile, research_status: me.status, house: me.house, study_sessions: sessions.data, study_notes: notes.data, diary_entries: diary.data, whiteboard_items: board.data, postits_written: postits.data, achievements: shelf.data }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile, research_status: me.status, house: me.house, daily_logs: logs.data, research_notes: rnotes.data, diary_entries: diary.data, book_entries: entries.data, whiteboard_items: board.data, postits_written: postits.data, achievements: shelf.data }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "research-village-my-data.json";
@@ -140,7 +135,7 @@ export default function SettingsView({
     await reloadVillage();
   };
   const deleteAccount = async () => {
-    if (window.prompt("계정과 모든 기록(다이어리·연구 시간·노트)이 영구히 지워져요. 계속하려면 ‘삭제’라고 입력해 주세요.") !== "삭제") return;
+    if (window.prompt("계정과 모든 기록(다이어리·일지·연구노트)이 영구히 지워져요. 계속하려면 ‘삭제’라고 입력해 주세요.") !== "삭제") return;
     const { error } = await supabase().rpc("delete_account");
     if (error) return setError(errorMessage(error));
     await supabase().auth.signOut({ scope: "local" });
@@ -162,14 +157,6 @@ export default function SettingsView({
             <Swatches label="지붕 색" options={ROOFS} value={roof} onChange={(c) => void setStyle({ roof: c })} />
             <Swatches label="벽 색" options={WALLS} value={wall} onChange={(c) => void setStyle({ wall: c })} />
             <p className="text-xs text-ink-soft">고르면 바로 마을 지도에 반영돼요.</p>
-          </div>
-        </Window>
-        <Window title="공개 설정" icon="" tone="sky">
-          <div className="space-y-2 p-3 text-sm">
-            <label className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1" checked={profile.share_study_time} onChange={(e) => void toggleShare(e.target.checked)} />
-              <span>오늘의 연구 시간을 마을 주민에게 보여 주기<br /><span className="text-xs text-ink-soft">끄면 연구 시간은 나만 볼 수 있어요. 켜도 순위는 매기지 않아요.</span></span>
-            </label>
           </div>
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}

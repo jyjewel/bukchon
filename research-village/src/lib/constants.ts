@@ -7,7 +7,7 @@ export const VILLAGE_CAPACITY = 6;
 
 export const STATUS_META: Record<ResearchState, { label: string; icon: string; where: string; talk: string; color: string }> = {
   offline: { label: "오프라인", icon: "", where: "집 안의 불이 꺼져 있어요", talk: "지금은 자리에 없어요", color: "#a9a3b8" },
-  focus: { label: "집중 연구", icon: "", where: "집 안에서 집중하고 있어요", talk: "방해하지 않기로 해요", color: "#f2a65a" },
+  focus: { label: "집중 연구", icon: "", where: "집 안에서 연구하고 있어요", talk: "대화 신청은 받지 않아요", color: "#f2a65a" },
   open: { label: "열린 연구", icon: "", where: "집 앞 책상에 나와 있어요", talk: "말을 걸어도 좋아요", color: "#6fbf8e" },
   library: { label: "공동 연구", icon: "", where: "도서관에 있어요", talk: "함께 공부할 수 있어요", color: "#6ea8dc" },
   rest: { label: "휴식 중", icon: "", where: "광장에서 쉬고 있어요", talk: "편하게 인사해요", color: "#e58fb0" },

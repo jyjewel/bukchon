@@ -22,6 +22,7 @@ const ERRORS: Record<string, string> = {
   already_in_village: "이미 다른 마을에 살고 있어요. 지금은 한 마을에만 살 수 있어요.",
   not_admin: "마을 관리자만 할 수 있는 일이에요.",
   not_member: "이 마을의 주민이 아니에요.",
+  not_available: "지금은 대화를 받을 수 있는 상태가 아니에요. 집 앞 책상에 나와 있는 주민에게만 신청할 수 있어요.",
   "Invalid login credentials": "이메일 또는 비밀번호가 맞지 않아요.",
   "User already registered": "이미 가입된 이메일이에요. 로그인해 주세요.",
   "Email not confirmed": "이메일 인증이 아직 끝나지 않았어요. 메일함을 확인해 주세요.",
