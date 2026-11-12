@@ -156,7 +156,6 @@ export default function SettingsView({
           <div className="space-y-3 p-3">
             <Swatches label="지붕 색" options={ROOFS} value={roof} onChange={(c) => void setStyle({ roof: c })} />
             <Swatches label="벽 색" options={WALLS} value={wall} onChange={(c) => void setStyle({ wall: c })} />
-            <p className="text-xs text-ink-soft">고르면 바로 마을 지도에 반영돼요.</p>
           </div>
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}

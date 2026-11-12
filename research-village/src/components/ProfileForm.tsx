@@ -12,7 +12,6 @@ export default function ProfileForm({
   const [name, setName] = useState(profile.display_name);
   const [field, setField] = useState(profile.field);
   const [bio, setBio] = useState(profile.bio);
-  const [keywords, setKeywords] = useState(profile.keywords.join(", "));
   const [avatar, setAvatar] = useState<Avatar>({
     skin: SKINS[0], hair: "short", hairColor: HAIR_COLORS[0], outfit: OUTFITS[0], accessory: "none", ...profile.avatar,
   });
@@ -25,10 +24,9 @@ export default function ProfileForm({
     e.preventDefault();
     setBusy(true);
     setError("");
-    const kw = [...new Set(keywords.split(",").map((k) => k.trim().slice(0, 40)).filter(Boolean))].slice(0, 12);
     const { error } = await supabase()
       .from("profiles")
-      .update({ display_name: name.trim(), field: field.trim(), bio: bio.trim(), keywords: kw, avatar, ...(markOnboarded ? { onboarded: true } : {}) })
+      .update({ display_name: name.trim(), field: field.trim(), bio: bio.trim(), avatar, ...(markOnboarded ? { onboarded: true } : {}) })
       .eq("id", profile.id);
     setBusy(false);
     if (error) return setError(errorMessage(error));
@@ -58,10 +56,6 @@ export default function ProfileForm({
       <div>
         <label className="label" htmlFor="pf-field">연구 분야</label>
         <input id="pf-field" className="input" value={field} onChange={(e) => { setField(e.target.value); setSaved(false); }} maxLength={60} placeholder="예: 한국사, 번역학" />
-      </div>
-      <div>
-        <label className="label" htmlFor="pf-keywords">관심 키워드 <span className="text-ink-soft">(쉼표로 구분)</span></label>
-        <input id="pf-keywords" className="input" value={keywords} onChange={(e) => { setKeywords(e.target.value); setSaved(false); }} placeholder="예: Korean History, Print Culture" />
       </div>
       <div>
         <label className="label" htmlFor="pf-bio">자기소개</label>

@@ -18,7 +18,6 @@ export default function ResearchNotes({ data, userId }: { data: Notes; userId: s
 
   return (
     <div className="space-y-2 p-3">
-      <p className="text-xs text-ink-soft">나만 볼 수 있어요. 카테고리는 자유롭게 만들 수 있어요.</p>
       <div className="flex flex-wrap items-center" role="group" aria-label="카테고리 목록">
         <button type="button" aria-pressed={filter === ALL} className={`btn btn-sm ${filter === ALL ? "btn-primary" : ""}`} onClick={() => setFilter(ALL)}>전체 {data.notes.length}</button>
         {data.categories.map((c) => (

@@ -18,7 +18,7 @@ export default function RoomVisit({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn" onClick={onBack}>◀ 마을로 돌아가기</button>
-        <button type="button" className="btn" onClick={onProfile}>{name}의 미니홈피</button>
+        <button type="button" className="btn" onClick={onProfile}>{name}의 프로필</button>
       </div>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <Window title={`${name}의 연구실`} tone="butter">
@@ -26,9 +26,6 @@ export default function RoomVisit({
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)}
             note={inRoom ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={onTab}
           />
-          <p className="border-t-[3px] border-ink px-3 py-2 text-xs text-ink-soft">
-            {inRoom ? `${name}님이 연구 중이에요. 조용히 구경하고, 포스트잇이나 댓글을 남겨 보세요.` : "화이트보드와 책장을 눌러 보세요."}
-          </p>
         </Window>
         <Window title="구경하고 남기기" tone="sky">
           <RoomBoards owner={owner} myId={myId} villageId={villageId} residents={residents} room={room} tab={tab} onTab={onTab} />

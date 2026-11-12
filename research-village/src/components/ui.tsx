@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 const TONES = { rose: "#ff9fb6", mint: "#a5e3a0", sky: "#a9d8f5", butter: "#ffdf7a", lilac: "#cdb8f2" } as const;
 export type Tone = keyof typeof TONES;
 
-/** 미니홈피 풍 창틀 */
+/** 도트 창틀 */
 export function Window({
   title, tone = "rose", children, className = "", actions, as: Tag = "section",
 }: {

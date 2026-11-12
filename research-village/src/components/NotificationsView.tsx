@@ -18,7 +18,7 @@ export default function NotificationsView({
   return (
     <Window title="알림" tone="mint" actions={<button type="button" className="btn btn-sm" disabled={!unread} onClick={onReadAll}>모두 읽음</button>}>
       <ul className="p-2">
-        {list.length === 0 && <li className="p-4 text-center text-sm text-ink-soft">아직 알림이 없어요. 누가 연구실에 다녀가거나 대화를 신청하면 여기에 알려 드려요.</li>}
+        {list.length === 0 && <li className="p-4 text-center text-sm text-ink-soft">아직 알림이 없어요.</li>}
         {list.map((n) => (
           <li key={n.id}>
             <button type="button" onClick={() => onOpen(n)} className={`card flex w-[calc(100%-6px)] items-start gap-3 p-2 text-left text-sm ${n.read_at ? "" : "card-on"}`}>

@@ -49,7 +49,6 @@ export default function RoomBoards({
         </div>
       </form>
       <>
-          {room.loaded && room.postits.length === 0 && <p className="py-1 text-center text-xs text-ink-soft">아직 붙은 포스트잇이 없어요.</p>}
           {room.postits.length > 0 && <ul className="px-box grid gap-3 p-3 sm:grid-cols-2" style={{ background: "#fdfdfb", ["--bd" as string]: "#8a8fa3" }}>
             {room.postits.map((p, i) => (
               <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "2px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
@@ -71,16 +70,15 @@ export default function RoomBoards({
   const whiteboard = (
     <div className="space-y-3">
       {postitsBlock}
-      <h3 className="label dotted pt-3">고민하는 문제</h3>
+      {!isOwner && <h3 className="label dotted pt-3">고민하는 문제</h3>}
+      {isOwner && <div className="dotted" />}
       {isOwner ? (
         <form className="space-y-1" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("whiteboard_items").insert({ village_id: villageId, owner_id: myId, body: wb.trim() }))) setWb(""); }}>
           <label className="label" htmlFor="wb-new">요즘 고민하는 문제를 적어 보세요</label>
           <textarea id="wb-new" className="input" rows={3} maxLength={500} value={wb} onChange={(e) => setWb(e.target.value)} placeholder="예: 방각본의 간행 연대를 어떻게 추정할 수 있을까?" />
           <button type="submit" className="btn btn-primary btn-sm" disabled={!wb.trim()}>화이트보드에 쓰기</button>
         </form>
-      ) : (
-        <p className="text-xs text-ink-soft">{owner.profile.display_name}님이 고민하는 문제예요. 생각을 댓글로 남겨 주세요.</p>
-      )}
+      ) : null}
       {room.loaded && room.items.length === 0 && <p className="py-3 text-center text-sm text-ink-soft">{isOwner ? "아직 적은 고민이 없어요." : "화이트보드가 비어 있어요."}</p>}
       {room.items.map((it) => {
         const cs = room.comments.filter((c) => c.item_id === it.id);
@@ -139,7 +137,6 @@ export default function RoomBoards({
     <div className="space-y-3">
       {isOwner && (
         <form className="space-y-2" onSubmit={addAchievement}>
-          <p className="text-xs text-ink-soft">논문·책·발표를 책장에 꽂아 두세요. RISS 링크를 붙이면 누구나 원문 페이지로 갈 수 있어요.</p>
           <div>
             <label className="label" htmlFor="ac-title">제목</label>
             <input id="ac-title" className="input" maxLength={200} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
@@ -165,7 +162,6 @@ export default function RoomBoards({
             <button type="submit" className="btn btn-primary btn-sm" disabled={!form.title.trim()}>책장에 꽂기</button>
             <a className="btn btn-sm" href={rissSearchUrl(form.title || owner.profile.display_name)} target="_blank" rel="noopener noreferrer">RISS에서 찾기 (새 창)</a>
           </div>
-          <p className="text-xs text-ink-soft">RISS에서 해당 자료 상세 페이지를 열고 주소창의 링크를 복사해 붙여 넣으세요.</p>
         </form>
       )}
       {room.loaded && room.achievements.length === 0 && <p className="py-3 text-center text-sm text-ink-soft">{isOwner ? "아직 책장이 비어 있어요." : "아직 꽂힌 책이 없어요."}</p>}

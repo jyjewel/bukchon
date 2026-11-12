@@ -4,7 +4,6 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { clockLabel, relativeTime } from "@/lib/time";
 import type { useLibrary } from "@/hooks/useLibrary";
 import type { Book, Resident } from "@/lib/types";
-import { CharacterIcon } from "./Character";
 import { Notice, Window } from "./ui";
 
 type Lib = ReturnType<typeof useLibrary>;
@@ -12,21 +11,12 @@ const SPINES = ["#e0605a", "#5f8fd6", "#f2c64e", "#62b866", "#b08ae0", "#f0994a"
 const spineColor = (id: string) => SPINES[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % SPINES.length];
 const ZOOM_NEW = "https://zoom.us/start/videomeeting";
 
-function MeetingState({ startsAt }: { startsAt: string }) {
-  const [now] = useState(() => Date.now());
-  const t = new Date(startsAt).getTime();
-  if (now >= t - 15 * 60_000 && now <= t + 2 * 3600_000) return <span className="chip" style={{ background: "#ffe58a" }}>진행 중 / 곧 시작</span>;
-  if (now > t + 2 * 3600_000) return <span className="chip">끝남</span>;
-  return null;
-}
-
 export default function LibraryView({
-  lib, villageId, me, residents, isAdmin, onGoHere,
-}: { lib: Lib; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean; onGoHere: () => void }) {
+  lib, villageId, me, residents, isAdmin,
+}: { lib: Lib; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean }) {
   const [bookId, setBookId] = useState<string | null>(null);
   const [nowMs] = useState(() => Date.now());
   const [error, setError] = useState("");
-  const here = residents.filter((r) => r.shown === "library");
   const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민" : "떠난 주민");
   const book = lib.books.find((b) => b.id === bookId) ?? null;
   const run = async (p: PromiseLike<{ error: unknown }>) => {
@@ -57,33 +47,16 @@ export default function LibraryView({
     if (await run(sb.from("meetings").insert({ village_id: villageId, title: mt.title.trim(), starts_at: new Date(mt.when).toISOString(), zoom_url: mt.url.trim(), note: mt.note.trim(), created_by: me.user_id }))) setMt({ title: "", when: "", url: "", note: "" });
   };
   const upcoming = lib.meetings.filter((m) => new Date(m.starts_at).getTime() > nowMs - 2 * 3600_000);
-  const earlier = lib.meetings.filter((m) => new Date(m.starts_at).getTime() <= nowMs - 2 * 3600_000).reverse().slice(0, 3);
 
   return (
     <div className="space-y-5">
       {error && <Notice kind="error">{error}</Notice>}
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="space-y-5">
-          <Window title="공동 도서관" tone="sky">
-            <div className="space-y-2 p-3 text-sm">
-              <p>모든 주민이 함께 쓰는 공부 공간이에요. 도서관에 가면 ‘공동 연구’ 상태로 보여요.</p>
-              <div>
-                <h3 className="label">지금 여기 있는 주민</h3>
-                {here.length === 0 ? <p className="text-ink-soft">아무도 없어요.</p> : (
-                  <ul className="flex flex-wrap gap-2">
-                    {here.map((r) => <li key={r.user_id} className="card flex items-center gap-2 px-2 py-1"><CharacterIcon avatar={r.profile.avatar} size={34} />{r.profile.display_name}{r.user_id === me.user_id && " (나)"}</li>)}
-                  </ul>
-                )}
-              </div>
-              {me.shown !== "library" && <button type="button" className="btn btn-primary" onClick={onGoHere}>도서관으로 가기</button>}
-            </div>
-          </Window>
-
           <Window title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
-              <p className="text-xs text-ink-soft">주제를 정해 책을 만들면, 주민들이 그 아래로 차례로 이어서 써요. 책등을 눌러 읽고 이어 쓰세요.</p>
               <div className="px-box flex min-h-[180px] flex-wrap items-end gap-1 p-2" style={{ background: "linear-gradient(#6f4a30 0 0) bottom / 100% 10px no-repeat, #8a5f3c", ["--bd" as string]: "#3a2a33" }} role="group" aria-label="책장">
-                {lib.loaded && lib.books.length === 0 && <p className="w-full pb-4 text-center text-xs text-[#fff8e4]">아직 책이 없어요. 아래에서 첫 책을 만들어 보세요.</p>}
+                {lib.loaded && lib.books.length === 0 && <p className="w-full pb-4 text-center text-xs text-[#fff8e4]">아직 책이 없어요.</p>}
                 {lib.books.map((b) => {
                   const n = lib.entries.filter((e) => e.book_id === b.id).length;
                   return (
@@ -111,7 +84,7 @@ export default function LibraryView({
               {lib.loaded && upcoming.length === 0 && <li className="text-ink-soft">예정된 회의가 없어요.</li>}
               {upcoming.map((m) => (
                 <li key={m.id} className="card space-y-1 p-2">
-                  <p className="flex flex-wrap items-center gap-1"><span className="font-display">{m.title}</span> <MeetingState startsAt={m.starts_at} /></p>
+                  <p className="flex flex-wrap items-center gap-1"><span className="font-display">{m.title}</span></p>
                   <p className="text-xs text-ink-soft">{clockLabel(m.starts_at)} · {who(m.created_by)}님이 열었어요</p>
                   {m.note && <p className="text-xs">{m.note}</p>}
                   <div className="flex flex-wrap gap-1">
@@ -120,7 +93,6 @@ export default function LibraryView({
                   </div>
                 </li>
               ))}
-              {earlier.map((m) => <li key={m.id} className="px-1 text-xs text-ink-soft">지난 회의 · {m.title} ({clockLabel(m.starts_at)})</li>)}
             </ul>
             <form onSubmit={createMeeting} className="card space-y-1 p-2">
               <p className="label">회의 열기</p>
@@ -134,7 +106,6 @@ export default function LibraryView({
                 <button type="submit" className="btn btn-primary btn-sm" disabled={!mt.title.trim() || !mt.when || !mt.url.trim()}>회의 등록하고 알리기</button>
                 <a className="btn btn-sm" href={ZOOM_NEW} target="_blank" rel="noopener noreferrer">Zoom에서 새 회의 만들기 (새 창)</a>
               </div>
-              <p className="text-xs text-ink-soft">Zoom에서 회의를 만든 뒤 초대 링크를 복사해 붙여 넣으면, 다른 주민들에게 알림이 가고 누구나 눌러서 참여할 수 있어요.</p>
             </form>
           </div>
         </Window>
@@ -175,7 +146,7 @@ function BookReader({
         </div>
         {book.topic && <p className="card p-2 text-sm"><span className="label">주제</span>{book.topic}</p>}
         <ol className="space-y-3">
-          {entries.length === 0 && <li className="py-3 text-center text-sm text-ink-soft">아직 첫 글이 없어요. 첫 문단을 열어 주세요.</li>}
+          {entries.length === 0 && <li className="py-3 text-center text-sm text-ink-soft">아직 글이 없어요.</li>}
           {entries.map((e, i) => (
             <li key={e.id} className="card p-3">
               <p className="text-xs text-ink-soft">{i + 1}번째 · {who(e.author_id)} · {relativeTime(e.created_at)}</p>
@@ -200,7 +171,7 @@ function BookReader({
               {editId && <button type="button" className="btn btn-sm" onClick={() => { setEditId(null); setHeading(""); setBody(""); }}>취소</button>}
             </div>
           </form>
-        ) : <p className="text-center text-sm text-ink-soft">완결된 책이에요. 만든 사람이 ‘다시 이어 쓰기’를 누르면 다시 쓸 수 있어요.</p>}
+        ) : null}
       </div>
     </Window>
   );
