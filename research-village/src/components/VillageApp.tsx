@@ -213,6 +213,12 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                       visit(owner.user_id, undefined, true);
                     }}
                     onPlace={goPlace}
+                    onDesk={(slot) => {
+                      const owner = v.residents.find((r) => r.slot === slot);
+                      if (!owner) return;
+                      if (owner.user_id === me.user_id) void v.setStatus("open"); // 내 책상: 밖에 나와 앉는다
+                      else setSelected(owner.user_id);
+                    }}
                   />
                 </div>
               </div>
