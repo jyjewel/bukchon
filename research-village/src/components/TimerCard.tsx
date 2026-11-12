@@ -17,7 +17,7 @@ export default function TimerCard({ timer, goalMinutes, defaultSubject }: { time
       </p>
       {active ? (
         <p className="text-center text-sm text-ink-soft">
-          {running ? "⏱️ 연구 중" : "⏸️ 잠시 멈춤"}{active.subject && ` · ${active.subject}`}
+          {running ? "연구 중" : "잠시 멈춤"}{active.subject && ` · ${active.subject}`}
         </p>
       ) : (
         <div>
@@ -27,7 +27,7 @@ export default function TimerCard({ timer, goalMinutes, defaultSubject }: { time
       )}
       <div className="flex flex-wrap justify-center gap-2">
         {!active && <button type="button" className="btn btn-primary" disabled={busy} onClick={() => timer.start(subject.trim() || defaultSubject)}>▶ 시작</button>}
-        {active && running && <button type="button" className="btn" disabled={busy} onClick={() => timer.pause()}>⏸ 일시정지</button>}
+        {active && running && <button type="button" className="btn" disabled={busy} onClick={() => timer.pause()}>|| 일시정지</button>}
         {active && !running && <button type="button" className="btn btn-mint" disabled={busy} onClick={() => timer.resume()}>▶ 이어서</button>}
         {active && <button type="button" className="btn btn-primary" disabled={busy} onClick={async () => { await timer.stop(); setSubject(""); }}>■ 종료</button>}
       </div>
@@ -35,10 +35,10 @@ export default function TimerCard({ timer, goalMinutes, defaultSubject }: { time
         <p>오늘의 연구 시간 <strong className="font-display">{stats.today ? humanDuration(stats.today) : "아직 없음"}</strong></p>
         {goalSec > 0 && (
           <div className="mt-1">
-            <div className="h-3 overflow-hidden rounded-full border-2 border-ink bg-white" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="오늘 목표 달성률">
+            <div className="px-box m-[3px] h-3 overflow-hidden bg-[#fffdf6]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="오늘 목표 달성률">
               <div className="h-full bg-mint" style={{ width: `${pct}%` }} />
             </div>
-            <p className="mt-0.5 text-xs text-ink-soft">목표 {humanDuration(goalSec)} 중 {pct}%{pct >= 100 && " 🎉"}</p>
+            <p className="mt-0.5 text-xs text-ink-soft">목표 {humanDuration(goalSec)} 중 {pct}%{pct >= 100 && " "}</p>
           </div>
         )}
       </div>

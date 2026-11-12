@@ -34,9 +34,9 @@ export default function AuthScreen({ hasInvite }: { hasInvite: boolean }) {
   };
 
   return (
-    <Window title={mode === "signin" ? "마을 들어가기" : "새 연구자 등록"} icon="🔑" tone="rose">
+    <Window title={mode === "signin" ? "마을 들어가기" : "새 연구자 등록"} icon="" tone="rose">
       <form onSubmit={submit} className="space-y-3 p-4">
-        {hasInvite && <Notice kind="ok">💌 마을 초대장을 가지고 오셨네요! 로그인하면 바로 입주할 수 있어요.</Notice>}
+        {hasInvite && <Notice kind="ok">마을 초대장을 가지고 오셨네요! 로그인하면 바로 입주할 수 있어요.</Notice>}
         <div role="tablist" aria-label="로그인 또는 가입" className="flex gap-2">
           {(["signin", "signup"] as const).map((m) => (
             <button key={m} type="button" role="tab" aria-selected={mode === m} className={`btn flex-1 ${mode === m ? "btn-primary" : ""}`} onClick={() => { setMode(m); setError(""); setInfo(""); }}>

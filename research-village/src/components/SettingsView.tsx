@@ -44,7 +44,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
   };
 
   return (
-    <Window title="마을 관리" icon="🌟" tone="butter">
+    <Window title="마을 관리" icon="" tone="butter">
       <div className="space-y-4 p-3">
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
         <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); void act(() => supabase().from("villages").update({ name: name.trim() }).eq("id", village.id), "마을 이름을 바꿨어요."); }}>
@@ -61,7 +61,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
             <div className="space-y-2">
               <input className="input text-xs" readOnly value={inviteUrl(invite.code)} aria-label="초대 링크" onFocus={(e) => e.target.select()} />
               <p className="text-xs text-ink-soft">
-                {expired ? "⚠ 만료된 링크예요. 새로 발급해 주세요." : `${new Date(invite.expires_at).toLocaleString("ko-KR", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}까지 쓸 수 있어요.`}
+                {expired ? "! 만료된 링크예요. 새로 발급해 주세요." : `${new Date(invite.expires_at).toLocaleString("ko-KR", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}까지 쓸 수 있어요.`}
               </p>
             </div>
           ) : (
@@ -81,7 +81,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
           <ul className="space-y-1">
             {residents.map((r) => (
               <li key={r.user_id} className="flex items-center gap-2 text-sm">
-                <span className="flex-1 truncate">{r.slot + 1}번 집 · {r.profile.display_name}{r.role === "admin" && " 🌟"}</span>
+                <span className="flex-1 truncate">{r.slot + 1}번 집 · {r.profile.display_name}{r.role === "admin" && " "}</span>
                 {r.user_id !== myId && (
                   <button type="button" className="btn btn-sm btn-danger" disabled={busy} onClick={() => {
                     if (window.confirm(`${r.profile.display_name} 님을 마을에서 내보낼까요? 이 마을에 남긴 다이어리도 함께 지워져요.`)) {
@@ -147,21 +147,21 @@ export default function SettingsView({
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-4">
         {error && <Notice kind="error">{error}</Notice>}
-        <Window title="내 프로필과 캐릭터" icon="🎨" tone="lilac">
+        <Window title="내 프로필과 캐릭터" icon="" tone="lilac">
           <div className="p-3">
             <ProfileForm profile={profile} submitLabel="저장" onSaved={async () => { await reloadProfile(); await reloadVillage(); }} />
           </div>
         </Window>
       </div>
       <div className="space-y-4">
-        <Window title="집 꾸미기" icon="🏡" tone="mint">
+        <Window title="집 꾸미기" icon="" tone="mint">
           <div className="space-y-3 p-3">
             <Swatches label="지붕 색" options={ROOFS} value={roof} onChange={(c) => void setStyle({ roof: c })} />
             <Swatches label="벽 색" options={WALLS} value={wall} onChange={(c) => void setStyle({ wall: c })} />
             <p className="text-xs text-ink-soft">고르면 바로 마을 지도에 반영돼요.</p>
           </div>
         </Window>
-        <Window title="공개 설정" icon="🔒" tone="sky">
+        <Window title="공개 설정" icon="" tone="sky">
           <div className="space-y-2 p-3 text-sm">
             <label className="flex items-start gap-2">
               <input type="checkbox" className="mt-1" checked={profile.share_study_time} onChange={(e) => void toggleShare(e.target.checked)} />
@@ -170,10 +170,10 @@ export default function SettingsView({
           </div>
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}
-        <Window title="내 데이터와 계정" icon="🧳" tone="rose">
+        <Window title="내 데이터와 계정" icon="" tone="rose">
           <div className="space-y-3 p-3 text-sm">
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn" onClick={() => void exportData()}>📦 내 데이터 내려받기</button>
+              <button type="button" className="btn" onClick={() => void exportData()}>내 데이터 내려받기</button>
               <button type="button" className="btn" onClick={() => supabase().auth.signOut()}>로그아웃</button>
             </div>
             <div className="dotted flex flex-wrap gap-2 pt-3">

@@ -4,6 +4,12 @@
 
 ![마을 화면](docs/village.png)
 
+| 밤의 마을 | 내 연구실 |
+| --- | --- |
+| ![밤](docs/village-night.png) | ![연구실](docs/room.png) |
+
+화면은 도트 게임 풍입니다. 마을·캐릭터·연구실은 이미지 파일 없이 `src/pixel/`의 코드가 캔버스에 직접 그리고, 글꼴은 도트 한글 폰트 [갈무리](https://github.com/quiple/galmuri)(SIL OFL)를 씁니다.
+
 ## 지금 되는 것 (Phase 1)
 
 - 이메일 회원가입·로그인, 프로필과 캐릭터 꾸미기
@@ -23,7 +29,8 @@
 | --- | --- |
 | `supabase/migrations/` | 테이블, RLS 정책, RPC 함수 (정원·초대·타이머·접속 상태) |
 | `src/hooks/` | `useAuth`, `useVillage`(실시간 동기화·heartbeat), `useTimer`, `useNotes`, `useDiary` |
-| `src/components/` | `VillageScene`(SVG 마을), `StudyRoom`, `DiaryView`, `ProfileModal`, `SettingsView` 등 |
+| `src/pixel/` | 도트 스프라이트(캐릭터·집·나무·연구실)를 그리는 코드 |
+| `src/components/` | `VillageScene`(캔버스 마을), `StudyRoom`, `DiaryView`, `ProfileModal`, `SettingsView` 등 |
 | `scripts/test-backend.mjs` | 정원·권한·타이머 규칙 검증 |
 
 서버 코드가 없는 정적 앱입니다. 브라우저는 공개(anon) 키만 쓰고, 모든 접근 제어는 데이터베이스의 Row Level Security가 맡습니다.

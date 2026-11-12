@@ -44,7 +44,6 @@ function Splash({ children }: { children: React.ReactNode }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-4">
       <header className="text-center">
-        <p className="text-4xl" aria-hidden>🏡</p>
         <h1 className="font-display text-3xl">연구자 마을</h1>
         <p className="text-sm text-ink-soft">6명이 함께 살아가는 작은 디지털 연구 마을</p>
       </header>
@@ -61,7 +60,7 @@ export default function App() {
   if (!isConfigured) {
     return (
       <Splash>
-        <Window title="설정이 필요해요" icon="🔧" tone="butter">
+        <Window title="설정이 필요해요" icon="" tone="butter">
           <div className="space-y-2 p-4 text-sm">
             <p>Supabase 연결 정보가 없어요. <code>.env.local</code> 파일에 아래 두 값을 넣고 다시 실행해 주세요.</p>
             <pre className="overflow-x-auto rounded-lg bg-white p-3 text-xs">NEXT_PUBLIC_SUPABASE_URL=…{"\n"}NEXT_PUBLIC_SUPABASE_ANON_KEY=…</pre>
@@ -85,7 +84,7 @@ function Configured() {
   if (!auth.profile.onboarded) {
     return (
       <Splash>
-        <Window title="나의 연구자 캐릭터 만들기" icon="🎨" tone="lilac">
+        <Window title="나의 연구자 캐릭터 만들기" icon="" tone="lilac">
           <div className="p-4">
             <ProfileForm profile={auth.profile} submitLabel="이 모습으로 시작하기" onSaved={auth.reloadProfile} markOnboarded />
           </div>

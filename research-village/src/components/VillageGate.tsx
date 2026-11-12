@@ -44,7 +44,7 @@ export default function VillageGate({ inviteCode, onClearInvite, onDone }: { inv
   return (
     <>
       {error && <Notice kind="error">{error}</Notice>}
-      <Window title="초대장으로 입주하기" icon="💌" tone="mint">
+      <Window title="초대장으로 입주하기" icon="" tone="mint">
         <form onSubmit={join} className="space-y-3 p-4">
           {inviteCode && preview === "none" && <Notice kind="error">이 초대 링크는 더 이상 쓸 수 없어요. 마을 관리자에게 새 링크를 부탁해 보세요.</Notice>}
           {inviteCode && preview && preview !== "none" && (
@@ -61,7 +61,7 @@ export default function VillageGate({ inviteCode, onClearInvite, onDone }: { inv
           <button type="submit" className="btn btn-mint" disabled={busy || !code.trim()}>입주하기</button>
         </form>
       </Window>
-      <Window title="새 마을 만들기" icon="🌱" tone="butter">
+      <Window title="새 마을 만들기" icon="" tone="butter">
         <form onSubmit={create} className="space-y-3 p-4">
           <p className="text-sm text-ink-soft">집 6채와 도서관, 광장이 있는 비공개 마을이 생겨요. 만든 사람이 관리자가 되어 초대 링크를 보낼 수 있어요.</p>
           <div>

@@ -39,7 +39,7 @@ export default function ProfileForm({
   return (
     <form onSubmit={submit} className="space-y-3">
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex shrink-0 flex-col items-center gap-1 self-center rounded-2xl border-2 border-dashed border-line bg-white px-6 py-3 sm:self-start">
+        <div className="card flex shrink-0 flex-col items-center gap-2 self-center px-6 py-3 sm:self-start">
           <CharacterIcon avatar={avatar} size={120} />
           <span className="font-display text-sm">{name || "이름 없음"}</span>
         </div>
@@ -70,7 +70,7 @@ export default function ProfileForm({
       {error && <Notice kind="error">{error}</Notice>}
       <div className="flex items-center gap-3">
         <button type="submit" className="btn btn-primary" disabled={busy || !name.trim()}>{busy ? "저장 중…" : submitLabel}</button>
-        {saved && <span className="text-sm text-mint-deep" role="status">✓ 저장했어요</span>}
+        {saved && <span className="text-sm text-mint-deep" role="status">저장했어요!</span>}
       </div>
     </form>
   );

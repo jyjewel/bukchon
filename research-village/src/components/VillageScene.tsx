@@ -1,162 +1,23 @@
 "use client";
-import { useEffect, useState, type KeyboardEvent, type ReactNode } from "react";
-import { CharacterG } from "./Character";
-import { DEFAULT_ROOFS, STATUS_META, WALLS } from "@/lib/constants";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { STATUS_META } from "@/lib/constants";
 import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/time";
 import type { House, Resident } from "@/lib/types";
+import { bake } from "@/pixel/core";
+import { AV_H, avatarGrid } from "@/pixel/avatar";
+import {
+  BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
+  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
+} from "@/pixel/village";
 
-const LINE = "#5b4636";
-const W = 1000;
-const H = 660;
+const PHASE_LABEL: Record<DayPhase, string> = { dawn: "새벽", day: "낮", dusk: "해질녘", night: "밤" };
+const TINT: Record<DayPhase, string | null> = { dawn: "#ffe3d2", day: null, dusk: "#ffc7a0", night: "#6f7fc4" };
+const SPEED = 2.4; // 한 프레임(1/30초)에 걷는 도트 수
 
-const HOUSE_POS = [
-  { x: 170, y: 215 }, { x: 830, y: 215 }, { x: 105, y: 415 },
-  { x: 895, y: 415 }, { x: 250, y: 610 }, { x: 750, y: 610 },
-];
-const DESK_POS = [
-  { x: 288, y: 262 }, { x: 712, y: 262 }, { x: 232, y: 442 },
-  { x: 768, y: 442 }, { x: 385, y: 588 }, { x: 615, y: 588 },
-];
-const LIBRARY = { x: 500, y: 190 };
-const PLAZA = { x: 500, y: 400 };
-const BOARD = { x: 500, y: 612 };
-const LIBRARY_SPOTS = [0, 1, 2, 3, 4, 5].map((i) => ({ x: 410 + i * 36, y: 240 + (i % 2) * 8 }));
-const REST_SPOTS = [
-  { x: 415, y: 408 }, { x: 585, y: 408 }, { x: 448, y: 458 },
-  { x: 552, y: 458 }, { x: 500, y: 476 }, { x: 562, y: 352 },
-];
+interface Walker { x: number; y: number; visible: boolean; moving: boolean; left: boolean }
 
-const SEASONS: Record<Season, { ground: string; ground2: string; leaves: string[]; flowers: string[]; label: string }> = {
-  spring: { ground: "#cfeab4", ground2: "#bfe0a2", leaves: ["#f9c9d6", "#a9d99a", "#f7b6c8"], flowers: ["#f4a7b9", "#fff", "#f6cf73"], label: "봄" },
-  summer: { ground: "#bfe3a3", ground2: "#aad68e", leaves: ["#7cc486", "#8fd08d", "#69b57c"], flowers: ["#f6cf73", "#fff", "#8fb8e8"], label: "여름" },
-  autumn: { ground: "#dde3a6", ground2: "#cfd692", leaves: ["#f2a65a", "#e8837c", "#f6cf73"], flowers: ["#f2a477", "#fff5e1", "#d98bb0"], label: "가을" },
-  winter: { ground: "#eef4f1", ground2: "#dfe9e6", leaves: ["#d5e4ea", "#c5d8e0", "#e3eef2"], flowers: ["#fff", "#cfe4f6", "#fff"], label: "겨울" },
-};
-const PHASES: Record<DayPhase, { tint: string; opacity: number; label: string }> = {
-  dawn: { tint: "#ffc9a8", opacity: 0.16, label: "새벽" },
-  day: { tint: "#fff", opacity: 0, label: "낮" },
-  dusk: { tint: "#ff9060", opacity: 0.18, label: "해질녘" },
-  night: { tint: "#232c66", opacity: 0.4, label: "밤" },
-};
-
-function Hit({ label, onActivate, children, x, y }: { label: string; onActivate: () => void; children: ReactNode; x: number; y: number }) {
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onActivate();
-    }
-  };
-  return (
-    <g role="button" tabIndex={0} aria-label={label} className="scene-hit" transform={`translate(${x} ${y})`} onClick={onActivate} onKeyDown={onKey}>
-      {children}
-    </g>
-  );
-}
-
-function Label({ y, children, size = 15 }: { y: number; children: ReactNode; size?: number }) {
-  return (
-    <text y={y} textAnchor="middle" fontSize={size} fill={LINE} stroke="#fffaf0" strokeWidth="4" paintOrder="stroke" style={{ fontFamily: "var(--font-display)" }}>
-      {children}
-    </text>
-  );
-}
-
-function Tree({ x, y, color, s = 1 }: { x: number; y: number; color: string; s?: number }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <ellipse cx="0" cy="2" rx="22" ry="6" fill="rgb(91 70 54 / 0.15)" />
-      <rect x="-5" y="-26" width="10" height="28" rx="3" fill="#b08a63" stroke={LINE} strokeWidth="1.5" />
-      <g className="anim-sway">
-        <circle cx="-14" cy="-36" r="17" fill={color} stroke={LINE} strokeWidth="1.5" />
-        <circle cx="14" cy="-36" r="17" fill={color} stroke={LINE} strokeWidth="1.5" />
-        <circle cx="0" cy="-54" r="20" fill={color} stroke={LINE} strokeWidth="1.5" />
-        <circle cx="0" cy="-38" r="16" fill={color} />
-        <circle cx="-6" cy="-58" r="4" fill="rgb(255 255 255 / 0.35)" />
-      </g>
-    </g>
-  );
-}
-
-function Flowers({ x, y, colors }: { x: number; y: number; colors: string[] }) {
-  return (
-    <g transform={`translate(${x} ${y})`}>
-      {[[-10, 0], [0, -6], [10, 1], [4, 8], [-6, 9]].map(([dx, dy], i) => (
-        <g key={i} transform={`translate(${dx} ${dy})`}>
-          <circle r="3.6" fill={colors[i % colors.length]} stroke={LINE} strokeWidth="0.8" />
-          <circle r="1.2" fill="#f6cf73" />
-        </g>
-      ))}
-    </g>
-  );
-}
-
-function HouseSprite({ house, resident, isMine }: { house: House; resident: Resident | null; isMine: boolean }) {
-  const empty = !resident;
-  const roof = house.style.roof ?? DEFAULT_ROOFS[house.slot];
-  const wall = house.style.wall ?? WALLS[0];
-  const lit = Boolean(resident?.online);
-  const focusing = resident?.shown === "focus";
-  const clip = `win-${house.slot}`;
-  return (
-    <g opacity={empty ? 0.6 : 1}>
-      <ellipse cx="0" cy="1" rx="78" ry="10" fill="rgb(91 70 54 / 0.16)" />
-      <ellipse className="hover-ring" cx="0" cy="1" rx="84" ry="14" fill="none" stroke="#6ea8dc" strokeWidth="3" strokeDasharray="6 5" />
-      {/* 굴뚝 */}
-      <rect x="30" y="-138" width="16" height="30" fill="#c9a98b" stroke={LINE} strokeWidth="2" />
-      {lit && [0, 1, 2].map((i) => (
-        <circle key={i} className="anim-smoke" cx="38" cy="-144" r="6" fill="#fff" opacity="0" style={{ animationDelay: `${i * 1.05}s` }} />
-      ))}
-      {/* 벽 */}
-      <rect x="-62" y="-80" width="124" height="80" rx="6" fill={empty ? "#ece6dc" : wall} stroke={LINE} strokeWidth="2" />
-      <rect x="-62" y="-12" width="124" height="12" fill="rgb(91 70 54 / 0.12)" />
-      {/* 지붕 */}
-      <path d="M-78 -74 L-42 -130 H42 L78 -74 Z" fill={empty ? "#c9c2b8" : roof} stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-      <path d="M-60 -102 H60 M-51 -116 H51" stroke="rgb(91 70 54 / 0.25)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M-78 -74 H78" stroke={LINE} strokeWidth="4" strokeLinecap="round" />
-      {/* 창문 */}
-      <clipPath id={clip}><rect x="-47" y="-64" width="36" height="34" rx="6" /></clipPath>
-      <rect x="-47" y="-64" width="36" height="34" rx="6" fill={lit ? "#ffe9a3" : "#7f89a8"} stroke={LINE} strokeWidth="2" />
-      {focusing && resident && (
-        <g clipPath={`url(#${clip})`}>
-          <g transform="translate(-29 -17) scale(0.62)"><g className="anim-bob"><CharacterG avatar={resident.profile.avatar} seated /></g></g>
-        </g>
-      )}
-      {!focusing && <path d="M-29 -64 V-30 M-47 -47 H-11" stroke={LINE} strokeWidth="1.5" opacity="0.55" />}
-      <rect x="-50" y="-30" width="42" height="7" rx="3" fill="#c98f6b" stroke={LINE} strokeWidth="1.5" />
-      {!empty && [-42, -32, -22, -14].map((fx, i) => <circle key={fx} cx={fx} cy="-33" r="3.2" fill={["#f4a7b9", "#fff", "#f6cf73", "#f4a7b9"][i]} stroke={LINE} strokeWidth="0.8" />)}
-      {/* 문 */}
-      <path d="M10 0 V-36 a15 15 0 0 1 30 0 V0 Z" fill={empty ? "#b7aa9b" : "#b9825a"} stroke={LINE} strokeWidth="2" />
-      <circle cx="34" cy="-22" r="2.2" fill="#f6cf73" stroke={LINE} strokeWidth="1" />
-      {isMine && (
-        <g transform="translate(-62 -130)">
-          <path d="M0 0 V-26" stroke={LINE} strokeWidth="2" strokeLinecap="round" />
-          <path d="M0 -26 L20 -20 L0 -14 Z" fill="#f4a7b9" stroke={LINE} strokeWidth="1.5" strokeLinejoin="round" />
-        </g>
-      )}
-      {focusing && <text x="-29" y="-72" textAnchor="middle" fontSize="15">📖</text>}
-      <Label y={22}>{empty ? "빈 집" : `${resident.profile.display_name}의 집`}</Label>
-    </g>
-  );
-}
-
-function Desk({ x, y, occupied }: { x: number; y: number; occupied: boolean }) {
-  return (
-    <g transform={`translate(${x} ${y})`}>
-      <ellipse cx="0" cy="3" rx="30" ry="6" fill="rgb(91 70 54 / 0.14)" />
-      <rect x="-24" y="-17" width="4" height="19" fill="#b08a63" stroke={LINE} strokeWidth="1.3" />
-      <rect x="20" y="-17" width="4" height="19" fill="#b08a63" stroke={LINE} strokeWidth="1.3" />
-      <rect x="-29" y="-22" width="58" height="9" rx="3" fill="#e2bd8f" stroke={LINE} strokeWidth="1.8" />
-      {occupied ? (
-        <>
-          <path d="M-12 -24 l10 -3 l10 3 v-7 l-10 -3 l-10 3 z" fill="#fff" stroke={LINE} strokeWidth="1.2" strokeLinejoin="round" />
-          <path d="M-2 -27 v-7" stroke={LINE} strokeWidth="1" />
-          <rect x="15" y="-30" width="7" height="8" rx="1.5" fill="#fff" stroke={LINE} strokeWidth="1.2" />
-        </>
-      ) : (
-        <rect x="-9" y="-26" width="18" height="4" rx="1" fill="#8fb8e8" stroke={LINE} strokeWidth="1.2" />
-      )}
-    </g>
-  );
+function pct(x: number, y: number, w: number, h: number): CSSProperties {
+  return { left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%`, width: `${(w / W) * 100}%`, height: `${(h / H) * 100}%` };
 }
 
 export interface SceneProps {
@@ -169,207 +30,280 @@ export interface SceneProps {
 }
 
 export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace }: SceneProps) {
-  // 계절·시간대는 브라우저의 현지 시각 기준 (서버 렌더링 결과와 어긋나지 않도록 마운트 후 계산)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const tagRefs = useRef(new Map<string, HTMLButtonElement>());
+  const walkers = useRef(new Map<string, Walker>());
+  const data = useRef({ houses, residents, myId });
   const [clock, setClock] = useState<{ season: Season; phase: DayPhase }>({ season: "spring", phase: "day" });
+  useEffect(() => {
+    data.current = { houses, residents, myId };
+  }, [houses, residents, myId]);
+
   useEffect(() => {
     const update = () => setClock({ season: currentSeason(), phase: currentPhase() });
     update();
     const t = setInterval(update, 60_000);
     return () => clearInterval(t);
   }, []);
-  const season = SEASONS[clock.season];
-  const phase = PHASES[clock.phase];
+
+  useEffect(() => {
+    const canvas = canvasRef.current, wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+    const { season, phase } = clock;
+    const pal = SEASONS[season];
+    const night = phase === "night";
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const buf = document.createElement("canvas");
+    buf.width = W;
+    buf.height = H;
+    const b = buf.getContext("2d")!;
+    const cache = new Map<string, HTMLCanvasElement>();
+    const sp = (key: string, build: () => ReturnType<typeof boardGrid>) => {
+      let c = cache.get(key);
+      if (!c) cache.set(key, (c = bake(build())));
+      return c;
+    };
+    const ground = bake(groundGrid(season));
+    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(treeGrid(pal.leaves[(v + i) % pal.leaves.length], v + i, season)) }));
+    const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
+    const fountain = [0, 1, 2, 3].map((f) => bake(fountainGrid(f)));
+    const board = bake(boardGrid()), bench = bake(benchGrid()), lamp = bake(lampGrid(night || phase === "dusk"));
+
+    const resize = () => {
+      const k = Math.max(1, Math.min(5, Math.ceil((wrap.clientWidth * (window.devicePixelRatio || 1)) / W)));
+      if (canvas.width !== W * k) {
+        canvas.width = W * k;
+        canvas.height = H * k;
+      }
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrap);
+
+    const targetOf = (r: Resident) => {
+      const door = { x: HOUSE_POS[r.slot].x + 9, y: HOUSE_POS[r.slot].y + 3 };
+      if (r.shown === "open") return { x: DESK_POS[r.slot].x, y: DESK_POS[r.slot].y - 2, visible: true };
+      if (r.shown === "library") return { ...LIBRARY_SPOTS[r.slot], visible: true };
+      if (r.shown === "rest") return { ...REST_SPOTS[r.slot], visible: true };
+      return { ...door, visible: false };
+    };
+
+    let raf = 0, last = 0, tick = 0;
+    const frame = (now: number) => {
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      last = now;
+      tick++;
+      const { houses, residents } = data.current;
+      const bySlot = new Map(residents.map((r) => [r.slot, r]));
+      const slow = Math.floor(tick / 9);
+
+      // ── 캐릭터 이동 ──
+      for (const id of walkers.current.keys()) if (!residents.some((r) => r.user_id === id)) walkers.current.delete(id);
+      for (const r of residents) {
+        const t = targetOf(r);
+        let w = walkers.current.get(r.user_id);
+        if (!w) walkers.current.set(r.user_id, (w = { x: t.x, y: t.y, visible: t.visible, moving: false, left: false }));
+        if (t.visible && !w.visible) {
+          const door = HOUSE_POS[r.slot];
+          Object.assign(w, { x: door.x + 9, y: door.y + 3, visible: true });
+        }
+        const dx = t.x - w.x, dy = t.y - w.y, dist = Math.hypot(dx, dy);
+        if (dist < SPEED || reduced) {
+          w.x = t.x; w.y = t.y; w.moving = false;
+          if (!t.visible) w.visible = false;
+        } else {
+          w.x += (dx / dist) * SPEED; w.y += (dy / dist) * SPEED; w.moving = true;
+          if (Math.abs(dx) > 0.5) w.left = dx < 0;
+        }
+      }
+
+      // ── 바닥 ──
+      b.globalCompositeOperation = "source-over";
+      b.globalAlpha = 1;
+      b.drawImage(ground, 0, 0);
+      for (let i = 0; i < 4; i++) {
+        const sx = POND.x - 14 + ((i * 9 + slow * 2) % 28), sy = POND.y - 5 + ((i * 5 + slow) % 10);
+        b.fillStyle = "#e3f6fd";
+        b.fillRect(sx, sy, 2, 1);
+      }
+
+      // ── y 순서대로 그리기 ──
+      const items: { y: number; draw: () => void }[] = [];
+      const shadow = (x: number, y: number, rx: number) => {
+        b.fillStyle = "rgb(58 42 51 / 0.2)";
+        b.fillRect(Math.round(x - rx), Math.round(y - 1), rx * 2, 2);
+        b.fillRect(Math.round(x - rx + 2), Math.round(y - 2), rx * 2 - 4, 4);
+      };
+      for (const t of trees) items.push({ y: t.y, draw: () => { shadow(t.x, t.y, 10); b.drawImage(t.c, t.x - 17, t.y - TREE_H + 2); } });
+      for (const s of bushes) items.push({ y: s.y, draw: () => b.drawImage(s.c, s.x - 9, s.y - 11) });
+      for (const l of LAMPS) items.push({ y: l.y, draw: () => b.drawImage(lamp, l.x - 5, l.y - 28) });
+      items.push({ y: PLAZA.y + 6, draw: () => b.drawImage(fountain[slow % 4], PLAZA.x - 19, PLAZA.y - 24) });
+      items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x - 44, PLAZA.y + 18) });
+      items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x + 20, PLAZA.y + 18) });
+      items.push({ y: BOARD.y, draw: () => { shadow(BOARD.x, BOARD.y, 14); b.drawImage(board, BOARD.x - 17, BOARD.y - 33); } });
+      const libLit = night || residents.some((r) => r.shown === "library");
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}`, () => libraryGrid(libLit)), LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 2) });
+
+      for (const h of houses) {
+        const pos = HOUSE_POS[h.slot], r = bySlot.get(h.slot);
+        const lit = Boolean(r?.online), empty = !h.owner_id, mine = h.owner_id === data.current.myId;
+        const c = sp(`h${h.slot}${JSON.stringify(h.style)}${lit}${empty}${mine}`, () => houseGrid(h.slot, h.style, { lit, empty, mine }));
+        items.push({
+          y: pos.y,
+          draw: () => {
+            shadow(pos.x, pos.y, 26);
+            b.drawImage(c, pos.x - 27, pos.y - HOUSE_H + 2);
+            const inside = r && r.shown === "focus" && !walkers.current.get(r.user_id)?.visible;
+            if (inside) {
+              // 창문 너머로 보이는 집중 중인 주민
+              const av = sp(`a${JSON.stringify(r.profile.avatar)}0s`, () => avatarGrid(r.profile.avatar, 0, true));
+              const wx = pos.x - 16, wy = pos.y - 25;
+              b.save();
+              b.beginPath();
+              b.rect(wx, wy, 10, 10);
+              b.clip();
+              b.drawImage(av, wx - 4, wy - 1 + (slow % 4 === 0 ? 1 : 0));
+              b.restore();
+              b.drawImage(sp("bfocus", () => bubbleGrid("focus")), pos.x - 18, pos.y - 42 - (slow % 2));
+            }
+            if (lit) {
+              for (let i = 0; i < 3; i++) {
+                const p = ((tick * 0.012 + i / 3) % 1);
+                b.globalAlpha = 0.85 * (1 - p);
+                b.fillStyle = "#ffffff";
+                const size = 2 + Math.round(p * 2);
+                b.fillRect(Math.round(pos.x + 13 + Math.sin(p * 5 + i) * 2 + p * 3), Math.round(pos.y - 58 - p * 16), size, size);
+              }
+              b.globalAlpha = 1;
+            }
+          },
+        });
+        const desk = DESK_POS[h.slot];
+        const seatedHere = r?.shown === "open" && !walkers.current.get(r.user_id)?.moving;
+        items.push({ y: desk.y - 6, draw: () => b.drawImage(sp(`chair${empty}`, () => chairGrid(empty)), desk.x - 6, desk.y - 19) });
+        items.push({ y: desk.y + 0.5, draw: () => { shadow(desk.x, desk.y + 1, 12); b.drawImage(sp(`desk${seatedHere}${empty}`, () => deskGrid(Boolean(seatedHere), empty)), desk.x - 14, desk.y - 14); } });
+      }
+
+      for (const r of residents) {
+        const w = walkers.current.get(r.user_id)!;
+        const tag = tagRefs.current.get(r.user_id);
+        if (tag) {
+          tag.style.display = w.visible ? "" : "none";
+          tag.style.left = `${(w.x / W) * 100}%`;
+          tag.style.top = `${((w.y - AV_H) / H) * 100}%`;
+        }
+        if (!w.visible) continue;
+        const seated = r.shown === "open" && !w.moving;
+        const f = w.moving ? ((Math.floor(tick / 4) % 2) + 1) as 1 | 2 : 0;
+        const av = sp(`a${JSON.stringify(r.profile.avatar)}${f}${seated ? "s" : ""}`, () => avatarGrid(r.profile.avatar, f, seated));
+        const bob = !w.moving && (slow + r.slot) % 4 === 0 ? 1 : 0;
+        items.push({
+          y: w.y,
+          draw: () => {
+            const x = Math.round(w.x), y = Math.round(w.y);
+            if (!seated) shadow(x, y, 6);
+            if (w.left) {
+              b.save();
+              b.translate(x * 2, 0);
+              b.scale(-1, 1);
+              b.drawImage(av, x - 9, y - AV_H + 1 + bob);
+              b.restore();
+            } else b.drawImage(av, x - 9, y - AV_H + 1 + bob);
+            if (!w.moving) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
+          },
+        });
+      }
+      items.sort((a, c) => a.y - c.y);
+      for (const it of items) it.draw();
+
+      // ── 시간대 색조와 불빛 ──
+      const tint = TINT[phase];
+      if (tint) {
+        b.globalCompositeOperation = "multiply";
+        b.fillStyle = tint;
+        b.fillRect(0, 0, W, H);
+        if (night || phase === "dusk") {
+          b.globalCompositeOperation = "lighter";
+          const glow = (x: number, y: number, rad: number, a: number) => {
+            const gr = b.createRadialGradient(x, y, 1, x, y, rad);
+            gr.addColorStop(0, `rgb(255 214 120 / ${a})`);
+            gr.addColorStop(1, "rgb(255 214 120 / 0)");
+            b.fillStyle = gr;
+            b.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+          };
+          const a = night ? 0.5 : 0.22;
+          for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
+          for (const h of houses) if (bySlot.get(h.slot)?.online) glow(HOUSE_POS[h.slot].x - 11, HOUSE_POS[h.slot].y - 20, 20, a);
+          if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
+          if (night) for (let i = 0; i < 10; i++) {
+            if ((slow + i * 3) % 7 < 3) continue;
+            b.fillStyle = "rgb(255 246 160 / 0.9)";
+            b.fillRect((i * 97 + 40 + Math.round(Math.sin(tick * 0.02 + i) * 4)) % W, (i * 53 + 70 + Math.round(Math.cos(tick * 0.017 + i) * 3)) % H, 1, 1);
+          }
+        }
+        b.globalCompositeOperation = "source-over";
+      }
+
+      const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(buf, 0, 0, canvas.width, canvas.height);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [clock]);
+
   const bySlot = new Map(residents.map((r) => [r.slot, r]));
-
-  const target = (r: Resident) => {
-    const door = { x: HOUSE_POS[r.slot].x + 25, y: HOUSE_POS[r.slot].y + 2 };
-    switch (r.shown) {
-      case "open": return { ...DESK_POS[r.slot], y: DESK_POS[r.slot].y - 8, visible: true, seated: true };
-      case "library": return { ...LIBRARY_SPOTS[r.slot], visible: true, seated: false };
-      case "rest": return { ...REST_SPOTS[r.slot], visible: true, seated: false };
-      default: return { ...door, visible: false, seated: false };
-    }
-  };
-
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full select-none" role="group" aria-label={`마을 지도 — ${season.label}, ${phase.label}`}>
-      <defs>
-        <radialGradient id="grass" cx="50%" cy="45%" r="75%">
-          <stop offset="0%" stopColor={season.ground} />
-          <stop offset="100%" stopColor={season.ground2} />
-        </radialGradient>
-        <pattern id="cobble" width="26" height="18" patternUnits="userSpaceOnUse">
-          <rect width="26" height="18" fill="#f1e2c4" />
-          <ellipse cx="7" cy="5" rx="5.500" ry="3.200" fill="#e6d2ad" />
-          <ellipse cx="20" cy="13" rx="5.500" ry="3.200" fill="#e9d8b6" />
-        </pattern>
-      </defs>
-      <rect width={W} height={H} fill="url(#grass)" />
-      {/* 잔디 무늬 */}
-      {Array.from({ length: 46 }, (_, i) => {
-        const x = (i * 197 + 61) % W, y = (i * 113 + 37) % H;
-        return <path key={i} d={`M${x} ${y} l3 -6 l2 6 l3 -5`} fill="none" stroke="rgb(91 70 54 / 0.13)" strokeWidth="1.5" strokeLinecap="round" />;
-      })}
+    <div ref={wrapRef} className="scene relative w-full" style={{ aspectRatio: `${W} / ${H}` }} role="group" aria-label={`마을 지도 — ${SEASONS[clock.season].label}, ${PHASE_LABEL[clock.phase]}`}>
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
 
-      {/* 산책로 */}
-      <g fill="none" strokeLinecap="round">
-        {[...HOUSE_POS.map((p, i) => [p.x + 25, p.y + 4, DESK_POS[i].x, DESK_POS[i].y + 14]), [LIBRARY.x, LIBRARY.y, PLAZA.x, PLAZA.y], [BOARD.x, BOARD.y - 20, PLAZA.x, PLAZA.y]].map(([x1, y1, x2, y2], i) => (
-          <g key={i}>
-            <path d={`M${x1} ${y1} L${x2} ${y2} L${PLAZA.x} ${PLAZA.y}`} stroke="#d9c39a" strokeWidth="27" strokeLinejoin="round" />
-            <path d={`M${x1} ${y1} L${x2} ${y2} L${PLAZA.x} ${PLAZA.y}`} stroke="#f1e2c4" strokeWidth="22" strokeLinejoin="round" />
-          </g>
-        ))}
-      </g>
+      <button type="button" className="scene-hit" style={pct(PLAZA.x - PLAZA.rx, PLAZA.y - PLAZA.ry, PLAZA.rx * 2, PLAZA.ry * 2)} aria-label="마을 광장 — 눌러서 열기" onClick={() => onPlace("plaza")}>
+        <span className="scene-label" style={{ top: "100%" }}>마을 광장</span>
+      </button>
+      <button type="button" className="scene-hit" style={pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4)} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
+        <span className="scene-label scene-label-sign" style={{ top: "33%" }}>공동 도서관</span>
+      </button>
+      <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 열기" onClick={() => onPlace("board")}>
+        <span className="scene-label" style={{ top: "100%" }}>게시판</span>
+      </button>
 
-      {/* 연못 */}
-      <g transform="translate(905 598)">
-        <ellipse rx="66" ry="34" fill="#cbb892" />
-        <ellipse rx="60" ry="29" fill="#a9d7ee" stroke={LINE} strokeWidth="1.5" />
-        <ellipse className="anim-ripple" cx="-14" cy="-4" rx="22" ry="9" fill="none" stroke="#fff" strokeWidth="1.5" />
-        <ellipse cx="22" cy="8" rx="11" ry="5" fill="#8fc7a3" stroke={LINE} strokeWidth="1" />
-        <circle cx="25" cy="6" r="2.500" fill="#f4a7b9" />
-      </g>
-
-      {/* 광장 */}
-      <Hit x={PLAZA.x} y={PLAZA.y} label="마을 광장 — 눌러서 광장으로 가기" onActivate={() => onPlace("plaza")}>
-        <ellipse rx="166" ry="97" fill="#d9c39a" />
-        <ellipse rx="160" ry="92" fill="url(#cobble)" stroke={LINE} strokeWidth="1.5" />
-        <ellipse className="hover-ring" rx="172" ry="103" fill="none" stroke="#6ea8dc" strokeWidth="3" strokeDasharray="6 5" />
-        {/* 분수 */}
-        <g transform="translate(0 -4)">
-          <ellipse cy="6" rx="40" ry="16" fill="rgb(91 70 54 / 0.15)" />
-          <ellipse rx="36" ry="15" fill="#e8dcc6" stroke={LINE} strokeWidth="2" />
-          <ellipse cy="-2" rx="28" ry="10" fill="#a9d7ee" stroke={LINE} strokeWidth="1.5" />
-          <ellipse className="anim-ripple" cy="-2" rx="26" ry="9" fill="none" stroke="#fff" strokeWidth="1.5" />
-          <rect x="-4" y="-24" width="8" height="22" rx="3" fill="#e8dcc6" stroke={LINE} strokeWidth="1.5" />
-          <path d="M0 -26 q-12 -10 -14 8 M0 -26 q12 -10 14 8" fill="none" stroke="#7fc4e8" strokeWidth="2.500" strokeLinecap="round" />
-        </g>
-        <Label y={84} size={14}>마을 광장</Label>
-      </Hit>
-
-      {/* 나무와 꽃 */}
-      {[[36, 130], [300, 108, 0.9], [700, 108, 0.9], [962, 128], [28, 300, 0.9], [975, 300, 0.9], [60, 585], [130, 632, 0.85], [985, 500, 0.85], [335, 470, 0.7], [668, 500, 0.7]].map(([x, y, s], i) => (
-        <Tree key={i} x={x} y={y} s={s ?? 1} color={season.leaves[i % season.leaves.length]} />
-      ))}
-      {[[250, 330], [760, 330], [50, 500], [640, 80], [360, 70], [160, 540], [840, 520], [950, 660], [420, 640]].map(([x, y], i) => (
-        <Flowers key={i} x={x} y={y} colors={season.flowers} />
-      ))}
-
-      {/* 공동 도서관 */}
-      <Hit x={LIBRARY.x} y={LIBRARY.y} label="공동 도서관 — 눌러서 열기" onActivate={() => onPlace("library")}>
-        <ellipse cx="0" cy="2" rx="140" ry="13" fill="rgb(91 70 54 / 0.16)" />
-        <ellipse className="hover-ring" cx="0" cy="2" rx="148" ry="17" fill="none" stroke="#6ea8dc" strokeWidth="3" strokeDasharray="6 5" />
-        <rect x="-118" y="-104" width="236" height="104" rx="5" fill="#f6ead2" stroke={LINE} strokeWidth="2" />
-        <path d="M-134 -100 L0 -158 L134 -100 Z" fill="#7fa7c9" stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-        <path d="M-134 -100 H134" stroke={LINE} strokeWidth="4" strokeLinecap="round" />
-        <circle cx="0" cy="-122" r="12" fill="#fff5e1" stroke={LINE} strokeWidth="2" />
-        <text x="0" y="-117" textAnchor="middle" fontSize="14">📚</text>
-        {[-96, -56, 56, 96].map((cx) => (
-          <g key={cx}>
-            <rect x={cx - 7} y="-94" width="14" height="94" rx="3" fill="#fffaf0" stroke={LINE} strokeWidth="1.8" />
-            <rect x={cx - 10} y="-96" width="20" height="7" rx="2" fill="#e8dcc6" stroke={LINE} strokeWidth="1.5" />
-          </g>
-        ))}
-        {[-76, 76].map((cx) => (
-          <g key={cx}>
-            <rect x={cx - 11} y="-70" width="22" height="34" rx="11" fill="#ffe9a3" stroke={LINE} strokeWidth="1.8" />
-            <path d={`M${cx} -70 V-36`} stroke={LINE} strokeWidth="1.2" opacity="0.5" />
-          </g>
-        ))}
-        <path d="M-26 0 V-50 a26 26 0 0 1 52 0 V0 Z" fill="#b9825a" stroke={LINE} strokeWidth="2" />
-        <path d="M0 0 V-76" stroke={LINE} strokeWidth="1.5" />
-        <rect x="-46" y="-98" width="92" height="20" rx="6" fill="#fffaf0" stroke={LINE} strokeWidth="1.8" />
-        <text x="0" y="-83" textAnchor="middle" fontSize="13" fill={LINE} style={{ fontFamily: "var(--font-display)" }}>공동 도서관</text>
-      </Hit>
-
-      {/* 집 6채 */}
       {houses.map((h) => {
         const r = bySlot.get(h.slot) ?? null;
         const mine = h.owner_id === myId;
         const label = !r ? `${h.slot + 1}번 집 — 빈 집` : mine ? "내 집 — 눌러서 연구실로 들어가기" : `${r.profile.display_name}의 집 — ${STATUS_META[r.shown].label}. 눌러서 미니홈피 보기`;
+        const pos = HOUSE_POS[h.slot];
         return (
-          <Hit key={h.slot} x={HOUSE_POS[h.slot].x} y={HOUSE_POS[h.slot].y} label={label} onActivate={() => onHouse(h.slot)}>
-            <HouseSprite house={h} resident={r} isMine={mine} />
-          </Hit>
+          <button key={h.slot} type="button" className="scene-hit" style={pct(pos.x - 27, pos.y - HOUSE_H + 6, 54, HOUSE_H - 4)} aria-label={label} disabled={!r} onClick={() => onHouse(h.slot)}>
+            <span className={`scene-label ${mine ? "scene-label-mine" : ""} ${r ? "" : "scene-label-empty"}`} style={{ top: "100%" }}>
+              {r ? `${r.profile.display_name}의 집` : "빈 집"}
+            </span>
+          </button>
         );
       })}
 
-      {/* 게시판 */}
-      <Hit x={BOARD.x} y={BOARD.y} label="마을 게시판 — 눌러서 열기" onActivate={() => onPlace("board")}>
-        <ellipse cx="0" cy="2" rx="44" ry="7" fill="rgb(91 70 54 / 0.15)" />
-        <ellipse className="hover-ring" cx="0" cy="2" rx="50" ry="10" fill="none" stroke="#6ea8dc" strokeWidth="3" strokeDasharray="6 5" />
-        <rect x="-32" y="-18" width="6" height="20" fill="#b08a63" stroke={LINE} strokeWidth="1.5" />
-        <rect x="26" y="-18" width="6" height="20" fill="#b08a63" stroke={LINE} strokeWidth="1.5" />
-        <rect x="-40" y="-62" width="80" height="48" rx="5" fill="#c99b6d" stroke={LINE} strokeWidth="2" />
-        <path d="M-46 -62 L0 -76 L46 -62 Z" fill="#e8837c" stroke={LINE} strokeWidth="2" strokeLinejoin="round" />
-        <rect x="-33" y="-56" width="20" height="16" fill="#fff" stroke={LINE} strokeWidth="1" transform="rotate(-4 -23 -48)" />
-        <rect x="-8" y="-55" width="18" height="22" fill="#fbe7a8" stroke={LINE} strokeWidth="1" />
-        <rect x="15" y="-56" width="18" height="15" fill="#cfe4f6" stroke={LINE} strokeWidth="1" transform="rotate(5 24 -48)" />
-        <rect x="-32" y="-36" width="19" height="16" fill="#fde8ea" stroke={LINE} strokeWidth="1" />
-        <Label y={18} size={14}>게시판</Label>
-      </Hit>
-
-      {/* 의자 (캐릭터 뒤) */}
-      {DESK_POS.map((d, i) => (
-        <rect key={i} x={d.x - 11} y={d.y - 40} width="22" height="26" rx="6" fill="#d9b48a" stroke={LINE} strokeWidth="1.5" opacity={houses[i]?.owner_id ? 1 : 0.5} />
+      {residents.map((r) => (
+        <button
+          key={r.user_id}
+          type="button"
+          ref={(el) => {
+            if (el) tagRefs.current.set(r.user_id, el);
+            else tagRefs.current.delete(r.user_id);
+          }}
+          className="scene-hit scene-char"
+          style={{ width: `${(20 / W) * 100}%`, height: `${(AV_H / H) * 100}%`, display: "none" }}
+          aria-label={`${r.profile.display_name}${r.user_id === myId ? " (나)" : ""} — ${STATUS_META[r.shown].label}. 눌러서 프로필 보기`}
+          onClick={() => onCharacter(r.user_id)}
+        >
+          <span className={`scene-label scene-label-name ${r.user_id === myId ? "scene-label-mine" : ""}`} style={{ top: r.shown === "open" ? "128%" : "104%" }}>
+            {r.profile.display_name}
+          </span>
+        </button>
       ))}
-
-      {/* 시간대 색조 */}
-      {phase.opacity > 0 && <rect width={W} height={H} fill={phase.tint} opacity={phase.opacity} pointerEvents="none" />}
-      {clock.phase === "night" && (
-        <g pointerEvents="none">
-          {houses.map((h) => bySlot.get(h.slot)?.online && (
-            <rect key={h.slot} x={HOUSE_POS[h.slot].x - 47} y={HOUSE_POS[h.slot].y - 64} width="36" height="34" rx="6" fill="#ffe9a3" opacity="0.55" />
-          ))}
-          {Array.from({ length: 14 }, (_, i) => (
-            <circle key={i} className="anim-twinkle" cx={(i * 263 + 90) % W} cy={(i * 171 + 60) % H} r="2.200" fill="#fff6b8" style={{ animationDelay: `${(i % 5) * 0.5}s` }} />
-          ))}
-        </g>
-      )}
-
-      {/* 캐릭터 — 상태가 바뀌면 새 자리로 걸어간다 */}
-      {residents.map((r) => {
-        const t = target(r);
-        const mine = r.user_id === myId;
-        const meta = STATUS_META[r.shown];
-        return (
-          <g key={r.user_id} className="walker" style={{ transform: `translate(${t.x}px, ${t.y}px)`, opacity: t.visible ? 1 : 0, pointerEvents: t.visible ? "auto" : "none" }}>
-            <g
-              role="button"
-              tabIndex={t.visible ? 0 : -1}
-              aria-hidden={!t.visible}
-              aria-label={`${r.profile.display_name}${mine ? " (나)" : ""} — ${meta.label}. 눌러서 프로필 보기`}
-              className="scene-hit"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCharacter(r.user_id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCharacter(r.user_id);
-                }
-              }}
-            >
-              <ellipse className="hover-ring" cx="0" cy="-28" rx="24" ry="38" fill="rgb(255 255 255 / 0.35)" stroke="#6ea8dc" strokeWidth="2.500" strokeDasharray="5 4" />
-              {!t.seated && <ellipse cx="0" cy="1" rx="14" ry="4" fill="rgb(91 70 54 / 0.2)" />}
-              <g className="anim-bob" style={{ animationDelay: `${r.slot * 0.35}s` }}>
-                <CharacterG avatar={r.profile.avatar} seated={t.seated} />
-              </g>
-              <g transform="translate(0 -66)">
-                <Label y={0} size={14}>{meta.icon} {r.profile.display_name}{mine ? " (나)" : ""}</Label>
-              </g>
-            </g>
-          </g>
-        );
-      })}
-
-      {/* 집 앞 책상 (앉은 캐릭터 앞을 가린다) */}
-      {DESK_POS.map((d, i) => {
-        const r = bySlot.get(i);
-        return <g key={i} opacity={houses[i]?.owner_id ? 1 : 0.5} pointerEvents="none"><Desk x={d.x} y={d.y} occupied={r?.shown === "open"} /></g>;
-      })}
-    </svg>
+    </div>
   );
 }

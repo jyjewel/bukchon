@@ -16,7 +16,7 @@ export function EntryCard({
 }: { entry: DiaryEntry; author?: Resident; mine: boolean; onEdit?: () => void; onDelete?: () => void; compact?: boolean }) {
   const link = safeLink(entry.link_url);
   return (
-    <article className="rounded-xl border-2 border-line bg-white p-3">
+    <article className="card p-3">
       <header className="flex items-center gap-2">
         {author && <CharacterIcon avatar={author.profile.avatar} size={36} />}
         <div className="min-w-0 flex-1">
@@ -28,7 +28,7 @@ export function EntryCard({
       </header>
       {entry.title && <h3 className="mt-2 font-display">{entry.title}</h3>}
       <p className={`mt-1 whitespace-pre-wrap break-words text-sm ${compact ? "line-clamp-3" : ""}`}>{entry.body}</p>
-      {link && <p className="mt-1 truncate text-sm"><a href={link} target="_blank" rel="noopener noreferrer" className="text-[#3f7fb5] underline">🔗 {link}</a></p>}
+      {link && <p className="mt-1 truncate text-sm"><a href={link} target="_blank" rel="noopener noreferrer" className="text-[#3f7fb5] underline">{link}</a></p>}
       {mine && onEdit && onDelete && (
         <div className="mt-2 flex gap-2">
           <button type="button" className="btn btn-sm" onClick={onEdit}>수정</button>
@@ -111,7 +111,7 @@ function Editor({
           ))}
         </div>
         {visibility === "selected" && (
-          <div className="mt-2 rounded-lg border-2 border-dashed border-line p-2">
+          <div className="card mt-2 p-2">
             {others.length === 0 && <p className="text-sm text-ink-soft">아직 다른 주민이 없어요.</p>}
             {others.map((r) => (
               <label key={r.user_id} className="flex items-center gap-2 text-sm">
@@ -161,10 +161,10 @@ export default function DiaryView({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-      <Window title={editing ? "기록 고치기" : "새 기록 쓰기"} icon="✏️" tone="rose" className="self-start">
+      <Window title={editing ? "기록 고치기" : "새 기록 쓰기"} icon="" tone="rose" className="self-start">
         <Editor key={editorKey} villageId={villageId} myId={myId} others={residents.filter((r) => r.user_id !== myId)} editing={editing} onDone={done} onCancel={() => { setEditing(null); setEditorKey((k) => k + 1); }} />
       </Window>
-      <Window title="연구 다이어리" icon="📔" tone="sky">
+      <Window title="연구 다이어리" icon="" tone="sky">
         <div className="space-y-3 p-3">
           <div className="flex gap-2" role="group" aria-label="보기 범위">
             <button type="button" aria-pressed={filter === "all"} className={`btn btn-sm ${filter === "all" ? "btn-primary" : ""}`} onClick={() => setFilter("all")}>마을 전체</button>
