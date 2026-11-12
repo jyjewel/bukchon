@@ -27,9 +27,11 @@ export interface SceneProps {
   onCharacter: (userId: string) => void;
   onHouse: (slot: number) => void;
   onPlace: (place: "library" | "plaza" | "board") => void;
+  /** 연구실 앞 책상을 눌렀을 때 */
+  onDesk: (slot: number) => void;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -268,6 +270,13 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       </button>
 
       <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 소식 보기" onClick={() => onPlace("board")} />
+
+      {houses.map((h) => {
+        const r = bySlot.get(h.slot);
+        const d = DESK_POS[h.slot];
+        const label = !r ? `${h.slot + 1}번 연구실 앞 책상 — 비어 있음` : r.user_id === myId ? "내 책상 — 눌러서 밖에서 공부하기" : `${r.profile.display_name}의 책상 — 눌러서 프로필 보기`;
+        return <button key={`desk-${h.slot}`} type="button" className="scene-hit" style={pct(d.x - 14, d.y - 20, 28, 22)} aria-label={label} disabled={!r} onClick={() => onDesk(h.slot)} />;
+      })}
 
       {houses.map((h) => {
         const r = bySlot.get(h.slot) ?? null;
