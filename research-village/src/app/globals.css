@@ -265,7 +265,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 .scene-say-mine { --fill: #ffe9ef; }
 
-/* ── 연구실 옆 팻말: 글씨에 딱 맞는 작은 나무판 ── */
+/* ── 연구실 옆 팻말: 이름 위, '연구실' 아래 두 줄. 나무결·못·기둥·그림자가 있는 작은 도트 팻말 ── */
 .scene-sign {
   position: absolute;
   transform: translate(-50%, -100%);
@@ -275,23 +275,54 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   pointer-events: none;
 }
 .scene-sign-board {
-  display: block;
-  max-width: 10cqw;
-  padding: 0 3px 1px;
+  --wood: #e8c795;
+  --wood-hi: #f7e2bd;
+  --wood-lo: #c9965f;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 9cqw;
+  padding: 3px 6px 3px;
   --px: 2px;
-  background: #e8c795;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  background:
+    linear-gradient(var(--wood-hi), var(--wood-hi)) 0 0 / 100% 2px no-repeat,
+    linear-gradient(var(--wood-lo), var(--wood-lo)) 0 100% / 100% 2px no-repeat,
+    repeating-linear-gradient(180deg, transparent 0 5px, rgb(185 133 82 / 0.28) 5px 6px),
+    var(--wood);
   color: var(--color-ink);
   font-family: var(--font-small);
+  text-align: center;
+  white-space: nowrap;
+}
+.scene-sign-board::before, .scene-sign-board::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  width: 2px;
+  height: 2px;
+  background: #8e5f3b;
+}
+.scene-sign-board::before { left: 2px; }
+.scene-sign-board::after { right: 2px; }
+.scene-sign-board-mine { --wood: #ffd3dc; --wood-hi: #fff2f5; --wood-lo: #e59db0; }
+.scene-sign-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: clamp(10px, 1cqw, 14px);
   line-height: 1.15;
 }
-.scene-sign-board-mine { background: #ffd3dc; }
+.scene-sign-sub {
+  font-size: clamp(8px, 0.78cqw, 11px);
+  line-height: 1.1;
+  color: #8a5a34;
+  letter-spacing: 0.5px;
+}
+.scene-sign-board-mine .scene-sign-sub { color: #b04c6c; }
 .scene-sign-post {
   width: 4px;
-  height: 7px;
-  background: #b98552;
-  box-shadow: -2px 0 0 var(--color-ink), 2px 0 0 var(--color-ink), 0 2px 0 var(--color-ink);
+  height: 8px;
+  background: linear-gradient(90deg, #d9a971 0 2px, #b98552 2px);
+  box-shadow: -2px 0 0 var(--color-ink), 2px 0 0 var(--color-ink), 0 2px 0 var(--color-ink), 6px 4px 0 0 rgb(58 42 51 / 0.22), 4px 4px 0 0 rgb(58 42 51 / 0.22);
 }

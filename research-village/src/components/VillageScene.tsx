@@ -284,7 +284,10 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         const sx = HOUSE_POS[h.slot].x - 20, sy = HOUSE_POS[h.slot].y + 12;
         return (
           <span key={`sign-${h.slot}`} className="scene-sign" aria-hidden style={{ left: `${(sx / W) * 100}%`, top: `${(sy / H) * 100}%` }}>
-            <span className={`scene-sign-board ${r.user_id === myId ? "scene-sign-board-mine" : ""}`}>{r.profile.display_name}의 연구실</span>
+            <span className={`scene-sign-board ${r.user_id === myId ? "scene-sign-board-mine" : ""}`}>
+              <span className="scene-sign-name">{r.profile.display_name}의</span>
+              <span className="scene-sign-sub">연구실</span>
+            </span>
             <span className="scene-sign-post" />
           </span>
         );
