@@ -22,7 +22,6 @@ export interface Profile {
   bio: string;
   keywords: string[];
   avatar: Avatar;
-  share_study_time: boolean;
   onboarded: boolean;
 }
 
@@ -61,17 +60,6 @@ export interface Resident {
   /** 접속 여부를 반영한 실제 표시 상태 */
   shown: ResearchState;
   online: boolean;
-}
-
-export interface StudySession {
-  id: string;
-  user_id: string;
-  village_id: string | null;
-  subject: string;
-  started_at: string;
-  ended_at: string | null;
-  running_since: string | null;
-  accumulated_seconds: number;
 }
 
 export interface DiaryEntry {
@@ -129,10 +117,72 @@ export interface AppNotification {
   user_id: string;
   village_id: string;
   actor_id: string;
-  kind: "postit" | "comment";
+  kind: "postit" | "comment" | "chat_request" | "meeting";
   room_owner_id: string;
   summary: string;
   created_at: string;
   read_at: string | null;
 }
-export type BoardTab = "whiteboard" | "postits" | "shelf";
+export type BoardTab = "whiteboard" | "shelf";
+
+export interface ResearchNote {
+  id: string;
+  category: string;
+  title: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface DailyLog {
+  log_date: string;
+  body: string;
+  updated_at: string;
+}
+export interface Conversation {
+  id: string;
+  village_id: string;
+  user_a: string;
+  user_b: string;
+  status: "pending" | "active" | "declined" | "ended";
+  created_at: string;
+  updated_at: string;
+  last_message_at: string | null;
+  last_sender: string | null;
+  read_a: string;
+  read_b: string;
+}
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}
+export interface Book {
+  id: string;
+  village_id: string;
+  title: string;
+  topic: string;
+  status: "writing" | "finished";
+  created_by: string | null;
+  created_at: string;
+}
+export interface BookEntry {
+  id: string;
+  book_id: string;
+  village_id: string;
+  author_id: string | null;
+  heading: string;
+  body: string;
+  created_at: string;
+}
+export interface Meeting {
+  id: string;
+  village_id: string;
+  title: string;
+  starts_at: string;
+  zoom_url: string;
+  note: string;
+  created_by: string | null;
+  created_at: string;
+}

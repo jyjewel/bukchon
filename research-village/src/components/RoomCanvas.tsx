@@ -41,7 +41,6 @@ export default function RoomCanvas({
         <>
           <button type="button" className="scene-hit" style={pos(52, 5, 48, 32)} aria-label="화이트보드 보기" onClick={() => onPick("whiteboard")} />
           <button type="button" className="scene-hit" style={pos(102, 6, 34, 50)} aria-label="책장 보기" onClick={() => onPick("shelf")} />
-          <button type="button" className="scene-hit" style={pos(0, 8, 10, 30)} aria-label="포스트잇 보기" onClick={() => onPick("postits")} />
         </>
       )}
       {note && <p className="scene-label" style={{ top: "88%" }}>{note}</p>}

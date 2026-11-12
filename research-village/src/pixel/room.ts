@@ -68,13 +68,14 @@ export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar
   if (!lines) { px(g, 75, 19, "#c9ced6"); px(g, 76, 19, "#c9ced6"); px(g, 77, 19, "#c9ced6"); }
   if (opts.boardCount > 4) disc(g, 92, 12, 2.5, 2.5, "#e0605a");
 
-  // 포스트잇 (최근 것부터)
-  const SPOTS: [number, number][] = [[48, 8], [48, 15], [48, 22], [48, 29], [98, 8], [98, 15], [98, 22], [98, 29], [1, 10], [1, 20], [1, 30], [56, 9], [88, 9]];
+  // 포스트잇: 화이트보드 위에 붙는다 (최근 것부터)
+  const SPOTS: [number, number][] = [[89, 8], [81, 20], [57, 9], [66, 24], [74, 8], [90, 22], [58, 21], [67, 12], [82, 9], [75, 23]];
   opts.postitColors.slice(0, SPOTS.length).forEach((c, i) => {
     const [x, y] = SPOTS[i];
-    rect(g, x + 1, y + 1, 5, 5, "#9a8f7e");
-    rect(g, x, y, 5, 5, c); rect(g, x, y, 5, 1, shade(c, 25));
-    px(g, x + 1, y + 2, shade(c, -45)); px(g, x + 2, y + 2, shade(c, -45)); px(g, x + 1, y + 3, shade(c, -45));
+    rect(g, x + 1, y + 1, 7, 7, "#b9bfca");
+    rect(g, x, y, 7, 7, c); rect(g, x, y, 7, 1, shade(c, 28));
+    rect(g, x + 1, y + 3, 4, 1, shade(c, -48)); rect(g, x + 1, y + 5, 3, 1, shade(c, -48));
+    px(g, x + 3, y - 1, "#e0605a");
   });
 
   // 책장

@@ -5,8 +5,10 @@ import { Window } from "./ui";
 
 export function notifText(n: AppNotification, residents: Resident[], myId: string): string {
   const actor = residents.find((r) => r.user_id === n.actor_id)?.profile.display_name ?? "누군가";
+  if (n.kind === "chat_request") return `${actor}님이 대화를 신청했어요`;
+  if (n.kind === "meeting") return `${actor}님이 Zoom 회의를 열었어요`;
   const roomOwner = n.room_owner_id === myId ? "내" : `${residents.find((r) => r.user_id === n.room_owner_id)?.profile.display_name ?? ""}님의`;
-  return n.kind === "postit" ? `${actor}님이 ${roomOwner} 연구실에 포스트잇을 붙였어요` : `${actor}님이 ${roomOwner} 화이트보드에 댓글을 남겼어요`;
+  return n.kind === "postit" ? `${actor}님이 ${roomOwner} 화이트보드에 포스트잇을 붙였어요` : `${actor}님이 ${roomOwner} 화이트보드에 댓글을 남겼어요`;
 }
 
 export default function NotificationsView({
@@ -16,7 +18,7 @@ export default function NotificationsView({
   return (
     <Window title="알림" tone="mint" actions={<button type="button" className="btn btn-sm" disabled={!unread} onClick={onReadAll}>모두 읽음</button>}>
       <ul className="p-2">
-        {list.length === 0 && <li className="p-4 text-center text-sm text-ink-soft">아직 알림이 없어요. 누가 연구실에 다녀가면 여기에 알려 드려요.</li>}
+        {list.length === 0 && <li className="p-4 text-center text-sm text-ink-soft">아직 알림이 없어요. 누가 연구실에 다녀가거나 대화를 신청하면 여기에 알려 드려요.</li>}
         {list.map((n) => (
           <li key={n.id}>
             <button type="button" onClick={() => onOpen(n)} className={`card flex w-[calc(100%-6px)] items-start gap-3 p-2 text-left text-sm ${n.read_at ? "" : "card-on"}`}>

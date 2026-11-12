@@ -113,37 +113,6 @@ await t("다이어리 공개 범위: 나만 / 마을 / 선택한 주민", async 
   assert.ok((await outside[0].c.from("diary_entries").insert({ village_id: village, body: "x" })).error);
 });
 
-await t("타이머: 서버 시각으로 계산, 본인만 조회", async () => {
-  const s = ok(await m1.c.rpc("timer_start", { p_village: village, p_subject: "한문 강독" }));
-  assert.ok(s.running_since);
-  await new Promise((r) => setTimeout(r, 2100));
-  const p = ok(await m1.c.rpc("timer_pause"));
-  assert.ok(p.accumulated_seconds >= 2 && p.accumulated_seconds <= 4);
-  assert.equal(p.running_since, null);
-  ok(await m1.c.rpc("timer_resume"));
-  const e = ok(await m1.c.rpc("timer_stop"));
-  assert.ok(e.ended_at);
-  assert.equal(ok(await m1.c.from("study_sessions").select("*")).length, 1);
-  assert.equal(ok(await m2.c.from("study_sessions").select("*")).length, 0);
-  assert.ok((await m1.c.from("study_sessions").insert({ user_id: m1.id, accumulated_seconds: 99999 })).error);
-  assert.ok((await m1.c.from("study_sessions").update({ accumulated_seconds: 99999 }).eq("user_id", m1.id)).error);
-});
-
-await t("연구 시간 공유는 동의한 사람만", async () => {
-  const since = new Date(Date.now() - 3600e3).toISOString();
-  assert.equal(ok(await a.c.rpc("village_shared_study", { p_village: village, p_since: since })).length, 0);
-  ok(await m1.c.from("profiles").update({ share_study_time: true }).eq("id", m1.id));
-  const rows = ok(await a.c.rpc("village_shared_study", { p_village: village, p_since: since }));
-  assert.equal(rows.length, 1);
-  assert.equal(rows[0].user_id, m1.id);
-  assert.equal(ok(await outside[0].c.rpc("village_shared_study", { p_village: village, p_since: since })).length, 0);
-});
-
-await t("개인 노트는 본인만", async () => {
-  ok(await m1.c.from("study_notes").upsert({ user_id: m1.id, note: "비밀 메모" }));
-  assert.equal(ok(await m2.c.from("study_notes").select("*")).length, 0);
-});
-
 await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {
   const notifs = async (x) => ok(await x.c.from("notifications").select("*").order("created_at"));
   const item = ok(await m1.c.from("whiteboard_items").insert({ village_id: village, owner_id: m1.id, body: "방각본 간행 연대를 어떻게 추정할까?" }).select().single());
@@ -198,9 +167,105 @@ await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {
   assert.equal((await m2.c.from("achievements").delete().eq("owner_id", m1.id).select()).data.length, 0);
 });
 
+await t("타이머 기능은 서버에서도 사라졌다", async () => {
+  for (const fn of ["timer_start", "timer_pause", "timer_resume", "timer_stop", "village_shared_study"]) {
+    assert.ok((await m1.c.rpc(fn, {})).error, fn);
+  }
+});
+
+await t("오늘의 일지와 연구노트는 본인만 (카테고리별)", async () => {
+  ok(await m1.c.from("daily_logs").upsert({ user_id: m1.id, log_date: "2026-11-12", body: "오늘은 방각본 목록 정리" }));
+  ok(await m1.c.from("daily_logs").upsert({ user_id: m1.id, log_date: "2026-11-12", body: "수정한 일지" }));
+  assert.equal(ok(await m1.c.from("daily_logs").select("*")).length, 1);
+  assert.equal(ok(await m2.c.from("daily_logs").select("*")).length, 0);
+  assert.equal((await m2.c.from("daily_logs").update({ body: "해킹" }).eq("user_id", m1.id).select()).data.length, 0);
+  assert.ok((await m2.c.from("daily_logs").insert({ user_id: m1.id, log_date: "2026-11-13", body: "남의 일지" })).error);
+  const n1 = ok(await m1.c.from("research_notes").insert({ category: "방각본", title: "목록", body: "완판본 정리" }).select().single());
+  ok(await m1.c.from("research_notes").insert({ category: "논문 구상", title: "2장", body: "" }));
+  assert.equal(ok(await m1.c.from("research_notes").select("*").eq("category", "방각본")).length, 1);
+  assert.equal(ok(await m2.c.from("research_notes").select("*")).length, 0);
+  assert.equal((await m2.c.from("research_notes").delete().eq("id", n1.id).select()).data.length, 0);
+  assert.ok((await m1.c.from("research_notes").insert({ category: "   ", body: "x" })).error);
+  assert.ok((await outside[0].c.from("research_notes").insert({ user_id: m1.id, category: "x" })).error);
+});
+
+await t("대화: 열린 연구 중인 주민에게만 신청·수락 후 실시간 메시지", async () => {
+  const st = async (x, status) => ok(await x.c.from("research_status").update({ status }).eq("user_id", x.id));
+  await st(m2, "focus");
+  assert.match((await m1.c.rpc("request_chat", { p_village: village, p_target: m2.id })).error.message, /not_available/);
+  await st(m2, "open");
+  assert.ok((await m1.c.rpc("request_chat", { p_village: village, p_target: m1.id })).error);
+  assert.ok((await m1.c.rpc("request_chat", { p_village: village, p_target: outside[0].id })).error);
+  const conv = ok(await m1.c.rpc("request_chat", { p_village: village, p_target: m2.id }));
+  assert.equal(conv.status, "pending");
+  assert.equal(ok(await m1.c.rpc("request_chat", { p_village: village, p_target: m2.id })).id, conv.id); // 중복 신청은 같은 대화
+  assert.equal((await m2.c.from("notifications").select("*")).data.filter((n) => n.kind === "chat_request").length, 1);
+  // 수락 전에는 메시지를 보낼 수 없다
+  assert.ok((await m1.c.from("messages").insert({ conversation_id: conv.id, body: "안녕하세요" })).error);
+  assert.ok((await m1.c.rpc("respond_chat", { p_conv: conv.id, p_accept: true })).error); // 신청자는 수락 불가
+  assert.equal(ok(await m3.c.from("conversations").select("*")).length, 0); // 제3자는 못 본다
+  ok(await m2.c.rpc("respond_chat", { p_conv: conv.id, p_accept: true }));
+  ok(await m1.c.from("messages").insert({ conversation_id: conv.id, body: "안녕하세요" }));
+  ok(await m2.c.from("messages").insert({ conversation_id: conv.id, body: "반가워요" }));
+  assert.equal(ok(await m1.c.from("messages").select("*").eq("conversation_id", conv.id)).length, 2);
+  assert.equal(ok(await m3.c.from("messages").select("*")).length, 0);
+  assert.equal(ok(await outside[0].c.from("messages").select("*")).length, 0);
+  assert.ok((await m3.c.from("messages").insert({ conversation_id: conv.id, body: "끼어들기" })).error);
+  assert.ok((await m1.c.from("messages").insert({ conversation_id: conv.id, body: "x", sender_id: m2.id })).error); // 남의 이름 불가
+  assert.ok((await m1.c.from("messages").insert({ conversation_id: conv.id, body: "   " })).error);
+  const c1 = ok(await m1.c.from("conversations").select("*").eq("id", conv.id).single());
+  assert.equal(c1.last_sender, m2.id);
+  assert.ok((await m1.c.from("conversations").update({ status: "ended" }).eq("id", conv.id)).error); // 직접 수정 불가
+  ok(await m1.c.rpc("mark_chat_read", { p_conv: conv.id }));
+  ok(await m1.c.rpc("end_chat", { p_conv: conv.id }));
+  assert.ok((await m2.c.from("messages").insert({ conversation_id: conv.id, body: "종료 후" })).error);
+  // 거절
+  const conv2 = ok(await m3.c.rpc("request_chat", { p_village: village, p_target: m2.id }));
+  ok(await m2.c.rpc("respond_chat", { p_conv: conv2.id, p_accept: false }));
+  assert.equal(ok(await m3.c.from("conversations").select("*").eq("id", conv2.id).single()).status, "declined");
+});
+
+await t("도서관: 공동 집필 책에 이어 쓰기, 회의 등록", async () => {
+  const book = ok(await m1.c.from("books").insert({ village_id: village, title: "조선 서적 유통사", topic: "방각본과 세책점" }).select().single());
+  assert.equal(ok(await m2.c.from("books").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("books").select("*")).length, 0);
+  assert.ok((await outside[0].c.from("books").insert({ village_id: village, title: "침입" })).error);
+  ok(await m1.c.from("book_entries").insert({ book_id: book.id, village_id: village, heading: "1장", body: "서론을 씁니다." }));
+  ok(await m2.c.from("book_entries").insert({ book_id: book.id, village_id: village, body: "이어서 방각본의 등장 배경을 씁니다." }));
+  const es = ok(await m3.c.from("book_entries").select("*").eq("book_id", book.id).order("created_at"));
+  assert.equal(es.length, 2); assert.equal(es[1].author_id, m2.id);
+  assert.ok((await m2.c.from("book_entries").insert({ book_id: book.id, village_id: village, body: "x", author_id: m3.id })).error);
+  assert.ok((await outside[0].c.from("book_entries").insert({ book_id: book.id, village_id: village, body: "x" })).error);
+  assert.equal((await m3.c.from("book_entries").update({ body: "고침" }).eq("id", es[0].id).select()).data.length, 0);
+  assert.equal((await m3.c.from("book_entries").delete().eq("id", es[1].id).select()).data.length, 0);
+  assert.equal((await m2.c.from("books").update({ status: "finished" }).eq("id", book.id).select()).data.length, 0); // 만든 사람만
+  ok(await m1.c.from("books").update({ status: "finished" }).eq("id", book.id));
+  assert.ok((await m2.c.from("book_entries").insert({ book_id: book.id, village_id: village, body: "완결 후" })).error);
+  assert.equal((await m1.c.from("book_entries").delete().eq("id", es[1].id).select()).data.length, 1); // 책 만든 사람은 정리 가능
+  // Zoom 회의
+  const when = new Date(Date.now() + 3600e3).toISOString();
+  assert.ok((await m1.c.from("meetings").insert({ village_id: village, title: "x", starts_at: when, zoom_url: "https://evil.example.com/j/123" })).error);
+  assert.ok((await m1.c.from("meetings").insert({ village_id: village, title: "x", starts_at: when, zoom_url: "http://zoom.us/j/123" })).error);
+  assert.ok((await m1.c.from("meetings").insert({ village_id: village, title: "x", starts_at: when, zoom_url: "https://zoom.us.evil.com/j/1" })).error);
+  const before = (await m2.c.from("notifications").select("*")).data.length;
+  const meet = ok(await m1.c.from("meetings").insert({ village_id: village, title: "주간 세미나", starts_at: when, zoom_url: "https://us02web.zoom.us/j/123456789?pwd=abc" }).select().single());
+  assert.equal(ok(await m2.c.from("meetings").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("meetings").select("*")).length, 0);
+  const after = (await m2.c.from("notifications").select("*")).data;
+  assert.equal(after.length, before + 1); assert.ok(after.some((n) => n.kind === "meeting"));
+  assert.equal((await m1.c.from("notifications").select("*")).data.filter((n) => n.kind === "meeting").length, 0); // 만든 사람에겐 알림 없음
+  assert.equal((await m2.c.from("meetings").delete().eq("id", meet.id).select()).data.length, 0);
+  ok(await m1.c.from("meetings").delete().eq("id", meet.id));
+  // 집필자가 떠나도 글은 남는다 (작성자만 비워진다)
+  ok(await m3.c.from("book_entries").insert({ book_id: ok(await m1.c.from("books").insert({ village_id: village, title: "둘째 책" }).select().single()).id, village_id: village, body: "m3의 글" }));
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));
+  const left = ok(await a.c.from("book_entries").select("author_id").eq("body", "m3의 글"));
+  assert.equal(left.length, 1); assert.equal(left[0].author_id, null); // 글은 남고 작성자만 비워진다
+  assert.equal(ok(await m2.c.from("conversations").select("*")).filter((c) => c.user_a === m3.id || c.user_b === m3.id).length, 0);
   assert.equal(ok(await a.c.from("village_members").select("*")).length, 5);
   assert.equal(ok(await a.c.from("houses").select("*").is("owner_id", null)).length, 1);
   ok(await outside[0].c.rpc("join_village", { p_code: code })); // 빈 자리에 새 주민
