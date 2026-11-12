@@ -100,6 +100,21 @@ await t("머리 위 한마디: 본인만, 30자 이하, 올린 시각 기록", a
   assert.ok((await m1.c.from("research_status").update({ message_at: "2000-01-01" }).eq("user_id", m1.id)).error); // 시각은 서버만 정한다
 });
 
+await t("광장 소식: 주민만 읽고 쓰고, 지우기는 작성자·관리자만", async () => {
+  const post = ok(await m1.c.from("news_posts").insert({ village_id: village, category: "conference", title: "2026 한국사학회 가을 학술대회 발표 모집", link_url: "https://example.org/cfp", deadline: "2026-12-01" }).select().single());
+  assert.equal(ok(await m2.c.from("news_posts").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("news_posts").select("*")).length, 0);
+  assert.ok((await outside[0].c.from("news_posts").insert({ village_id: village, title: "침입" })).error);
+  assert.ok((await m2.c.from("news_posts").insert({ village_id: village, title: "x", author_id: m1.id })).error); // 남의 이름 불가
+  assert.ok((await m2.c.from("news_posts").insert({ village_id: village, title: "x", category: "spam" })).error);
+  assert.ok((await m2.c.from("news_posts").insert({ village_id: village, title: "x", link_url: "javascript:alert(1)" })).error);
+  assert.ok((await m2.c.from("news_posts").insert({ village_id: village, title: "   " })).error);
+  assert.equal((await m2.c.from("news_posts").delete().eq("id", post.id).select()).data.length, 0);
+  assert.equal((await a.c.from("news_posts").delete().eq("id", post.id).select()).data.length, 1); // 관리자는 지울 수 있다
+  const mine = ok(await m2.c.from("news_posts").insert({ village_id: village, category: "job", title: "연구원 채용" }).select().single());
+  assert.equal((await m2.c.from("news_posts").delete().eq("id", mine.id).select()).data.length, 1);
+});
+
 await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => {
   ok(await m1.c.from("houses").update({ style: { roof: "#f00" } }).eq("owner_id", m1.id));
   assert.equal((await m1.c.from("houses").update({ style: { roof: "#0f0" } }).eq("owner_id", a.id).select()).data.length, 0);

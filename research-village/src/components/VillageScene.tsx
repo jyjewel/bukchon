@@ -7,7 +7,7 @@ import { bake } from "@/pixel/core";
 import { AV_H, avatarGrid } from "@/pixel/avatar";
 import {
   BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
-  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
+  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, signGrid, treeGrid,
 } from "@/pixel/village";
 
 const PHASE_LABEL: Record<DayPhase, string> = { dawn: "새벽", day: "낮", dusk: "해질녘", night: "밤" };
@@ -180,6 +180,11 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
             }
           },
         });
+        if (!empty) {
+          const sx = pos.x - 24, sy = pos.y + 11;
+          const sign = sp(`sign${mine}`, () => signGrid(mine));
+          items.push({ y: sy, draw: () => { shadow(sx, sy, 6); b.drawImage(sign, sx - 23, sy - 27); } });
+        }
         const desk = DESK_POS[h.slot];
         const seatedHere = r?.shown === "open" && !walkers.current.get(r.user_id)?.moving;
         items.push({ y: desk.y - 6, draw: () => b.drawImage(sp(`chair${empty}`, () => chairGrid(empty)), desk.x - 6, desk.y - 19) });
@@ -211,7 +216,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.drawImage(av, x - 9, y - AV_H + 1 + bob);
               b.restore();
             } else b.drawImage(av, x - 9, y - AV_H + 1 + bob);
-            if (!w.moving) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
+            if (!w.moving && !r.say) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
           },
         });
       }
@@ -263,10 +268,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
 
       <button type="button" className="scene-hit" style={pct(PLAZA.x - PLAZA.rx, PLAZA.y - PLAZA.ry, PLAZA.rx * 2, PLAZA.ry * 2)} aria-label="마을 광장 — 눌러서 열기" onClick={() => onPlace("plaza")}>
-        <span className="scene-label" style={{ top: "100%" }}>마을 광장</span>
       </button>
       <button type="button" className="scene-hit" style={pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4)} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
-        <span className="scene-label scene-label-sign" style={{ top: "33%" }}>공동 도서관</span>
       </button>
 
       {houses.map((h) => {
@@ -276,10 +279,18 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         const pos = HOUSE_POS[h.slot];
         return (
           <button key={h.slot} type="button" className="scene-hit" style={pct(pos.x - 27, pos.y - HOUSE_H + 6, 54, HOUSE_H - 4)} aria-label={label} disabled={!r} onClick={() => onHouse(h.slot)}>
-            <span className={`scene-label ${mine ? "scene-label-mine" : ""} ${r ? "" : "scene-label-empty"}`} style={{ top: "100%" }}>
-              {r ? `${r.profile.display_name}의 연구실` : "빈 연구실"}
-            </span>
           </button>
+        );
+      })}
+
+      {houses.map((h) => {
+        const r = bySlot.get(h.slot);
+        if (!r) return null;
+        const sx = HOUSE_POS[h.slot].x - 24, sy = HOUSE_POS[h.slot].y + 11;
+        return (
+          <span key={`sign-${h.slot}`} className="scene-sign-text" aria-hidden style={pct(sx - 23 + 3, sy - 27 + 3, 40, 14)}>
+            <span>{r.profile.display_name}의 연구실</span>
+          </span>
         );
       })}
 

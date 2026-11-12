@@ -425,3 +425,19 @@ export function bubbleGrid(state: ResearchState): Grid {
   for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) if (icon.d[y * 7 + x]) px(g, 3 + x, 2 + y, icon.d[y * 7 + x]);
   return outline(g, INK);
 }
+
+export const SIGN_W = 46;
+export const SIGN_H = 28;
+/** 연구실 옆 팻말. 바닥 가운데가 (23, 26). 글씨는 화면 위에 HTML 로 얹는다 (판 안쪽: x 3..43, y 3..17) */
+export function signGrid(mine: boolean): Grid {
+  const g = grid(SIGN_W, SIGN_H);
+  const board = mine ? "#ffd3dc" : "#e8c795", light = mine ? "#fff1f4" : "#f6dfba", dark = mine ? "#e59db0" : "#c49560";
+  rect(g, 21, 18, 4, 8, WOOD);
+  rect(g, 23, 18, 2, 8, WOOD_D);
+  rect(g, 1, 1, 44, 17, board);
+  rect(g, 1, 1, 44, 1, light);
+  rect(g, 1, 17, 44, 1, dark);
+  for (let x = 2; x < 44; x++) for (const y of [6, 11, 14]) if (hash(x >> 2, y + 3) > 0.62) px(g, x, y, dark);
+  for (const [x, y] of [[3, 3], [42, 3], [3, 15], [42, 15]]) px(g, x, y, "#8e5f3b");
+  return outline(g);
+}

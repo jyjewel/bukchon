@@ -190,3 +190,16 @@ export interface Meeting {
   created_by: string | null;
   created_at: string;
 }
+
+export type NewsCategory = "conference" | "job" | "funding" | "news" | "etc";
+export interface NewsPost {
+  id: string;
+  village_id: string;
+  author_id: string | null;
+  category: NewsCategory;
+  title: string;
+  body: string;
+  link_url: string;
+  deadline: string | null;
+  created_at: string;
+}

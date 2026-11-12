@@ -75,3 +75,11 @@ export function isRiss(url: string): boolean {
   const h = linkHost(url);
   return h === "riss.kr" || h.endsWith(".riss.kr");
 }
+
+export const NEWS_CATEGORIES: { id: import("./types").NewsCategory; label: string; color: string }[] = [
+  { id: "conference", label: "학회·학술대회", color: "#a9d8f5" },
+  { id: "job", label: "채용", color: "#a5e3a0" },
+  { id: "funding", label: "연구비·공모", color: "#ffe58a" },
+  { id: "news", label: "학술 뉴스", color: "#ffb3c8" },
+  { id: "etc", label: "기타", color: "#d8c0f5" },
+];
