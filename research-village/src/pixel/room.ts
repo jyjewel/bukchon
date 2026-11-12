@@ -1,6 +1,7 @@
 import { DEFAULT_ROOFS, WALLS } from "@/lib/constants";
 import type { DayPhase } from "@/lib/time";
 import type { Avatar, HouseStyle } from "@/lib/types";
+import { ACHIEVEMENT_KINDS } from "@/lib/constants";
 import { avatarGrid } from "./avatar";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
@@ -9,7 +10,7 @@ export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 
 /** 내 연구실 내부. 집 꾸미기 색(벽·지붕)이 벽지와 커튼·러그에 쓰인다. */
-export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number }): Grid {
+export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[] }): Grid {
   const wall = opts.style.wall ?? WALLS[0];
   const accent = opts.style.roof ?? DEFAULT_ROOFS[opts.slot];
   const g = grid(ROOM_W, ROOM_H);
@@ -52,27 +53,50 @@ export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar
   }
   rect(g, 8, 6, 40, 2, WOOD_D);
 
-  // 액자
-  rect(g, 58, 12, 16, 13, WOOD_D); rect(g, 60, 14, 12, 9, "#cfeaf7");
-  rect(g, 60, 20, 12, 3, "#8fd17a"); disc(g, 68, 16, 1.500, 1.500, "#ffd65c"); px(g, 63, 19, "#5fb866"); px(g, 64, 18, "#5fb866"); px(g, 65, 19, "#5fb866");
+  // 화이트보드
+  rect(g, 53, 6, 46, 28, "#8a8fa3");
+  rect(g, 54, 7, 44, 26, "#fdfdfb");
+  rect(g, 54, 7, 44, 1, "#e9ecef"); rect(g, 54, 32, 44, 1, "#dfe3e8");
+  rect(g, 56, 34, 40, 2, "#8a8fa3");
+  rect(g, 60, 34, 5, 1, "#e0605a"); rect(g, 67, 34, 5, 1, "#5f8fd6"); rect(g, 74, 34, 5, 1, "#3a2a33");
+  const inks = ["#5f8fd6", "#e0605a", "#4f9a6d", "#3a2a33"];
+  const lines = Math.min(4, opts.boardCount);
+  for (let i = 0; i < lines; i++) {
+    const y = 11 + i * 6, w = 18 + ((i * 7) % 16);
+    for (let x = 58; x < 58 + w; x += 2) { px(g, x, y, inks[i % 4]); if ((x + i) % 5) px(g, x + 1, y + (x % 3 === 0 ? 1 : 0), inks[i % 4]); }
+  }
+  if (!lines) { px(g, 75, 19, "#c9ced6"); px(g, 76, 19, "#c9ced6"); px(g, 77, 19, "#c9ced6"); }
+  if (opts.boardCount > 4) disc(g, 92, 12, 2.5, 2.5, "#e0605a");
+
+  // 포스트잇 (최근 것부터)
+  const SPOTS: [number, number][] = [[48, 8], [48, 15], [48, 22], [48, 29], [98, 8], [98, 15], [98, 22], [98, 29], [1, 10], [1, 20], [1, 30], [56, 9], [88, 9]];
+  opts.postitColors.slice(0, SPOTS.length).forEach((c, i) => {
+    const [x, y] = SPOTS[i];
+    rect(g, x + 1, y + 1, 5, 5, "#9a8f7e");
+    rect(g, x, y, 5, 5, c); rect(g, x, y, 5, 1, shade(c, 25));
+    px(g, x + 1, y + 2, shade(c, -45)); px(g, x + 2, y + 2, shade(c, -45)); px(g, x + 1, y + 3, shade(c, -45));
+  });
 
   // 책장
   rect(g, 103, 7, 32, 47, WOOD_D);
   rect(g, 105, 9, 28, 43, "#6f4a30");
-  const BOOKS = ["#e0605a", "#5f8fd6", "#f2c64e", "#62b866", "#b08ae0", "#f0994a", "#f7a8bf", "#6ccfc2"];
-  for (let s = 0; s < 4; s++) {
-    const y0 = 9 + s * 11;
+  const kindColor = (k: string) => ACHIEVEMENT_KINDS.find((x) => x.id === k)?.color ?? "#62b866";
+  let n = 0;
+  for (let sIdx = 0; sIdx < 4; sIdx++) {
+    const y0 = 9 + sIdx * 11;
     rect(g, 105, y0 + 9, 28, 2, WOOD);
     let x = 106;
-    while (x < 131) {
-      const w = 2 + Math.floor(r() * 2), h = 5 + Math.floor(r() * 4);
-      if (r() < 0.14) { x += 3; continue; }
-      const c = BOOKS[Math.floor(r() * BOOKS.length)];
+    while (x < 131 && n < opts.shelf.length) {
+      const c = kindColor(opts.shelf[n]);
+      const w = 2 + (n % 2), h = 6 + ((n * 5) % 3);
       rect(g, x, y0 + 9 - h, w, h, c);
       px(g, x, y0 + 9 - h + 1, shade(c, 60));
       rect(g, x + w - 1, y0 + 9 - h, 1, h, shade(c, -40));
-      x += w;
+      rect(g, x, y0 + 6, w, 1, "#fff8e4");
+      x += w; n++;
     }
+    if (sIdx === 3) { rect(g, 124, y0 + 2, 7, 7, "#e08a5c"); disc(g, 127, y0 + 1, 3, 3, "#62b866"); }
+    if (sIdx === 0 && opts.shelf.length === 0) { rect(g, 108, y0 + 3, 6, 6, "#fdfdfb"); rect(g, 109, y0 + 5, 4, 1, "#c9ced6"); }
   }
   rect(g, 103, 7, 32, 2, WOOD);
 

@@ -1,12 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
 import { useTimer } from "@/hooks/useTimer";
 import { useNotes } from "@/hooks/useNotes";
 import { useDiary } from "@/hooks/useDiary";
 import { STATUS_META, STATUS_ORDER, VILLAGE_CAPACITY } from "@/lib/constants";
-import type { ResearchState, Resident } from "@/lib/types";
+import type { AppNotification, BoardTab, ResearchState, Resident } from "@/lib/types";
+import { useNotifications } from "@/hooks/useNotifications";
+import NotificationsView, { notifText } from "./NotificationsView";
+import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
 import TimerCard from "./TimerCard";
@@ -16,7 +19,7 @@ import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
 import { Modal, Notice, Window } from "./ui";
 
-type View = "home" | "room" | "diary" | "settings";
+type View = "home" | "room" | "diary" | "settings" | "visit" | "alerts";
 type Place = "library" | "plaza" | "board";
 const NAV: { id: View; label: string; icon: string }[] = [
   { id: "home", label: "마을 홈", icon: "" },
@@ -73,22 +76,47 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
   const [view, setView] = useState<View>("home");
   const [selected, setSelected] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
+  const [tab, setTab] = useState<BoardTab>("whiteboard");
+  const [visitId, setVisitId] = useState<string | null>(null);
+  const [toast, setToast] = useState<AppNotification | null>(null);
+  const onNew = useCallback((n: AppNotification) => setToast(n), []);
+  const notifs = useNotifications(me.user_id, onNew);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 7000);
+    return () => clearTimeout(t);
+  }, [toast]);
   const timer = useTimer(me.user_id, village.id, v.skew);
   const notes = useNotes(me.user_id);
   const diary = useDiary(village.id);
   const selectedResident = v.residents.find((r) => r.user_id === selected) ?? null;
   const byId = new Map(v.residents.map((r) => [r.user_id, r]));
 
-  const enterRoom = () => {
-    // 집에 들어가면 '집중 연구'가 된다 (일부러 불을 꺼 둔 경우는 그대로)
-    if (me.status.status !== "focus" && me.status.status !== "offline") void v.setStatus("focus");
+  /** 내 연구실 화면으로 간다. 지도에서 내 집을 눌러 들어갈 때(study)만 '집중 연구'가 된다. */
+  const enterRoom = (study = false) => {
+    if (study && me.status.status !== "focus" && me.status.status !== "offline") void v.setStatus("focus");
     setView("room");
   };
   const changeStatus = (s: ResearchState) => {
     void v.setStatus(s);
     if (view === "room" && s !== "focus" && s !== "offline") setView("home");
   };
-  const go = (id: View) => (id === "room" ? enterRoom() : setView(id));
+  const visit = (userId: string, t?: BoardTab, fromMap = false) => {
+    setSelected(null);
+    if (userId === me.user_id) {
+      if (t) setTab(t);
+      return enterRoom(fromMap);
+    }
+    if (t) setTab(t);
+    setVisitId(userId);
+    setView("visit");
+  };
+  const openNotification = (n: AppNotification) => {
+    void notifs.markRead([n.id]);
+    setToast(null);
+    visit(n.room_owner_id, n.kind === "postit" ? "postits" : "whiteboard");
+  };
+  const go = (id: View) => (id === "room" ? enterRoom(false) : setView(id));
   const emptyHouses = VILLAGE_CAPACITY - v.residents.length;
   const others = v.residents.filter((r) => r.user_id !== me.user_id);
 
@@ -105,6 +133,9 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
               {n.label}
             </button>
           ))}
+          <button type="button" aria-current={view === "alerts" ? "page" : undefined} className={`btn ${view === "alerts" ? "btn-primary" : ""}`} onClick={() => setView("alerts")}>
+            알림{notifs.unread > 0 && <span className="chip" style={{ background: "#d9547a", color: "#fff", ["--bd" as string]: "#3a2a33" }} aria-label={`새 알림 ${notifs.unread}개`}>{notifs.unread}</span>}
+          </button>
         </nav>
       </header>
 
@@ -157,14 +188,13 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                     onHouse={(slot) => {
                       const owner = v.residents.find((r) => r.slot === slot);
                       if (!owner) return;
-                      if (owner.user_id === me.user_id) enterRoom();
-                      else setSelected(owner.user_id);
+                      visit(owner.user_id, undefined, true);
                     }}
                     onPlace={setPlace}
                   />
                 </div>
               </div>
-              <p className="border-t-[3px] border-ink px-3 py-1.5 text-xs text-ink-soft">내 집을 누르면 연구실로 들어가요. 주민이나 다른 집을 누르면 미니홈피가 열려요.</p>
+              <p className="border-t-[3px] border-ink px-3 py-1.5 text-xs text-ink-soft">내 집을 누르면 연구실로 들어가요. 다른 집은 연구실을 방문하고, 주민을 누르면 프로필이 열려요.</p>
             </Window>
             <Window title="다이어리 업데이트" icon="" tone="butter" actions={<button type="button" className="btn btn-sm" onClick={() => setView("diary")}>모두 보기</button>}>
               <div className="grid gap-2 p-3 sm:grid-cols-2">
@@ -215,12 +245,32 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} timer={timer} notes={notes} onStatus={changeStatus} onUpdateStatus={(p) => void v.updateMyStatus(p)} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} timer={timer} notes={notes} onStatus={changeStatus} onUpdateStatus={(p) => void v.updateMyStatus(p)} /></main>}
+      {view === "visit" && (() => {
+        const owner = v.residents.find((r) => r.user_id === visitId);
+        return owner ? (
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} /></main>
+        ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
+      })()}
+      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
       {view === "diary" && <main><DiaryView villageId={village.id} myId={me.user_id} residents={v.residents} entries={diary.entries} reload={diary.reload} /></main>}
       {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} /></main>}
 
       {selectedResident && (
-        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} entries={diary.entries} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} />
+        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} entries={diary.entries} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} />
+      )}
+      {toast && view !== "alerts" && (
+        <div role="status" className="window fixed bottom-4 right-4 z-50 max-w-xs" style={{ background: "#fff3c4" }}>
+          <div className="space-y-2 p-3 text-sm">
+            <p className="font-display">새 알림</p>
+            <p>{notifText(toast, v.residents, me.user_id)}</p>
+            {toast.summary && <p className="text-xs text-ink-soft">“{toast.summary}”</p>}
+            <div className="flex gap-1">
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => openNotification(toast)}>보러 가기</button>
+              <button type="button" className="btn btn-sm" onClick={() => setToast(null)}>닫기</button>
+            </div>
+          </div>
+        </div>
       )}
       {place && <PlaceModal place={place} residents={v.residents} me={me} onGo={changeStatus} onClose={() => setPlace(null)} />}
     </div>

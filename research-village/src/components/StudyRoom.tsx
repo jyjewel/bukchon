@@ -1,43 +1,24 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useRoom } from "@/hooks/useRoom";
+import RoomBoards from "./RoomBoards";
+import RoomCanvas from "./RoomCanvas";
 import TimerCard from "./TimerCard";
 import { Window } from "./ui";
 import { STATUS_META } from "@/lib/constants";
-import { currentPhase, humanDuration } from "@/lib/time";
-import { paint } from "@/pixel/core";
-import { ROOM_H, ROOM_W, roomGrid } from "@/pixel/room";
+import { humanDuration } from "@/lib/time";
 import type { useTimer } from "@/hooks/useTimer";
 import type { useNotes } from "@/hooks/useNotes";
-import type { ResearchState, Resident, StatusRow } from "@/lib/types";
-
-function RoomArt({ me, studying }: { me: Resident; studying: boolean }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const inside = me.status.status === "focus" || me.status.status === "offline";
-  const styleKey = JSON.stringify(me.house.style), avatarKey = JSON.stringify(me.profile.avatar);
-  useEffect(() => {
-    const ctx = ref.current?.getContext("2d");
-    if (!ctx) return;
-    let frame = 0;
-    const draw = () => {
-      paint(ctx, roomGrid({ slot: me.slot, style: JSON.parse(styleKey), avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame }), 0, 0);
-      frame++;
-    };
-    draw();
-    const t = setInterval(draw, 700);
-    return () => clearInterval(t);
-  }, [me.slot, styleKey, avatarKey, inside, studying]);
-  return (
-    <div className="relative">
-      <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={inside ? "내 연구실 — 책상에 앉아 있어요" : "내 연구실 — 지금은 비어 있어요"} />
-      {!inside && <p className="scene-label" style={{ top: "22%" }}>지금은 {STATUS_META[me.status.status].where}</p>}
-    </div>
-  );
-}
+import type { BoardTab, ResearchState, Resident, StatusRow } from "@/lib/types";
 
 export default function StudyRoom({
-  me, timer, notes, onStatus, onUpdateStatus,
+  me, villageId, residents, tab, onTab, timer, notes, onStatus, onUpdateStatus,
 }: {
   me: Resident;
+  villageId: string;
+  residents: Resident[];
+  tab: BoardTab;
+  onTab: (t: BoardTab) => void;
   timer: ReturnType<typeof useTimer>;
   notes: ReturnType<typeof useNotes>;
   onStatus: (s: ResearchState) => void;
@@ -45,6 +26,8 @@ export default function StudyRoom({
 }) {
   const [topic, setTopic] = useState(me.status.topic);
   const [reading, setReading] = useState(me.status.reading);
+  const room = useRoom(me.user_id, villageId);
+  const inside = me.status.status === "focus" || me.status.status === "offline";
   const saveLabel = { idle: "", saving: "저장 중…", saved: "저장됨", error: "! 저장하지 못했어요" }[notes.state];
   const { stats } = timer;
   const max = Math.max(1, ...stats.bySubject.map((s) => s.seconds));
@@ -53,7 +36,8 @@ export default function StudyRoom({
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="space-y-4">
         <Window title={`${me.profile.display_name}의 연구실`} icon="" tone="butter">
-          <RoomArt me={me} studying={timer.running} />
+          <RoomCanvas owner={me} inside={inside} studying={timer.running} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)}
+            note={inside ? undefined : `지금은 ${STATUS_META[me.status.status].where}`} onPick={onTab} />
           <div className="space-y-2 border-t-[3px] border-ink p-3">
             <p className="text-sm">
               {me.status.status === "focus"
@@ -69,6 +53,10 @@ export default function StudyRoom({
               <button type="button" className="btn" onClick={() => onStatus("rest")}>광장에서 쉬기</button>
             </div>
           </div>
+        </Window>
+
+        <Window title="내 화이트보드 · 포스트잇 · 책장" tone="lilac">
+          <RoomBoards owner={me} myId={me.user_id} villageId={villageId} residents={residents} room={room} tab={tab} onTab={onTab} />
         </Window>
 
         <Window title="지금 하는 연구" icon="" tone="sky">

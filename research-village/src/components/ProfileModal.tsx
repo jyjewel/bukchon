@@ -10,8 +10,8 @@ import { Modal } from "./ui";
 
 /** 주민의 미니홈피: 프로필, 지금 상태, 공개한 다이어리 */
 export default function ProfileModal({
-  resident, isMe, entries, onClose, onEditProfile,
-}: { resident: Resident; isMe: boolean; entries: DiaryEntry[]; onClose: () => void; onEditProfile: () => void }) {
+  resident, isMe, entries, onClose, onEditProfile, onVisit,
+}: { resident: Resident; isMe: boolean; entries: DiaryEntry[]; onClose: () => void; onEditProfile: () => void; onVisit: () => void }) {
   const { profile, status } = resident;
   const meta = STATUS_META[resident.shown];
   const [sharedSeconds, setSharedSeconds] = useState<number | null>(null);
@@ -43,6 +43,7 @@ export default function ProfileModal({
             <p className="text-xs">{meta.where}</p>
             {!isMe && <p className="mt-1 text-xs text-ink-soft">{meta.talk}</p>}
           </div>
+          {!isMe && <button type="button" className="btn btn-primary w-full" onClick={onVisit}>{resident.shown === "focus" ? "연구실 문 앞으로" : "연구실 방문하기"}</button>}
           {isMe && <button type="button" className="btn w-full" onClick={onEditProfile}>프로필 꾸미기</button>}
         </div>
         <div className="min-w-0 space-y-3">

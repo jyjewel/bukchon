@@ -86,3 +86,53 @@ export interface DiaryEntry {
   created_at: string;
   updated_at: string;
 }
+
+export type AchievementKind = "article" | "book" | "thesis" | "presentation" | "other";
+
+export interface WhiteboardItem {
+  id: string;
+  village_id: string;
+  owner_id: string;
+  body: string;
+  resolved: boolean;
+  created_at: string;
+}
+export interface WhiteboardComment {
+  id: string;
+  item_id: string;
+  village_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+}
+export interface Postit {
+  id: string;
+  village_id: string;
+  owner_id: string;
+  author_id: string;
+  body: string;
+  color: string;
+  created_at: string;
+}
+export interface Achievement {
+  id: string;
+  village_id: string;
+  owner_id: string;
+  title: string;
+  kind: AchievementKind;
+  year: number | null;
+  link_url: string;
+  created_at: string;
+}
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  village_id: string;
+  actor_id: string;
+  kind: "postit" | "comment";
+  room_owner_id: string;
+  summary: string;
+  created_at: string;
+  read_at: string | null;
+}
+export type BoardTab = "whiteboard" | "postits" | "shelf";
