@@ -11,7 +11,7 @@ const OX = 3;
 
 export interface FullAvatar {
   skin: string; hair: string; hairColor: string; eyes: string; top: string;
-  outfit: string; accent: string; hat: string; accessories: string[]; prop: string;
+  outfit: string; accent: string; hat: string; accessories: string[]; props: string[];
 }
 
 /** 저장된 값에서 빠진 항목을 기본값으로 채운다. 예전의 '한 개만 고르던' 액세서리도 새 형식으로 바꾼다. */
@@ -20,28 +20,21 @@ export function normalizeAvatar(a: Avatar): FullAvatar {
   const hat = a.hat ?? (legacy === "beret" ? "beret" : "none");
   const accessories = a.accessories ?? (["glasses", "ribbon", "scarf"].includes(legacy) ? [legacy] : []);
   return {
-    skin: a.skin ?? SKINS[0], hair: a.hair ?? "short", hairColor: a.hairColor ?? HAIR_COLORS[0], eyes: a.eyes ?? "default",
-    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, prop: a.prop ?? "none",
+    skin: a.skin ?? SKINS[0], hair: a.hair === "undercut" ? "short" : a.hair ?? "short", hairColor: a.hairColor ?? HAIR_COLORS[0], eyes: a.eyes ?? "default",
+    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, props: a.props ?? (a.prop && a.prop !== "none" ? [a.prop] : []),
   };
 }
 
 const INKC = "#3a2a33";
-
-/** 두 색을 t 비율로 섞는다 (민 머리의 까슬한 색에 쓴다) */
-function mix(a: string, b: string, t: number): string {
-  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
-  const ch = (sh: number) => Math.round(((pa >> sh) & 255) * (1 - t) + ((pb >> sh) & 255) * t).toString(16).padStart(2, "0");
-  return `#${ch(16)}${ch(8)}${ch(0)}`;
-}
-
 /** 옷 종류별로 몸통과 소매를 그린다 (본체 좌표 18칸 기준) */
 function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
   const { top, outfit, accent, skin } = f;
-  let main = outfit, side = shade(outfit, -42), hi = shade(outfit, 30);
-  if (top === "hoodie") { main = "#9ea4b4"; side = "#7d8396"; hi = "#b8bdca"; }
-  if (top === "suit") { main = "#f4f6fa"; side = "#c8cfdc"; hi = "#ffffff"; }
-  if (top === "labcoat") { main = "#f7f9fc"; side = "#cdd5e2"; hi = "#ffffff"; }
-  if (top === "gown") { main = "#37314a"; side = "#262136"; hi = "#4a4263"; }
+  let main = outfit, side = shade(outfit, -42), hi = shade(outfit, 30), sleeve = side;
+  if (top === "suit") { main = "#f4f6fa"; side = "#c8cfdc"; hi = "#ffffff"; sleeve = side; }
+  if (top === "labcoat") { main = "#f7f9fc"; side = "#cdd5e2"; hi = "#ffffff"; sleeve = side; }
+  if (top === "gown") { main = "#37314a"; side = "#262136"; hi = "#4a4263"; sleeve = side; }
+  if (top === "vest") sleeve = "#e4e8f0";                           // 조끼 안에 입은 긴팔
+  if (top === "hoodie" || top === "sweatshirt" || top === "pullover" || top === "fleece") sleeve = shade(outfit, -26);
   const last = top === "labcoat" ? 21 : top === "gown" ? 22 : 19; // 몸통 마지막 줄
   const wide = top === "gown";
 
@@ -55,9 +48,31 @@ function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
     rect(g, 6, 14, 6, 1, side);
   }
   if (top === "hoodie") {
-    rect(g, 4, 14, 10, 1, side);
-    px(g, 7, 15, "#ffffff"); px(g, 7, 16, "#ffffff"); px(g, 10, 15, "#ffffff"); px(g, 10, 16, "#ffffff");
-    rect(g, 6, 18, 6, 2, "#8a90a2"); px(g, 6, 18, "#7d8396"); px(g, 11, 18, "#7d8396");
+    rect(g, 4, 14, 10, 1, side);                                      // 목 뒤로 넘어온 모자
+    px(g, 7, 15, "#ffffff"); px(g, 7, 16, "#ffffff"); px(g, 10, 15, "#ffffff"); px(g, 10, 16, "#ffffff"); // 끈
+    rect(g, 6, 18, 6, 2, shade(main, -16)); px(g, 6, 18, side); px(g, 11, 18, side);                       // 주머니
+  }
+  if (top === "sweatshirt") {
+    rect(g, 6, 14, 6, 1, side);                                       // 목 시보리
+    rect(g, 5, 19, 8, 1, side); px(g, 5, 18, hi); px(g, 12, 18, hi);  // 밑단 시보리
+    rect(g, 10, 16, 2, 1, shade(main, 55)); px(g, 10, 17, shade(main, 55)); // 가슴 로고
+  }
+  if (top === "pullover") {
+    rect(g, 5, 14, 8, 2, shade(outfit, -34));                         // 윗부분 색 블록
+    rect(g, 6, 14, 6, 1, shade(outfit, -52));
+    rect(g, 9, 14, 1, 4, "#e8e8f0"); px(g, 9, 18, "#c8c8d4");       // 반집업 지퍼
+    rect(g, 5, 19, 8, 1, side);
+  }
+  if (top === "fleece") {
+    rect(g, 5, 14, 8, 1, shade(outfit, -38));                         // 세운 깃
+    rect(g, 9, 14, 1, 6, "#e8e8f0"); px(g, 9, 19, "#b8b8c8");        // 집업 지퍼
+    rect(g, 10, 16, 2, 2, shade(outfit, -26)); px(g, 10, 16, "#e8e8f0"); // 가슴 주머니
+    rect(g, 5, 19, 8, 1, shade(outfit, -38));
+  }
+  if (top === "vest") {
+    for (const y of [16, 18]) rect(g, 5, y, 8, 1, side);              // 퀼팅 줄
+    rect(g, 5, 14, 8, 1, shade(outfit, -36)); rect(g, 9, 14, 1, 6, "#d8dae4"); // 깃, 지퍼
+    rect(g, 10, 15, 2, 1, shade(outfit, 45));                         // 가슴 로고
   }
   if (top === "corduroy") {
     for (const x of [6, 10, 12]) rect(g, x, 15, 1, 4, side);
@@ -87,13 +102,13 @@ function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
 
   // 팔(소매) — 걸을 때 앞뒤로 흔들린다
   const swing = seated ? 0 : frame === 1 ? -1 : frame === 2 ? 1 : 0;
-  const sleeve = side;
   const lx = wide ? 3 : 4, rx = wide ? 14 : 13;
   rect(g, lx, 15, wide ? 2 : 1, 3 + (swing < 0 ? -1 : 0), sleeve);
   px(g, lx, 18 + (swing < 0 ? -1 : 0), skin);
   rect(g, rx, 15, wide ? 2 : 1, 3 + (swing > 0 ? -1 : 0), sleeve);
   px(g, rx + (wide ? 1 : 0), 18 + (swing > 0 ? -1 : 0), skin);
   if (top === "stripe") { px(g, lx, 16, "#f6f2ea"); px(g, rx, 16, "#f6f2ea"); }
+  if (top === "sweatshirt") { px(g, lx, 17, shade(outfit, -60)); px(g, rx, 17, shade(outfit, -60)); } // 소매 시보리
 }
 
 /** 표정(눈). 'focus' 의 불꽃은 앞머리를 그린 뒤에 덧그린다. */
@@ -136,6 +151,20 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     rect(g, 2, 6, 14, 9, hairD);
     for (const [x, y] of [[2, 6], [15, 6], [2, 9], [15, 9], [2, 12], [15, 12], [3, 14], [5, 14], [8, 14], [10, 14], [12, 14]]) px(g, x, y, null);
   }
+  if (style === "hippie") {
+    // 히피펌: 굽이치는 긴 파마머리 (가장자리가 물결 모양)
+    for (let y = 5; y <= 19; y++) {
+      const wl = Math.floor(y / 2) % 2, wr = Math.floor((y + 1) / 2) % 2;
+      rect(g, 2 + wl, y, 14 - wl - wr, 1, hairD);
+    }
+  }
+  if (f.props.includes("backpack")) {
+    // 등에 멘 가방이 몸 옆으로 살짝 보인다
+    rect(g, 2, 15, 2, 6, accent); rect(g, 14, 15, 2, 6, accent);
+    rect(g, 2, 15, 1, 6, shade(accent, -40)); rect(g, 15, 15, 1, 6, shade(accent, -40));
+    px(g, 3, 16, shade(accent, 45)); px(g, 14, 16, shade(accent, 45));
+    px(g, 3, 14, accent); px(g, 14, 14, accent);
+  }
   if (style === "ponytail") {
     rect(g, 14, 5, 3, 7, hair); rect(g, 15, 12, 2, 4, hair); rect(g, 16, 5, 1, 11, hairD);
     rect(g, 14, 5, 2, 1, hairL); px(g, 14, 6, accent); px(g, 15, 6, accent);
@@ -157,6 +186,11 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
 
   // 몸
   drawTop(g, f, frame, seated);
+  if (f.props.includes("backpack")) {
+    const strap = shade(accent, -48);
+    rect(g, 6, 14, 1, 6, strap); rect(g, 11, 14, 1, 6, strap);
+    rect(g, 6, 16, 6, 1, shade(accent, -20));                          // 가슴 끈
+  }
   if (has("scarf")) {
     rect(g, 5, 13, 8, 2, "#e0605a");
     rect(g, 10, 15, 2, 3, "#c94c4c");
@@ -220,13 +254,15 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     rect(g, 7, 3, 2, 1, "#fffdf0"); px(g, 6, 4, "#fffdf0"); px(g, 9, 4, "#fff6d8");
     for (const [x, y] of [[13, 1], [12, 2], [13, 2], [14, 2], [13, 3]]) px(g, x, y, "#fff6c0");
     px(g, 13, 2, "#ffffff");
-  } else if (style === "undercut") {
-    rect(g, 5, 1, 8, 1, hair); rect(g, 4, 2, 10, 2, hair); rect(g, 5, 4, 8, 3, hair);
-    const stubble = mix(skin, hair, 0.5);
-    rect(g, 3, 4, 2, 4, stubble); rect(g, 13, 4, 2, 4, stubble); // 옆은 짧게 민 부분
-    px(g, 3, 4, hairD); px(g, 14, 4, hairD);
-    px(g, 6, 7, hair); px(g, 7, 7, hair); px(g, 10, 7, hair); px(g, 11, 7, hair); px(g, 5, 7, hair);
-    rect(g, 6, 2, 3, 1, hairL); px(g, 5, 3, hairL); px(g, 9, 1, hairL);
+  } else if (style === "receding") {
+    // 반대머리: 이마가 넓게 벗겨지고 정수리 쪽과 옆머리만 남은 머리
+    rect(g, 6, 3, 6, 1, skin); rect(g, 6, 4, 6, 1, skin);
+    rect(g, 5, 2, 8, 1, hair); rect(g, 4, 3, 2, 1, hair); rect(g, 12, 3, 2, 1, hair);
+    rect(g, 3, 4, 3, 3, hair); rect(g, 12, 4, 3, 3, hair);
+    rect(g, 3, 7, 1, 2, hair); rect(g, 14, 7, 1, 2, hair);
+    rect(g, 7, 4, 3, 1, "#fffdf0"); px(g, 6, 5, "#fff3d8");              // 반짝이는 이마
+    px(g, 8, 3, hairL); px(g, 9, 2, hairL); px(g, 7, 2, hairL);
+    rect(g, 3, 6, 1, 1, hairD); rect(g, 14, 6, 1, 1, hairD);
   } else if (style === "curly" || style === "curlybob") {
     front();
     for (const x of [4, 5, 8, 9, 12, 13]) px(g, x, 1, hair);
@@ -245,8 +281,16 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
       if (style === "long") { rect(g, 4, 14, 1, 3, hair); rect(g, 13, 14, 1, 3, hair); }
     }
     if (style === "bun") {
-      rect(g, 7, 0, 4, 2, hair); px(g, 6, 1, hair); px(g, 11, 1, hair);
-      px(g, 8, 0, hairL); px(g, 3, 8, hair); px(g, 14, 8, hair);
+      // 똥머리: 정수리에 크게 틀어 올린 뭉치와 삐져나온 잔머리
+      rect(g, 6, 0, 6, 2, hair); px(g, 5, 1, hair); px(g, 12, 1, hair); px(g, 5, 2, hairD); px(g, 12, 2, hairD);
+      rect(g, 7, 0, 2, 1, hairL); px(g, 10, 1, hairD); px(g, 3, 8, hair); px(g, 14, 8, hair);
+      px(g, 4, 8, hair); px(g, 13, 9, hair);
+    }
+    if (style === "hippie") {
+      rect(g, 4, 1, 10, 1, hair); px(g, 3, 2, hair); px(g, 14, 2, hair);
+      rect(g, 3, 8, 1, 9, hair); rect(g, 14, 8, 1, 9, hair);
+      for (const [x, y] of [[4, 14], [4, 15], [13, 14], [13, 15], [4, 9], [13, 10]]) px(g, x, y, hair);
+      px(g, 3, 10, hairL); px(g, 14, 12, hairL); px(g, 3, 13, hairL); px(g, 6, 1, hairL);
     }
   }
   if (f.eyes === "focus") drawFocusFlames(g);
@@ -291,18 +335,33 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     px(g, 15, 2, "#f2c64e"); px(g, 16, 3, "#f2c64e"); px(g, 16, 4, "#f2c64e"); px(g, 16, 5, "#f2c64e"); px(g, 16, 6, "#e0a830"); px(g, 15, 6, "#e0a830"); // 술
   }
 
-  // 24칸 그림으로 옮기고 손에 든 소품을 그린다
+  // 24칸 그림으로 옮기고 손에 든 소품·에코백을 그린다
   const out = grid(AV_W, AV_H);
   stamp(out, g, OX, 0);
-  drawProp(out, f.prop);
+  if (f.props.includes("ecobag")) drawEcoBag(out, accent);
+  for (const p of f.props) drawHandProp(out, p, accent);
   return outline(out);
 }
 
-/** 오른손에 든 연구 소품 (24칸 좌표: 오른손이 (16, 18)) */
-function drawProp(g: Grid, prop: string) {
+/** 왼쪽 어깨에 건 에코백 (24칸 좌표) */
+function drawEcoBag(g: Grid, accent: string) {
+  const cloth = "#f3ecd8", edge = "#d8cdb0";
+  for (const [x, y] of [[6, 14], [5, 13], [4, 12], [3, 13], [2, 14]]) px(g, x, y, edge);     // 어깨끈
+  rect(g, 1, 15, 6, 7, cloth); rect(g, 1, 15, 6, 1, edge); rect(g, 6, 15, 1, 7, edge); rect(g, 1, 21, 6, 1, edge);
+  rect(g, 2, 17, 3, 1, accent); rect(g, 2, 19, 2, 1, accent); px(g, 4, 19, shade(accent, 40));  // 프린트
+}
+
+/** 오른손에 든 소품 (24칸 좌표: 오른손이 (16, 18)) */
+function drawHandProp(g: Grid, prop: string, accent: string) {
   if (prop === "book") {
     rect(g, 17, 15, 5, 6, "#c0504d"); rect(g, 17, 15, 1, 6, "#8e3330"); rect(g, 21, 16, 1, 4, "#fff8e4");
     rect(g, 19, 17, 2, 1, "#f2c64e"); rect(g, 19, 19, 1, 1, "#f2c64e"); rect(g, 17, 20, 5, 1, "#8e3330");
+  }
+  if (prop === "thesis") {
+    // 학위논문: 두껍게 제본된 남색 표지에 금박 글씨
+    rect(g, 17, 13, 6, 8, "#1f3a6e"); rect(g, 17, 13, 1, 8, "#14264a"); rect(g, 22, 14, 1, 6, "#f6f2ea");
+    rect(g, 19, 15, 3, 1, "#e8c24a"); rect(g, 19, 17, 2, 1, "#e8c24a"); rect(g, 19, 19, 3, 1, "#b8963a");
+    rect(g, 17, 20, 6, 1, "#14264a");
   }
   if (prop === "scroll") {
     rect(g, 18, 13, 3, 9, "#f6e7c1"); rect(g, 17, 12, 5, 1, "#c0504d"); rect(g, 17, 22, 5, 1, "#c0504d");
@@ -317,6 +376,23 @@ function drawProp(g: Grid, prop: string) {
     rect(g, 17, 17, 4, 4, "#fffaf0"); rect(g, 17, 17, 4, 1, "#7a4a2a"); rect(g, 17, 20, 4, 1, "#e0d8c8");
     px(g, 21, 18, "#fffaf0"); px(g, 22, 18, "#fffaf0"); px(g, 22, 19, "#fffaf0"); px(g, 21, 19, "#fffaf0");
     px(g, 18, 14, "#ffffff"); px(g, 19, 13, "#f0f0f6"); px(g, 18, 12, "#ffffff"); px(g, 20, 15, "#f0f0f6");
+  }
+  if (prop === "americano") {
+    // 아이스 아메리카노: 투명한 일회용 컵, 진한 커피와 얼음, 검은 빨대
+    rect(g, 17, 15, 5, 1, "#dfe8ee");                                 // 뚜껑
+    rect(g, 17, 16, 5, 5, "#e9f2f7"); rect(g, 18, 20, 3, 1, "#e9f2f7");
+    rect(g, 17, 17, 5, 3, "#4a2c1c"); rect(g, 18, 20, 3, 1, "#3a2216");
+    px(g, 18, 17, "#f4fbff"); px(g, 20, 18, "#f4fbff"); px(g, 19, 19, "#dbe9f2"); px(g, 21, 17, "#dbe9f2");
+    rect(g, 19, 11, 1, 5, "#2f2a3a"); px(g, 20, 11, "#2f2a3a");       // 빨대
+    px(g, 17, 16, "#ffffff");
+  }
+  if (prop === "stanley") {
+    // 스탠리 텀블러: 손잡이 달린 큼직한 보온컵, 색은 포인트색
+    rect(g, 17, 13, 5, 1, "#f6f2ea"); px(g, 20, 12, "#f6f2ea"); px(g, 21, 12, "#f6f2ea");  // 뚜껑·빨대 입구
+    rect(g, 17, 14, 5, 6, accent); rect(g, 18, 20, 3, 1, accent);
+    rect(g, 17, 14, 1, 6, shade(accent, 40)); rect(g, 21, 14, 1, 6, shade(accent, -34)); rect(g, 18, 20, 3, 1, shade(accent, -34));
+    rect(g, 18, 17, 3, 1, "#ffffff"); px(g, 19, 17, shade(accent, -34));  // 로고 띠
+    px(g, 22, 15, shade(accent, -34)); px(g, 23, 15, shade(accent, -34)); px(g, 23, 16, shade(accent, -34)); px(g, 23, 17, shade(accent, -34)); px(g, 22, 18, shade(accent, -34)); // 손잡이
   }
   if (prop === "brush") {
     for (const [x, y] of [[17, 19], [18, 18], [19, 17], [20, 16], [21, 15], [22, 14]]) px(g, x, y, "#b98552");

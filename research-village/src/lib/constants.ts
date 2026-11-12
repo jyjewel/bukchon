@@ -37,14 +37,15 @@ export const HAIR_COLORS = [
 ];
 export const HAIR_STYLES = [
   { id: "short", label: "짧은 머리" },
-  { id: "undercut", label: "투블록" },
   { id: "bob", label: "단발" },
   { id: "curlybob", label: "곱슬 단발" },
   { id: "long", label: "긴 머리" },
+  { id: "hippie", label: "히피펌" },
   { id: "ponytail", label: "포니테일" },
   { id: "pigtails", label: "양갈래" },
-  { id: "bun", label: "올림머리" },
+  { id: "bun", label: "똥머리" },
   { id: "curly", label: "곱슬" },
+  { id: "receding", label: "반대머리" },
   { id: "bald", label: "삭발" },
 ];
 export const EYES = [
@@ -56,11 +57,15 @@ export const EYES = [
 ];
 export const TOPS = [
   { id: "tee", label: "티셔츠" },
-  { id: "hoodie", label: "회색 후드티" },
-  { id: "corduroy", label: "코듀로이 재킷" },
+  { id: "hoodie", label: "후드티" },
+  { id: "sweatshirt", label: "맨투맨" },
+  { id: "pullover", label: "풀오버" },
+  { id: "fleece", label: "플리스 점퍼" },
+  { id: "vest", label: "패딩 조끼" },
   { id: "suit", label: "셔츠·넥타이" },
-  { id: "labcoat", label: "연구실 가운" },
+  { id: "corduroy", label: "코듀로이 재킷" },
   { id: "stripe", label: "줄무늬 스웨터" },
+  { id: "labcoat", label: "연구실 가운" },
   { id: "gown", label: "학위복" },
 ];
 export const OUTFITS = [
@@ -87,14 +92,23 @@ export const ACCESSORIES = [
   { id: "scarf", label: "목도리" },
 ];
 export const EYEWEAR = ["glasses", "square", "sunglasses"];
-export const PROPS = [
-  { id: "none", label: "없음" },
+/** 소품: 손에 든 것은 하나만, 가방도 하나만 고를 수 있고 둘은 같이 쓸 수 있다. */
+export const HAND_PROPS = [
   { id: "book", label: "책" },
+  { id: "thesis", label: "학위논문" },
   { id: "scroll", label: "두루마리" },
   { id: "laptop", label: "노트북" },
   { id: "coffee", label: "커피잔" },
+  { id: "americano", label: "아이스 아메리카노" },
+  { id: "stanley", label: "스탠리컵" },
   { id: "brush", label: "붓" },
 ];
+export const BAGS = [
+  { id: "backpack", label: "백팩" },
+  { id: "ecobag", label: "에코백" },
+];
+export const PROPS = [...HAND_PROPS, ...BAGS];
+
 export const ROOFS = ["#e8837c", "#f2a65a", "#7fb3d9", "#8fc7a3", "#b497d6", "#d98bb0", "#9a8f85"];
 export const WALLS = ["#fff5e1", "#fde8ea", "#e9f4ec", "#e8f0fb", "#f4ecfa", "#f7e7cf"];
 /** 집 번호별 기본 지붕 색 */

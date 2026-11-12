@@ -12,7 +12,9 @@ export interface Avatar {
   accent?: string; // 모자·머리핀·넥타이 등 소품 색
   hat?: string; // 모자 id (하나만)
   accessories?: string[]; // 안경·마스크·헤드폰 등 (여러 개 동시에)
-  prop?: string; // 손에 든 연구 소품 id
+  props?: string[]; // 소품: 손에 든 것 최대 1개 + 가방 최대 1개
+  /** 예전 저장 형식(소품 한 개) */
+  prop?: string;
   /** 예전 저장 형식(한 개만 고르던 시절). 불러올 때 새 형식으로 바꾼다. */
   accessory?: string;
 }
