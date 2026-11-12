@@ -105,3 +105,21 @@ export function Choices<T extends string>({
     </fieldset>
   );
 }
+
+/** 여러 개를 동시에 고를 수 있는 선택 */
+export function Toggles({
+  label, options, values, onToggle,
+}: { label: string; options: { id: string; label: string }[]; values: string[]; onToggle: (id: string) => void }) {
+  return (
+    <fieldset>
+      <legend className="label">{label}</legend>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => (
+          <button key={o.id} type="button" aria-pressed={values.includes(o.id)} onClick={() => onToggle(o.id)} className={`btn btn-sm ${values.includes(o.id) ? "btn-primary" : ""}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}

@@ -15,6 +15,7 @@ import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
 import StudyRoom from "./StudyRoom";
 import SayBox from "./SayBox";
+import PlazaNews from "./PlazaNews";
 import ChatView from "./ChatView";
 import LibraryView from "./LibraryView";
 import DiaryView, { EntryCard } from "./DiaryView";
@@ -46,6 +47,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
   const [visitId, setVisitId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
+  const [plazaOpen, setPlazaOpen] = useState(false);
   const [notice, setNotice] = useState("");
   const onNew = useCallback((n: AppNotification) => setToast({ kind: "notif", n }), []);
   const onIncoming = useCallback((conv: Conversation) => setToast({ kind: "chat", conv }), []);
@@ -103,10 +105,11 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
     await chat.reload();
     openChat((data as Conversation).id);
   };
-  /** 지도에서 도서관·광장을 누르면 그곳으로 간다(상태가 바뀌고 캐릭터가 걸어간다) */
+  /** 지도에서 도서관을 누르면 그곳으로 가고, 광장을 누르면 소식 창이 열린다 */
   const goPlace = (p: "library" | "plaza") => {
-    void v.setStatus(p === "library" ? "library" : "rest");
-    if (p === "library") setView("library");
+    if (p === "plaza") return setPlazaOpen(true);
+    void v.setStatus("library");
+    setView("library");
   };
   const go = (id: View) => (id === "room" ? enterRoom(false) : setView(id));
   const emptyHouses = VILLAGE_CAPACITY - v.residents.length;
@@ -150,7 +153,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                   {me.status.topic && <p className="mt-1 line-clamp-2 text-xs">{me.status.topic}</p>}
                 </div>
               </div>
-              <SayBox current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
+              <SayBox key={me.say} current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
             </Window>
             <Window title="지금 나는" icon="" tone="mint" as="aside">
               <div className="space-y-1.5 p-3" role="radiogroup" aria-label="연구 상태">
@@ -267,6 +270,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
       {selectedResident && (
         <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} entries={diary.entries} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} />
       )}
+      {plazaOpen && <PlazaNews villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} onClose={() => setPlazaOpen(false)} />}
       {toast && !(toast.kind === "notif" && view === "alerts") && !(toast.kind === "chat" && view === "chat" && chatId === toast.conv.id) && (
         <div role="status" className="window fixed bottom-4 right-4 z-50 max-w-xs" style={{ background: "#fff3c4" }}>
           <div className="space-y-2 p-3 text-sm">

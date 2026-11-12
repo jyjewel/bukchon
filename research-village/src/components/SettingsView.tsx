@@ -81,7 +81,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
           <ul className="space-y-1">
             {residents.map((r) => (
               <li key={r.user_id} className="flex items-center gap-2 text-sm">
-                <span className="flex-1 truncate">{r.slot + 1}번 집 · {r.profile.display_name}{r.role === "admin" && " "}</span>
+                <span className="flex-1 truncate">{r.slot + 1}번 연구실 · {r.profile.display_name}{r.role === "admin" && " "}</span>
                 {r.user_id !== myId && (
                   <button type="button" className="btn btn-sm btn-danger" disabled={busy} onClick={() => {
                     if (window.confirm(`${r.profile.display_name} 님을 마을에서 내보낼까요? 이 마을에 남긴 다이어리도 함께 지워져요.`)) {

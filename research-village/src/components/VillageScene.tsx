@@ -4,7 +4,7 @@ import { STATUS_META } from "@/lib/constants";
 import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/time";
 import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
-import { AV_H, avatarGrid } from "@/pixel/avatar";
+import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
 import {
   BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
   benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
@@ -164,7 +164,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.beginPath();
               b.rect(wx, wy, 10, 10);
               b.clip();
-              b.drawImage(av, wx - 4, wy - 1 + (slow % 4 === 0 ? 1 : 0));
+              b.drawImage(av, wx - 7, wy - 1 + (slow % 4 === 0 ? 1 : 0));
               b.restore();
               b.drawImage(sp("bfocus", () => bubbleGrid("focus")), pos.x - 18, pos.y - 42 - (slow % 2));
             }
@@ -208,10 +208,10 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.save();
               b.translate(x * 2, 0);
               b.scale(-1, 1);
-              b.drawImage(av, x - 9, y - AV_H + 1 + bob);
+              b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
               b.restore();
-            } else b.drawImage(av, x - 9, y - AV_H + 1 + bob);
-            if (!w.moving) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
+            } else b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
+            if (!w.moving && !r.say) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
           },
         });
       }
@@ -263,10 +263,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
 
       <button type="button" className="scene-hit" style={pct(PLAZA.x - PLAZA.rx, PLAZA.y - PLAZA.ry, PLAZA.rx * 2, PLAZA.ry * 2)} aria-label="마을 광장 — 눌러서 열기" onClick={() => onPlace("plaza")}>
-        <span className="scene-label" style={{ top: "100%" }}>마을 광장</span>
       </button>
       <button type="button" className="scene-hit" style={pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4)} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
-        <span className="scene-label scene-label-sign" style={{ top: "33%" }}>공동 도서관</span>
       </button>
 
       {houses.map((h) => {
@@ -276,10 +274,22 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         const pos = HOUSE_POS[h.slot];
         return (
           <button key={h.slot} type="button" className="scene-hit" style={pct(pos.x - 27, pos.y - HOUSE_H + 6, 54, HOUSE_H - 4)} aria-label={label} disabled={!r} onClick={() => onHouse(h.slot)}>
-            <span className={`scene-label ${mine ? "scene-label-mine" : ""} ${r ? "" : "scene-label-empty"}`} style={{ top: "100%" }}>
-              {r ? `${r.profile.display_name}의 연구실` : "빈 연구실"}
-            </span>
           </button>
+        );
+      })}
+
+      {houses.map((h) => {
+        const r = bySlot.get(h.slot);
+        if (!r) return null;
+        const sx = HOUSE_POS[h.slot].x - 20, sy = HOUSE_POS[h.slot].y + 12;
+        return (
+          <span key={`sign-${h.slot}`} className="scene-sign" aria-hidden style={{ left: `${(sx / W) * 100}%`, top: `${(sy / H) * 100}%` }}>
+            <span className={`scene-sign-board ${r.user_id === myId ? "scene-sign-board-mine" : ""}`}>
+              <span className="scene-sign-name">{r.profile.display_name}의</span>
+              <span className="scene-sign-sub">연구실</span>
+            </span>
+            <span className="scene-sign-post" />
+          </span>
         );
       })}
 
@@ -296,7 +306,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           aria-label={`${r.profile.display_name}${r.user_id === myId ? " (나)" : ""} — ${STATUS_META[r.shown].label}. 눌러서 프로필 보기`}
           onClick={() => onCharacter(r.user_id)}
         >
-          {r.say && <span className={`scene-say ${r.user_id === myId ? "scene-say-mine" : ""}`}>{r.say}</span>}
+          {r.say && <span className={`scene-say ${r.user_id === myId ? "scene-say-mine" : ""}`}><span className="scene-say-text">{r.say}</span></span>}
           <span className={`scene-label scene-label-name ${r.user_id === myId ? "scene-label-mine" : ""}`} style={{ top: r.shown === "open" ? "128%" : "104%" }}>
             {r.profile.display_name}
           </span>
