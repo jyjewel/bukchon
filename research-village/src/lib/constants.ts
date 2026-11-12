@@ -48,6 +48,22 @@ export const HAIR_STYLES = [
   { id: "receding", label: "반대머리" },
   { id: "bald", label: "삭발" },
 ];
+export const BEARDS = [
+  { id: "none", label: "없음" },
+  { id: "stubble", label: "면도 자국" },
+  { id: "mustache", label: "콧수염" },
+  { id: "goatee", label: "턱수염" },
+  { id: "full", label: "풀수염" },
+];
+export const FEATURES = [{ id: "darkcircle", label: "다크서클" }];
+/** 청바지·슬랙스·치노·검정·카키 같은 바지 색 (처음 값은 예전 기본색) */
+export const PANTS = ["#5b5068", "#4a6fa5", "#3a3d4a", "#c9b48a", "#25252b", "#6f7a58", "#8a8fa3"];
+export const SHOES = [
+  { id: "default", label: "기본" },
+  { id: "sneakers", label: "운동화" },
+  { id: "dress", label: "구두" },
+  { id: "slipper", label: "연구실 슬리퍼" },
+];
 export const EYES = [
   { id: "default", label: "기본" },
   { id: "smile", label: "웃는 눈" },
@@ -62,6 +78,9 @@ export const TOPS = [
   { id: "pullover", label: "풀오버" },
   { id: "fleece", label: "플리스 점퍼" },
   { id: "vest", label: "패딩 조끼" },
+  { id: "windbreaker", label: "바람막이" },
+  { id: "cardigan", label: "가디건" },
+  { id: "blazer", label: "블레이저" },
   { id: "suit", label: "셔츠·넥타이" },
   { id: "corduroy", label: "코듀로이 재킷" },
   { id: "stripe", label: "줄무늬 스웨터" },
@@ -89,6 +108,7 @@ export const ACCESSORIES = [
   { id: "hairpin", label: "머리핀" },
   { id: "ribbon", label: "리본" },
   { id: "mask", label: "마스크" },
+  { id: "lanyard", label: "사원증" },
   { id: "scarf", label: "목도리" },
 ];
 export const EYEWEAR = ["glasses", "square", "sunglasses"];
@@ -105,6 +125,8 @@ export const HAND_PROPS = [
 ];
 export const BAGS = [
   { id: "backpack", label: "백팩" },
+  { id: "crossbody", label: "크로스백" },
+  { id: "briefcase", label: "서류가방" },
   { id: "ecobag", label: "에코백" },
 ];
 export const PROPS = [...HAND_PROPS, ...BAGS];

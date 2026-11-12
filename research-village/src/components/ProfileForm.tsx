@@ -1,7 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
-import { ACCENTS, ACCESSORIES, EYES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
+import { ACCENTS, ACCESSORIES, BEARDS, EYES, FEATURES, PANTS, SHOES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 import { normalizeAvatar, type FullAvatar } from "@/pixel/avatar";
 import { CharacterIcon } from "./Character";
@@ -68,8 +68,12 @@ export default function ProfileForm({
           <Choices label="헤어스타일" options={HAIR_STYLES} value={avatar.hair} onChange={(hair) => set({ hair })} />
           <Swatches label="머리 색" options={HAIR_COLORS} value={avatar.hairColor} onChange={(hairColor) => set({ hairColor })} />
           <Choices label="표정" options={EYES} value={avatar.eyes} onChange={(eyes) => set({ eyes })} />
+          <Choices label="수염" options={BEARDS} value={avatar.beard} onChange={(beard) => set({ beard })} />
+          <Toggles label="얼굴" options={FEATURES} values={avatar.features} onToggle={(id) => set({ features: avatar.features.includes(id) ? avatar.features.filter((x) => x !== id) : [...avatar.features, id] })} />
           <Choices label="옷" options={TOPS} value={avatar.top} onChange={(top) => set({ top })} />
           <Swatches label="옷 색" options={OUTFITS} value={avatar.outfit} onChange={(outfit) => set({ outfit })} />
+          <Swatches label="바지 색" options={PANTS} value={avatar.pants} onChange={(pants) => set({ pants })} />
+          <Choices label="신발" options={SHOES} value={avatar.shoes} onChange={(shoes) => set({ shoes })} />
           <Choices label="모자" options={HATS} value={avatar.hat} onChange={(hat) => set({ hat })} />
           <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES} values={avatar.accessories} onToggle={toggleAccessory} />
           <Swatches label="모자·소품 색" options={ACCENTS} value={avatar.accent} onChange={(accent) => set({ accent })} />

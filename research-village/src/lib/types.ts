@@ -10,6 +10,10 @@ export interface Avatar {
   top?: string; // 옷 종류 id
   outfit?: string; // 옷 색(옷에 따라 바탕색·포인트색으로 쓰임)
   accent?: string; // 모자·머리핀·넥타이 등 소품 색
+  beard?: string; // 수염 id
+  features?: string[]; // 얼굴 특징(다크서클 등)
+  pants?: string; // 바지 색
+  shoes?: string; // 신발 id
   hat?: string; // 모자 id (하나만)
   accessories?: string[]; // 안경·마스크·헤드폰 등 (여러 개 동시에)
   props?: string[]; // 소품: 손에 든 것 최대 1개 + 가방 최대 1개

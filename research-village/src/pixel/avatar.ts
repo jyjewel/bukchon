@@ -12,6 +12,7 @@ const OX = 3;
 export interface FullAvatar {
   skin: string; hair: string; hairColor: string; eyes: string; top: string;
   outfit: string; accent: string; hat: string; accessories: string[]; props: string[];
+  beard: string; features: string[]; pants: string; shoes: string;
 }
 
 /** 저장된 값에서 빠진 항목을 기본값으로 채운다. 예전의 '한 개만 고르던' 액세서리도 새 형식으로 바꾼다. */
@@ -21,11 +22,19 @@ export function normalizeAvatar(a: Avatar): FullAvatar {
   const accessories = a.accessories ?? (["glasses", "ribbon", "scarf"].includes(legacy) ? [legacy] : []);
   return {
     skin: a.skin ?? SKINS[0], hair: a.hair === "undercut" ? "short" : a.hair ?? "short", hairColor: a.hairColor ?? HAIR_COLORS[0], eyes: a.eyes ?? "default",
-    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, props: a.props ?? (a.prop && a.prop !== "none" ? [a.prop] : []),
+    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, beard: a.beard ?? "none", features: a.features ?? [], pants: a.pants ?? "#5b5068", shoes: a.shoes ?? "default",
+    props: a.props ?? (a.prop && a.prop !== "none" ? [a.prop] : []),
   };
 }
 
 const INKC = "#3a2a33";
+
+/** 두 색을 t 비율로 섞는다 (수염 자국, 다크서클 색에 쓴다) */
+function mix(a: string, b: string, t: number): string {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (sh: number) => Math.round(((pa >> sh) & 255) * (1 - t) + ((pb >> sh) & 255) * t).toString(16).padStart(2, "0");
+  return "#" + ch(16) + ch(8) + ch(0);
+}
 /** 옷 종류별로 몸통과 소매를 그린다 (본체 좌표 18칸 기준) */
 function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
   const { top, outfit, accent, skin } = f;
@@ -74,6 +83,27 @@ function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
     rect(g, 5, 14, 8, 1, shade(outfit, -36)); rect(g, 9, 14, 1, 6, "#d8dae4"); // 깃, 지퍼
     rect(g, 10, 15, 2, 1, shade(outfit, 45));                         // 가슴 로고
   }
+  if (top === "windbreaker") {
+    rect(g, 5, 14, 8, 3, shade(outfit, 30));                          // 어깨·가슴 색 블록
+    rect(g, 5, 14, 8, 1, shade(outfit, -30));                         // 깃
+    rect(g, 9, 14, 1, 6, "#e8e8f0"); px(g, 9, 19, "#b8b8c8");        // 지퍼
+    px(g, 11, 15, "#ffffff"); px(g, 11, 16, "#ffffff");               // 가슴 로고
+    px(g, 6, 18, shade(outfit, -50)); px(g, 12, 18, shade(outfit, -50)); // 옆 주머니 지퍼
+    rect(g, 5, 19, 8, 1, shade(outfit, -38));
+  }
+  if (top === "cardigan") {
+    rect(g, 7, 14, 4, 6, "#f4f1ea");                                  // 안에 입은 셔츠
+    px(g, 7, 14, side); px(g, 10, 14, side);
+    rect(g, 7, 15, 1, 5, side); rect(g, 10, 15, 1, 5, side);          // 앞트임 가장자리
+    for (const y of [15, 17, 19]) px(g, 10, y, "#5a4a3a");             // 단추
+    rect(g, 5, 18, 2, 1, side); rect(g, 11, 18, 1, 1, side);          // 주머니
+  }
+  if (top === "blazer") {
+    rect(g, 7, 14, 4, 1, "#f4f6fa"); rect(g, 8, 15, 2, 4, "#f4f6fa"); // 안에 입은 셔츠
+    for (const [x, y] of [[7, 14], [7, 15], [10, 14], [10, 15], [7, 16], [10, 16]]) px(g, x, y, side); // 라펠
+    px(g, 9, 19, "#3a2a33"); px(g, 6, 16, "#ffffff");                  // 단추, 행커치프
+    rect(g, 5, 19, 8, 1, side);
+  }
   if (top === "corduroy") {
     for (const x of [6, 10, 12]) rect(g, x, 15, 1, 4, side);
     rect(g, 8, 14, 2, 6, "#f4eee0");
@@ -89,7 +119,7 @@ function drawTop(g: Grid, f: FullAvatar, frame: number, seated: boolean) {
   }
   if (top === "labcoat") {
     rect(g, 8, 14, 2, 6, outfit);       // 안에 입은 옷
-    rect(g, 8, 20, 2, 2, "#5b5068");
+    rect(g, 8, 20, 2, 2, f.pants);
     rect(g, 7, 14, 1, 8, side); rect(g, 10, 14, 1, 8, side);
     rect(g, 11, 17, 2, 2, side); px(g, 12, 16, "#e0605a"); px(g, 12, 15, "#5f8fd6");
     px(g, 6, 14, side); px(g, 11, 14, side);
@@ -176,16 +206,26 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
 
   // 다리
   if (!seated) {
-    const pants = "#5b5068", shoe = "#7a4a3a";
+    const pants = f.pants;
     const l = frame === 1 ? 1 : 0, r = frame === 2 ? 1 : 0;
     rect(g, 6, 20, 2, 3 - l, pants);
     rect(g, 10, 20, 2, 3 - r, pants);
-    rect(g, 5 + (frame === 1 ? 1 : 0), 23 - l, 3, 1, shoe);
-    rect(g, 10, 23 - r, 3 - (frame === 2 ? 1 : 0), 1, shoe);
+    drawShoe(g, 5 + (frame === 1 ? 1 : 0), 23 - l, 3, f.shoes, accent);
+    drawShoe(g, 10, 23 - r, 3 - (frame === 2 ? 1 : 0), f.shoes, accent);
   }
 
   // 몸
   drawTop(g, f, frame, seated);
+  if (has("lanyard")) {
+    const strap = accent;
+    px(g, 6, 14, strap); px(g, 7, 15, strap); px(g, 7, 16, strap); px(g, 11, 14, strap); px(g, 10, 15, strap); px(g, 10, 16, strap);
+    rect(g, 7, 17, 4, 3, "#f7f9fc"); rect(g, 7, 17, 4, 1, accent); px(g, 8, 18, "#c9ced6"); px(g, 9, 18, "#c9ced6"); rect(g, 8, 19, 2, 1, "#c9ced6");
+  }
+  if (f.props.includes("crossbody")) {
+    const c = shade(accent, -30);
+    for (const [x, y] of [[6, 14], [7, 15], [8, 16], [9, 17], [10, 18], [11, 19]]) px(g, x, y, c);
+    rect(g, 11, 19, 4, 3, accent); rect(g, 11, 19, 4, 1, shade(accent, -40)); px(g, 13, 20, shade(accent, 50));
+  }
   if (f.props.includes("backpack")) {
     const strap = shade(accent, -48);
     rect(g, 6, 14, 1, 6, strap); rect(g, 11, 14, 1, 6, strap);
@@ -201,10 +241,30 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   px(g, 4, 13, null); px(g, 13, 13, null);
   rect(g, 5, 13, 8, 1, skinD);
   drawEyes(g, f.eyes);
+  if (f.features.includes("darkcircle")) { const dc = mix(skin, "#5a4a7a", 0.5); for (const x of [6, 7, 10, 11]) px(g, x, 11, dc); }
   px(g, 5, 11, "#f29aa8"); px(g, 12, 11, "#f29aa8");
   if (f.eyes === "smile") { px(g, 7, 12, "#b5574f"); px(g, 8, 13, "#b5574f"); px(g, 9, 13, "#b5574f"); px(g, 10, 12, "#b5574f"); }
   else { px(g, 8, 12, "#b5574f"); px(g, 9, 12, "#b5574f"); }
   if (f.eyes === "wink") px(g, 10, 12, "#b5574f");
+
+  // 수염 (입 위·아래)
+  if (f.beard !== "none") {
+    const bc = hair;
+    if (f.beard === "stubble") {
+      const st = mix(skin, hair, 0.5);
+      for (let y = 11; y <= 13; y++) for (let x = 5; x <= 12; x++) if ((x + y) % 2 === 0 && !(y === 12 && (x === 8 || x === 9)) && !(y === 11 && (x === 5 || x === 12))) px(g, x, y, st);
+      for (const [x, y] of [[4, 11], [4, 12], [13, 11], [13, 12]]) px(g, x, y, st);
+    }
+    if (f.beard === "mustache" || f.beard === "goatee" || f.beard === "full") {
+      rect(g, 7, 11, 4, 1, bc); px(g, 6, 12, bc); px(g, 11, 12, bc);
+    }
+    if (f.beard === "goatee") { rect(g, 7, 13, 4, 1, bc); px(g, 8, 14, bc); px(g, 9, 14, bc); }
+    if (f.beard === "full") {
+      rect(g, 4, 9, 2, 5, bc); rect(g, 12, 9, 2, 5, bc);
+      rect(g, 5, 13, 8, 1, bc); rect(g, 6, 12, 1, 1, bc); rect(g, 11, 12, 1, 1, bc);
+      px(g, 8, 12, "#b5574f"); px(g, 9, 12, "#b5574f"); rect(g, 7, 14, 4, 1, bc);
+    }
+  }
 
   // 안경류
   if (has("glasses")) {
@@ -339,8 +399,24 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   const out = grid(AV_W, AV_H);
   stamp(out, g, OX, 0);
   if (f.props.includes("ecobag")) drawEcoBag(out, accent);
+  if (f.props.includes("briefcase")) drawBriefcase(out);
   for (const p of f.props) drawHandProp(out, p, accent);
   return outline(out);
+}
+
+/** 왼손에 든 서류가방 (24칸 좌표: 왼손이 (7, 18)) */
+function drawBriefcase(g: Grid) {
+  rect(g, 3, 20, 6, 4, "#7a4a2a"); rect(g, 3, 20, 6, 1, "#a06a3a"); rect(g, 3, 23, 6, 1, "#5d3820");
+  px(g, 5, 21, "#e8c24a"); px(g, 6, 21, "#e8c24a");
+  px(g, 5, 19, "#3a2a33"); px(g, 6, 19, "#3a2a33"); px(g, 7, 19, "#3a2a33");           // 손잡이
+}
+
+/** 신발: 기본, 운동화, 구두, 연구실 슬리퍼 (한 줄짜리 발끝) */
+function drawShoe(g: Grid, x: number, y: number, w: number, kind: string, accent: string) {
+  if (kind === "sneakers") { rect(g, x, y, w, 1, "#f4f4f8"); px(g, x + w - 1, y, accent); px(g, x, y, "#d4d8e2"); }
+  else if (kind === "dress") { rect(g, x, y, w, 1, "#25222b"); px(g, x + 1, y, "#6a6478"); }
+  else if (kind === "slipper") { rect(g, x, y, w, 1, accent); px(g, x + 1, y, shade(accent, -50)); }
+  else rect(g, x, y, w, 1, "#7a4a3a");
 }
 
 /** 왼쪽 어깨에 건 에코백 (24칸 좌표) */
