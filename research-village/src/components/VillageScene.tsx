@@ -26,7 +26,7 @@ export interface SceneProps {
   myId: string;
   onCharacter: (userId: string) => void;
   onHouse: (slot: number) => void;
-  onPlace: (place: "library" | "plaza") => void;
+  onPlace: (place: "library" | "plaza" | "board") => void;
 }
 
 export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace }: SceneProps) {
@@ -266,6 +266,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       </button>
       <button type="button" className="scene-hit" style={pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4)} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
       </button>
+
+      <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 소식 보기" onClick={() => onPlace("board")} />
 
       {houses.map((h) => {
         const r = bySlot.get(h.slot) ?? null;
