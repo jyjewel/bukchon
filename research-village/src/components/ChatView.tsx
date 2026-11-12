@@ -20,7 +20,6 @@ export default function ChatView({
   const selected = chat.convs.find((c) => c.id === selectedId) ?? null;
   const { convs } = chat;
   const live = convs.filter((c) => c.status === "pending" || c.status === "active");
-  const past = convs.filter((c) => c.status === "declined" || c.status === "ended").slice(0, 8);
 
   const row = (c: Conversation) => {
     const other = who(c);
@@ -42,16 +41,14 @@ export default function ChatView({
     <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
       <Window title="대화" tone="mint" className="self-start">
         <ul className="p-2">
-          {live.length === 0 && <li className="p-3 text-sm text-ink-soft">진행 중인 대화가 없어요. 집 앞 책상에 나와 있는 주민에게 대화를 신청해 보세요.</li>}
+          {live.length === 0 && <li className="p-3 text-sm text-ink-soft">진행 중인 대화가 없어요.</li>}
           {live.map(row)}
-          {past.length > 0 && <li className="px-2 pt-2 text-xs text-ink-soft">지난 대화</li>}
-          {past.map(row)}
         </ul>
       </Window>
       {selected ? (
         <Room key={selected.id} conv={selected} other={who(selected)} myId={myId} chat={chat} />
       ) : (
-        <Window title="대화" tone="sky"><p className="p-6 text-center text-sm text-ink-soft">왼쪽에서 대화를 고르거나, 마을에서 ‘열린 연구’ 중인 주민에게 대화를 신청해 보세요.</p></Window>
+        <Window title="대화" tone="sky"><p className="p-6 text-center text-sm text-ink-soft">대화를 골라 주세요.</p></Window>
       )}
     </div>
   );
@@ -133,7 +130,7 @@ function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Residen
                 <input id="chat-input" className="input" autoComplete="off" maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder={`${name}님에게 보낼 말`} />
                 <button type="submit" className="btn btn-primary mt-[3px]" disabled={!text.trim()}>보내기</button>
               </form>
-            ) : <p className="border-t-[3px] border-ink p-3 text-center text-sm text-ink-soft">대화가 끝났어요. 상대가 열린 연구 중이면 다시 신청할 수 있어요.</p>}
+            ) : <p className="border-t-[3px] border-ink p-3 text-center text-sm text-ink-soft">대화가 끝났어요.</p>}
           </>
         )}
       </div>

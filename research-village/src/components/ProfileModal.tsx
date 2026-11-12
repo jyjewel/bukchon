@@ -5,7 +5,7 @@ import { CharacterIcon, StatusIcon } from "./Character";
 import { EntryCard } from "./DiaryView";
 import { Modal } from "./ui";
 
-/** 주민의 미니홈피: 프로필, 지금 상태, 공개한 다이어리 */
+/** 주민의 프로필: 지금 상태, 소개, 공개한 다이어리 */
 export default function ProfileModal({
   resident, isMe, entries, onClose, onEditProfile, onVisit, onChat,
 }: { resident: Resident; isMe: boolean; entries: DiaryEntry[]; onClose: () => void; onEditProfile: () => void; onVisit: () => void; onChat: () => void }) {
@@ -14,7 +14,7 @@ export default function ProfileModal({
   const theirs = entries.filter((e) => e.author_id === resident.user_id && (isMe || e.visibility !== "private")).slice(0, 5);
 
   return (
-    <Modal title={`${profile.display_name}의 미니홈피`} icon="" tone="rose" onClose={onClose} wide>
+    <Modal title={`${profile.display_name}의 프로필`} icon="" tone="rose" onClose={onClose} wide>
       <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
         <div className="space-y-2">
           <div className="card flex flex-col items-center gap-1 p-3">
@@ -28,17 +28,12 @@ export default function ProfileModal({
             {!isMe && <p className="mt-1 text-xs text-ink-soft">{meta.talk}</p>}
           </div>
           {!isMe && <button type="button" className="btn btn-primary w-full" onClick={onVisit}>연구실 방문하기</button>}
-          {!isMe && (resident.shown === "open"
-            ? <button type="button" className="btn btn-mint w-full" onClick={onChat}>대화 신청하기</button>
-            : <p className="card p-2 text-center text-xs text-ink-soft">지금은 대화 신청을 받지 않아요.<br />집 앞 책상에 나와 있을 때만 신청할 수 있어요.</p>)}
+          {!isMe && resident.shown === "open" && <button type="button" className="btn btn-mint w-full" onClick={onChat}>대화 신청하기</button>}
           {isMe && <button type="button" className="btn w-full" onClick={onEditProfile}>프로필 꾸미기</button>}
         </div>
         <div className="min-w-0 space-y-3">
           <dl className="space-y-2 text-sm">
             <div><dt className="label">연구 분야</dt><dd>{profile.field || <span className="text-ink-soft">아직 적지 않았어요</span>}</dd></div>
-            {profile.keywords.length > 0 && (
-              <div><dt className="label">관심 키워드</dt><dd className="flex flex-wrap gap-1">{profile.keywords.map((k) => <span key={k} className="chip">#{k}</span>)}</dd></div>
-            )}
             {profile.bio && <div><dt className="label">자기소개</dt><dd className="whitespace-pre-wrap break-words">{profile.bio}</dd></div>}
             {resident.online && status.topic && <div><dt className="label">지금 연구하는 주제</dt><dd>{status.topic}</dd></div>}
             {status.reading && <div><dt className="label">읽고 있는 책</dt><dd>{status.reading}</dd></div>}

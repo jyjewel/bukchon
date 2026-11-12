@@ -19,10 +19,9 @@ import LibraryView from "./LibraryView";
 import DiaryView, { EntryCard } from "./DiaryView";
 import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
-import { Modal, Notice, Window } from "./ui";
+import { Notice, Window } from "./ui";
 
 type View = "home" | "room" | "visit" | "library" | "chat" | "diary" | "alerts" | "settings";
-type Place = "plaza" | "board";
 type Toast = { kind: "notif"; n: AppNotification } | { kind: "chat"; conv: Conversation };
 const NAV: { id: View; label: string }[] = [
   { id: "home", label: "마을 홈" },
@@ -36,44 +35,12 @@ function StatusChip({ r }: { r: Resident }) {
   return <span className="chip" style={{ background: `${meta.color}33` }}><StatusIcon state={r.shown} scale={1} className="!h-[10px] !w-[10px]" /> {meta.label}</span>;
 }
 
-function PlaceModal({ place, residents, me, onGo, onClose }: { place: Place; residents: Resident[]; me: Resident; onGo: (s: ResearchState) => void; onClose: () => void }) {
-  if (place === "board") {
-    return (
-      <Modal title="마을 게시판" tone="butter" onClose={onClose}>
-        <Notice>게시판은 아직 짓는 중이에요. 신규 논문·학술대회·공모 소식은 다음 단계에서 이곳에 붙을 예정이에요.</Notice>
-      </Modal>
-    );
-  }
-  const here = residents.filter((r) => r.shown === "rest");
-  return (
-    <Modal title="마을 광장" tone="mint" onClose={onClose}>
-      <div className="space-y-3">
-        <p className="text-sm">주민들이 쉬어 가는 곳이에요. 이곳에 있으면 ‘휴식 중’으로 보여요.</p>
-        <div>
-          <h3 className="label">지금 여기 있는 주민</h3>
-          {here.length === 0 ? <p className="text-sm text-ink-soft">아무도 없어요.</p> : (
-            <ul className="flex flex-wrap gap-2">
-              {here.map((r) => (
-                <li key={r.user_id} className="card flex items-center gap-2 px-2 py-1 text-sm">
-                  <CharacterIcon avatar={r.profile.avatar} size={34} />{r.profile.display_name}{r.user_id === me.user_id && " (나)"}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {me.shown !== "rest" && <button type="button" className="btn btn-primary" onClick={() => { onGo("rest"); onClose(); }}>광장으로 가기</button>}
-      </div>
-    </Modal>
-  );
-}
-
 export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAuth>; v: ReturnType<typeof useVillage> }) {
   const me = v.me!;
   const village = v.village!;
   const profile = auth.profile!;
   const [view, setView] = useState<View>("home");
   const [selected, setSelected] = useState<string | null>(null);
-  const [place, setPlace] = useState<Place | null>(null);
   const [tab, setTab] = useState<BoardTab>("whiteboard");
   const [visitId, setVisitId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -135,7 +102,11 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
     await chat.reload();
     openChat((data as Conversation).id);
   };
-  const goPlace = (p: "library" | "plaza" | "board") => (p === "library" ? setView("library") : setPlace(p));
+  /** 지도에서 도서관·광장을 누르면 그곳으로 간다(상태가 바뀌고 캐릭터가 걸어간다) */
+  const goPlace = (p: "library" | "plaza") => {
+    void v.setStatus(p === "library" ? "library" : "rest");
+    if (p === "library") setView("library");
+  };
   const go = (id: View) => (id === "room" ? enterRoom(false) : setView(id));
   const emptyHouses = VILLAGE_CAPACITY - v.residents.length;
   const others = v.residents.filter((r) => r.user_id !== me.user_id);
@@ -169,7 +140,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
           <div className="order-2 space-y-4 lg:order-1">
             <Window title="내 프로필" icon="" tone="lilac" as="aside">
               <div className="flex items-center gap-3 p-3">
-                <button type="button" onClick={() => setSelected(me.user_id)} aria-label="내 미니홈피 보기" className="card px-2 pt-1">
+                <button type="button" onClick={() => setSelected(me.user_id)} aria-label="내 프로필 보기" className="card px-2 pt-1">
                   <CharacterIcon avatar={profile.avatar} size={72} />
                 </button>
                 <div className="min-w-0">
@@ -217,7 +188,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                     </li>
                   );
                 })}
-                {chat.pendingIncoming.length === 0 && !chat.convs.some((c) => c.status === "active") && <li className="p-1 text-ink-soft">진행 중인 대화가 없어요. 집 앞 책상에 나와 있으면 이웃이 대화를 신청할 수 있어요.</li>}
+                {chat.pendingIncoming.length === 0 && !chat.convs.some((c) => c.status === "active") && <li className="p-1 text-ink-soft">진행 중인 대화가 없어요.</li>}
               </ul>
             </Window>
           </div>
@@ -240,7 +211,6 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                   />
                 </div>
               </div>
-              <p className="border-t-[3px] border-ink px-3 py-1.5 text-xs text-ink-soft">내 연구실을 누르면 들어가요. 다른 연구실은 방문하고, 주민을 누르면 프로필이 열려요.</p>
             </Window>
             <Window title="다이어리 업데이트" icon="" tone="butter" actions={<button type="button" className="btn btn-sm" onClick={() => setView("diary")}>모두 보기</button>}>
               <div className="grid gap-2 p-3 sm:grid-cols-2">
@@ -254,8 +224,8 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
             <Window title="마을 주민" icon="" tone="rose" as="aside">
               <ul className="space-y-1 p-2">
                 {others.map((r) => (
-                  <li key={r.user_id}>
-                    <button type="button" onClick={() => setSelected(r.user_id)} className="flex w-full items-center gap-3 p-1.5 text-left hover:bg-[#fff3c4]">
+                  <li key={r.user_id} className="flex items-center">
+                    <button type="button" onClick={() => setSelected(r.user_id)} className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left hover:bg-[#fff3c4]">
                       <span className={r.online ? "" : "opacity-45 grayscale"}><CharacterIcon avatar={r.profile.avatar} size={44} /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-sm">{r.profile.display_name}</span>
@@ -263,6 +233,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                         {r.online && r.status.topic && <span className="mt-0.5 block truncate text-xs text-ink-soft">{r.status.topic}</span>}
                       </span>
                     </button>
+                    {r.shown === "open" && <button type="button" className="btn btn-sm btn-mint shrink-0" onClick={() => void startChat(r.user_id)}>대화 신청</button>}
                   </li>
                 ))}
                 {others.length === 0 && <li className="p-2 text-sm text-ink-soft">아직 이웃이 없어요.</li>}
@@ -274,31 +245,18 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                 </p>
               )}
             </Window>
-            <Window title="지금 대화할 수 있는 연구자" tone="mint" as="aside">
-              <ul className="space-y-1 p-3 text-sm">
-                {others.filter((r) => r.shown === "open").map((r) => (
-                  <li key={r.user_id} className="flex items-center gap-2">
-                    <StatusIcon state="open" scale={2} />
-                    <span className="flex-1 truncate">{r.profile.display_name}</span>
-                    <button type="button" className="btn btn-sm btn-mint" onClick={() => void startChat(r.user_id)}>대화 신청</button>
-                  </li>
-                ))}
-                {!others.some((r) => r.shown === "open") && <li className="text-ink-soft">지금 집 앞 책상에 나와 있는 주민이 없어요.</li>}
-              </ul>
-              <p className="border-t-2 border-dotted border-line px-3 py-2 text-xs text-ink-soft">‘열린 연구’로 나와 있는 주민에게만 신청할 수 있어요. 수락하면 바로 실시간으로 이야기해요.</p>
-            </Window>
           </div>
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onStatus={changeStatus} onUpdateStatus={(p) => void v.updateMyStatus(p)} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onUpdateStatus={(p) => void v.updateMyStatus(p)} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
           <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
-      {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} onGoHere={() => void v.setStatus("library")} /></main>}
+      {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
       {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
       {view === "diary" && <main><DiaryView villageId={village.id} myId={me.user_id} residents={v.residents} entries={diary.entries} reload={diary.reload} /></main>}
@@ -329,7 +287,6 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
           </div>
         </div>
       )}
-      {place && <PlaceModal place={place} residents={v.residents} me={me} onGo={changeStatus} onClose={() => setPlace(null)} />}
     </div>
   );
 }
