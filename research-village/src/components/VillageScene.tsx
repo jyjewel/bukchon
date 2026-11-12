@@ -7,7 +7,7 @@ import { bake } from "@/pixel/core";
 import { AV_H, avatarGrid } from "@/pixel/avatar";
 import {
   BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
-  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, signGrid, treeGrid,
+  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
 } from "@/pixel/village";
 
 const PHASE_LABEL: Record<DayPhase, string> = { dawn: "새벽", day: "낮", dusk: "해질녘", night: "밤" };
@@ -180,11 +180,6 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
             }
           },
         });
-        if (!empty) {
-          const sx = pos.x - 24, sy = pos.y + 11;
-          const sign = sp(`sign${mine}`, () => signGrid(mine));
-          items.push({ y: sy, draw: () => { shadow(sx, sy, 6); b.drawImage(sign, sx - 23, sy - 27); } });
-        }
         const desk = DESK_POS[h.slot];
         const seatedHere = r?.shown === "open" && !walkers.current.get(r.user_id)?.moving;
         items.push({ y: desk.y - 6, draw: () => b.drawImage(sp(`chair${empty}`, () => chairGrid(empty)), desk.x - 6, desk.y - 19) });
@@ -286,10 +281,11 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       {houses.map((h) => {
         const r = bySlot.get(h.slot);
         if (!r) return null;
-        const sx = HOUSE_POS[h.slot].x - 24, sy = HOUSE_POS[h.slot].y + 11;
+        const sx = HOUSE_POS[h.slot].x - 20, sy = HOUSE_POS[h.slot].y + 12;
         return (
-          <span key={`sign-${h.slot}`} className="scene-sign-text" aria-hidden style={pct(sx - 23 + 3, sy - 27 + 3, 40, 14)}>
-            <span>{r.profile.display_name}의 연구실</span>
+          <span key={`sign-${h.slot}`} className="scene-sign" aria-hidden style={{ left: `${(sx / W) * 100}%`, top: `${(sy / H) * 100}%` }}>
+            <span className={`scene-sign-board ${r.user_id === myId ? "scene-sign-board-mine" : ""}`}>{r.profile.display_name}의 연구실</span>
+            <span className="scene-sign-post" />
           </span>
         );
       })}
@@ -307,7 +303,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           aria-label={`${r.profile.display_name}${r.user_id === myId ? " (나)" : ""} — ${STATUS_META[r.shown].label}. 눌러서 프로필 보기`}
           onClick={() => onCharacter(r.user_id)}
         >
-          {r.say && <span className={`scene-say ${r.user_id === myId ? "scene-say-mine" : ""}`}>{r.say}</span>}
+          {r.say && <span className={`scene-say ${r.user_id === myId ? "scene-say-mine" : ""}`}><span className="scene-say-text">{r.say}</span></span>}
           <span className={`scene-label scene-label-name ${r.user_id === myId ? "scene-label-mine" : ""}`} style={{ top: r.shown === "open" ? "128%" : "104%" }}>
             {r.profile.display_name}
           </span>

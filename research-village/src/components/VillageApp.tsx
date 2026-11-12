@@ -153,7 +153,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                   {me.status.topic && <p className="mt-1 line-clamp-2 text-xs">{me.status.topic}</p>}
                 </div>
               </div>
-              <SayBox current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
+              <SayBox key={me.say} current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
             </Window>
             <Window title="지금 나는" icon="" tone="mint" as="aside">
               <div className="space-y-1.5 p-3" role="radiogroup" aria-label="연구 상태">
