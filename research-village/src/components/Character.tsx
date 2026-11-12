@@ -16,7 +16,7 @@ export function CharacterIcon({ avatar, size = 50, className = "" }: { avatar: A
     ctx.clearRect(0, 0, AV_W, AV_H);
     paint(ctx, avatarGrid(JSON.parse(key) as Avatar), 0, 0);
   }, [key]);
-  return <canvas ref={ref} width={AV_W} height={AV_H} className={`pixelated shrink-0 ${className}`} style={{ width: AV_W * k, height: AV_H * k }} aria-hidden />;
+  return <canvas ref={ref} width={AV_W} height={AV_H} className={`pixelated shrink-0 ${className}`} style={{ width: AV_W * k, height: AV_H * k, margin: `0 ${-3 * k}px` }} aria-hidden />;
 }
 
 /** 연구 상태를 나타내는 7×7 도트 아이콘 */

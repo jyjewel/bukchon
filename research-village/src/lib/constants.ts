@@ -31,21 +31,69 @@ export const VISIBILITY_META: Record<DiaryVisibility, { label: string; icon: str
 };
 
 export const SKINS = ["#ffe0c7", "#f6cba6", "#e0a97f", "#b97d56", "#8a5a3c"];
-export const HAIR_COLORS = ["#3b2a25", "#6b4a35", "#a8733f", "#d9a55b", "#8e8e9c", "#c7607a", "#5a6fa8"];
+export const HAIR_COLORS = [
+  "#3b2a25", "#6b4a35", "#a8733f", "#d9a55b", "#8e8e9c", "#c7607a", "#5a6fa8",
+  "#f3dc7a", "#f2f2f6", "#6fc3f0", "#9a6fd0", "#e0483e", "#ff9fb6", "#5fae7a", "#ff8a3d", "#2c3e6b",
+];
 export const HAIR_STYLES = [
   { id: "short", label: "짧은 머리" },
+  { id: "undercut", label: "투블록" },
   { id: "bob", label: "단발" },
+  { id: "curlybob", label: "곱슬 단발" },
   { id: "long", label: "긴 머리" },
+  { id: "ponytail", label: "포니테일" },
+  { id: "pigtails", label: "양갈래" },
   { id: "bun", label: "올림머리" },
   { id: "curly", label: "곱슬" },
+  { id: "bald", label: "삭발" },
 ];
-export const OUTFITS = ["#f4a7b9", "#8fc7a3", "#8fb8e8", "#f6cf73", "#b9a2e0", "#f2a477", "#8a8fa3", "#f5f0e6"];
-export const ACCESSORIES = [
+export const EYES = [
+  { id: "default", label: "기본" },
+  { id: "smile", label: "웃는 눈" },
+  { id: "sleepy", label: "졸린 눈" },
+  { id: "wink", label: "윙크" },
+  { id: "focus", label: "활활 집중" },
+];
+export const TOPS = [
+  { id: "tee", label: "티셔츠" },
+  { id: "hoodie", label: "회색 후드티" },
+  { id: "corduroy", label: "코듀로이 재킷" },
+  { id: "suit", label: "셔츠·넥타이" },
+  { id: "labcoat", label: "연구실 가운" },
+  { id: "stripe", label: "줄무늬 스웨터" },
+  { id: "gown", label: "학위복" },
+];
+export const OUTFITS = [
+  "#f4a7b9", "#8fc7a3", "#8fb8e8", "#f6cf73", "#b9a2e0", "#f2a477", "#8a8fa3", "#f5f0e6",
+  "#e0605a", "#3f5f9a", "#4a4458", "#a8764a",
+];
+export const ACCENTS = ["#e0605a", "#f2c64e", "#62b866", "#5f8fd6", "#b08ae0", "#ff8fab", "#3a3a4a", "#f5f0e6"];
+export const HATS = [
   { id: "none", label: "없음" },
-  { id: "glasses", label: "안경" },
-  { id: "ribbon", label: "리본" },
+  { id: "cap", label: "캡모자" },
+  { id: "beanie", label: "비니" },
   { id: "beret", label: "베레모" },
+  { id: "phd", label: "박사모" },
+];
+/** 여러 개를 동시에 쓸 수 있다. 안경류(glasses·square·sunglasses)는 하나만 고를 수 있다. */
+export const ACCESSORIES = [
+  { id: "glasses", label: "동그란 안경" },
+  { id: "square", label: "사각 안경" },
+  { id: "sunglasses", label: "선글라스" },
+  { id: "headphones", label: "헤드폰" },
+  { id: "hairpin", label: "머리핀" },
+  { id: "ribbon", label: "리본" },
+  { id: "mask", label: "마스크" },
   { id: "scarf", label: "목도리" },
+];
+export const EYEWEAR = ["glasses", "square", "sunglasses"];
+export const PROPS = [
+  { id: "none", label: "없음" },
+  { id: "book", label: "책" },
+  { id: "scroll", label: "두루마리" },
+  { id: "laptop", label: "노트북" },
+  { id: "coffee", label: "커피잔" },
+  { id: "brush", label: "붓" },
 ];
 export const ROOFS = ["#e8837c", "#f2a65a", "#7fb3d9", "#8fc7a3", "#b497d6", "#d98bb0", "#9a8f85"];
 export const WALLS = ["#fff5e1", "#fde8ea", "#e9f4ec", "#e8f0fb", "#f4ecfa", "#f7e7cf"];

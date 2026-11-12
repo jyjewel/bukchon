@@ -118,7 +118,7 @@ export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar
   // 주민
   if (opts.inside) {
     const av = avatarGrid(opts.avatar, 0, true);
-    stamp(g, av, 63, 26 + (opts.studying && opts.frame % 2 ? 1 : 0));
+    stamp(g, av, 60, 26 + (opts.studying && opts.frame % 2 ? 1 : 0));
   }
 
   // 책상

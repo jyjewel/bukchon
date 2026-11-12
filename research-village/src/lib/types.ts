@@ -6,7 +6,14 @@ export interface Avatar {
   skin?: string;
   hair?: string; // 헤어스타일 id
   hairColor?: string;
-  outfit?: string; // 옷 색
+  eyes?: string; // 표정(눈) id
+  top?: string; // 옷 종류 id
+  outfit?: string; // 옷 색(옷에 따라 바탕색·포인트색으로 쓰임)
+  accent?: string; // 모자·머리핀·넥타이 등 소품 색
+  hat?: string; // 모자 id (하나만)
+  accessories?: string[]; // 안경·마스크·헤드폰 등 (여러 개 동시에)
+  prop?: string; // 손에 든 연구 소품 id
+  /** 예전 저장 형식(한 개만 고르던 시절). 불러올 때 새 형식으로 바꾼다. */
   accessory?: string;
 }
 

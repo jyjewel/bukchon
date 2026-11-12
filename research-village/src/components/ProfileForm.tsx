@@ -1,10 +1,11 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
-import { ACCESSORIES, HAIR_COLORS, HAIR_STYLES, OUTFITS, SKINS } from "@/lib/constants";
-import type { Avatar, Profile } from "@/lib/types";
+import { ACCENTS, ACCESSORIES, EYES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
+import type { Profile } from "@/lib/types";
+import { normalizeAvatar, type FullAvatar } from "@/pixel/avatar";
 import { CharacterIcon } from "./Character";
-import { Choices, Notice, Swatches } from "./ui";
+import { Choices, Notice, Swatches, Toggles } from "./ui";
 
 export default function ProfileForm({
   profile, submitLabel, onSaved, markOnboarded = false, status, onSaveStatus,
@@ -18,13 +19,18 @@ export default function ProfileForm({
   const [bio, setBio] = useState(profile.bio);
   const [topic, setTopic] = useState(status?.topic ?? "");
   const [reading, setReading] = useState(status?.reading ?? "");
-  const [avatar, setAvatar] = useState<Avatar>({
-    skin: SKINS[0], hair: "short", hairColor: HAIR_COLORS[0], outfit: OUTFITS[0], accessory: "none", ...profile.avatar,
-  });
+  const [avatar, setAvatar] = useState<FullAvatar>(() => normalizeAvatar(profile.avatar));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const set = (patch: Partial<Avatar>) => { setAvatar((a) => ({ ...a, ...patch })); setSaved(false); };
+  const set = (patch: Partial<FullAvatar>) => { setAvatar((a) => ({ ...a, ...patch })); setSaved(false); };
+  /** 액세서리는 여러 개를 동시에 쓸 수 있고, 안경류만 하나로 제한한다 */
+  const toggleAccessory = (id: string) => {
+    const has = avatar.accessories.includes(id);
+    let next = has ? avatar.accessories.filter((a) => a !== id) : [...avatar.accessories, id];
+    if (!has && EYEWEAR.includes(id)) next = next.filter((a) => a === id || !EYEWEAR.includes(a));
+    set({ accessories: next });
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -47,16 +53,21 @@ export default function ProfileForm({
   return (
     <form onSubmit={submit} className="space-y-3">
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="card flex shrink-0 flex-col items-center gap-2 self-center px-6 py-3 sm:self-start">
+        <div className="card flex shrink-0 flex-col items-center gap-2 self-center px-6 py-3 sm:sticky sm:top-4 sm:self-start">
           <CharacterIcon avatar={avatar} size={120} />
           <span className="font-display text-sm">{name || "이름 없음"}</span>
         </div>
         <div className="flex-1 space-y-3">
-          <Swatches label="피부" options={SKINS} value={avatar.skin!} onChange={(skin) => set({ skin })} />
-          <Choices label="헤어스타일" options={HAIR_STYLES} value={avatar.hair!} onChange={(hair) => set({ hair })} />
-          <Swatches label="머리 색" options={HAIR_COLORS} value={avatar.hairColor!} onChange={(hairColor) => set({ hairColor })} />
-          <Swatches label="옷 색" options={OUTFITS} value={avatar.outfit!} onChange={(outfit) => set({ outfit })} />
-          <Choices label="액세서리" options={ACCESSORIES} value={avatar.accessory!} onChange={(accessory) => set({ accessory })} />
+          <Swatches label="피부" options={SKINS} value={avatar.skin} onChange={(skin) => set({ skin })} />
+          <Choices label="헤어스타일" options={HAIR_STYLES} value={avatar.hair} onChange={(hair) => set({ hair })} />
+          <Swatches label="머리 색" options={HAIR_COLORS} value={avatar.hairColor} onChange={(hairColor) => set({ hairColor })} />
+          <Choices label="표정" options={EYES} value={avatar.eyes} onChange={(eyes) => set({ eyes })} />
+          <Choices label="옷" options={TOPS} value={avatar.top} onChange={(top) => set({ top })} />
+          <Swatches label="옷 색" options={OUTFITS} value={avatar.outfit} onChange={(outfit) => set({ outfit })} />
+          <Choices label="모자" options={HATS} value={avatar.hat} onChange={(hat) => set({ hat })} />
+          <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES} values={avatar.accessories} onToggle={toggleAccessory} />
+          <Swatches label="모자·소품 색" options={ACCENTS} value={avatar.accent} onChange={(accent) => set({ accent })} />
+          <Choices label="손에 든 연구 소품" options={PROPS} value={avatar.prop} onChange={(prop) => set({ prop })} />
         </div>
       </div>
       <div className="dotted pt-3">

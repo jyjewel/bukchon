@@ -4,7 +4,7 @@ import { STATUS_META } from "@/lib/constants";
 import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/time";
 import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
-import { AV_H, avatarGrid } from "@/pixel/avatar";
+import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
 import {
   BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
   benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
@@ -164,7 +164,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.beginPath();
               b.rect(wx, wy, 10, 10);
               b.clip();
-              b.drawImage(av, wx - 4, wy - 1 + (slow % 4 === 0 ? 1 : 0));
+              b.drawImage(av, wx - 7, wy - 1 + (slow % 4 === 0 ? 1 : 0));
               b.restore();
               b.drawImage(sp("bfocus", () => bubbleGrid("focus")), pos.x - 18, pos.y - 42 - (slow % 2));
             }
@@ -208,9 +208,9 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.save();
               b.translate(x * 2, 0);
               b.scale(-1, 1);
-              b.drawImage(av, x - 9, y - AV_H + 1 + bob);
+              b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
               b.restore();
-            } else b.drawImage(av, x - 9, y - AV_H + 1 + bob);
+            } else b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
             if (!w.moving && !r.say) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
           },
         });
