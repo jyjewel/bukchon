@@ -14,6 +14,7 @@ import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
 import StudyRoom from "./StudyRoom";
+import SayBox from "./SayBox";
 import ChatView from "./ChatView";
 import LibraryView from "./LibraryView";
 import DiaryView, { EntryCard } from "./DiaryView";
@@ -149,6 +150,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                   {me.status.topic && <p className="mt-1 line-clamp-2 text-xs">{me.status.topic}</p>}
                 </div>
               </div>
+              <SayBox current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
             </Window>
             <Window title="지금 나는" icon="" tone="mint" as="aside">
               <div className="space-y-1.5 p-3" role="radiogroup" aria-label="연구 상태">
@@ -249,7 +251,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onUpdateStatus={(p) => void v.updateMyStatus(p)} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
