@@ -1,0 +1,56 @@
+# 연구자 마을을 GitHub Pages 의 /village/ 에 배포한다. 저장소 루트의 기존 index.html 은 그대로 / 에 올라간다.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: research-village/package-lock.json
+      - name: Build Research Village
+        working-directory: research-village
+        env:
+          # 공개(publishable) 키라서 코드에 있어도 괜찮다. 접근 제어는 DB의 RLS가 맡는다.
+          NEXT_PUBLIC_SUPABASE_URL: https://uxlwqkpghrcmkijqnlcf.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_TlxmZw4AEL7e0MGFQ-5DpQ_bZhININs
+          NEXT_PUBLIC_BASE_PATH: /bukchon/village
+        run: |
+          npm ci
+          npm run build
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp index.html _site/ 2>/dev/null || true
+          cp -r research-village/out _site/village
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

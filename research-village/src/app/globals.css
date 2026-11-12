@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/* 갈무리 (Galmuri) — SIL Open Font License. fonts/LICENSE.txt 참고 */
+@font-face { font-family: "Galmuri14"; src: url("./fonts/Galmuri14.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Galmuri11"; src: url("./fonts/Galmuri11.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Galmuri11"; src: url("./fonts/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Galmuri9"; src: url("./fonts/Galmuri9.woff2") format("woff2"); font-display: swap; }
+
+@theme inline {
+  --color-cream: #f6e9c8;
+  --color-paper: #fff8e4;
+  --color-ink: #3a2a33;
+  --color-ink-soft: #7d6a6f;
+  --color-line: #d9c39a;
+  --color-rose: #ff9fb6;
+  --color-rose-deep: #d9547a;
+  --color-mint: #a5e3a0;
+  --color-mint-deep: #3f8a4e;
+  --color-sky: #a9d8f5;
+  --color-butter: #ffe58a;
+  --color-lilac: #cdb8f2;
+  --font-sans: "Galmuri14", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-display: "Galmuri14", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-small: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  /* 도트 폰트가 또렷하게 보이는 크기만 쓴다 (11→12px, 14→15px 과 그 배수) */
+  --text-xs: 12px;
+  --text-xs--line-height: 18px;
+  --text-sm: 15px;
+  --text-sm--line-height: 22px;
+  --text-base: 15px;
+  --text-base--line-height: 22px;
+  --text-lg: 15px;
+  --text-lg--line-height: 22px;
+  --text-xl: 24px;
+  --text-xl--line-height: 30px;
+  --text-3xl: 36px;
+  --text-3xl--line-height: 42px;
+  --text-4xl: 36px;
+  --text-4xl--line-height: 42px;
+}
+
+html {
+  color-scheme: light;
+  font-size: 15px;
+}
+
+body {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  background-color: #9dd77c;
+  /* 잔디 체크무늬 */
+  background-image:
+    linear-gradient(45deg, #97d376 25%, transparent 25%, transparent 75%, #97d376 75%),
+    linear-gradient(45deg, #97d376 25%, transparent 25%, transparent 75%, #97d376 75%);
+  background-size: 48px 48px;
+  background-position: 0 0, 24px 24px;
+}
+
+/* 도트 UI 에는 둥근 모서리가 없다 */
+*, *::before, *::after { border-radius: 0 !important; }
+
+.text-xs { font-family: var(--font-small); }
+.text-xl, .text-3xl, .text-4xl { font-family: var(--font-small); font-weight: 700; }
+.pixelated { image-rendering: pixelated; }
+
+:focus-visible {
+  outline: 3px solid #2f6fd0;
+  outline-offset: 2px;
+}
+
+/* 모서리가 한 칸 파인 도트 테두리 */
+.px-box, .window, .btn, .input, .chip, .scene-label {
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--bd), 0 var(--px) 0 0 var(--bd), calc(var(--px) * -1) 0 0 0 var(--bd), var(--px) 0 0 0 var(--bd);
+  --px: 3px;
+  --bd: var(--color-ink);
+}
+
+.window {
+  background: var(--color-paper);
+  margin: 3px;
+  box-shadow:
+    0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd),
+    0 9px 0 0 rgb(58 42 51 / 0.22), -3px 6px 0 0 rgb(58 42 51 / 0.22), 3px 6px 0 0 rgb(58 42 51 / 0.22);
+}
+dialog.window { border: none; overflow: visible; margin: auto; }
+.space-y-4 > .window:not(:last-child), .space-y-5 > .window:not(:last-child), .space-y-4 > header.window, .space-y-5 > header.window { margin-bottom: 22px; }
+.space-y-4 > :where(div, main, form):not(:last-child) { margin-bottom: 22px; }
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 5px 10px;
+  border-bottom: 3px solid var(--color-ink);
+  background: var(--tb, #ff9fb6);
+  box-shadow: inset 0 3px 0 0 rgb(255 255 255 / 0.45), inset 0 -3px 0 0 rgb(58 42 51 / 0.12);
+}
+.titlebar h2 { letter-spacing: 0.5px; }
+/* 창 장식: 작은 네모 세 개 */
+.titlebar::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  background: var(--color-ink);
+  box-shadow: 9px 0 0 0 var(--color-paper), 18px 0 0 0 var(--color-ink);
+  margin-right: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 33px;
+  margin: 3px;
+  padding: 3px 12px 6px;
+  background: var(--color-paper);
+  line-height: 18px;
+  cursor: pointer;
+  box-shadow:
+    0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd),
+    inset 0 -3px 0 0 rgb(58 42 51 / 0.2), inset 0 3px 0 0 rgb(255 255 255 / 0.5);
+}
+.btn:hover:not(:disabled) { background: var(--color-butter); }
+.btn:active:not(:disabled) {
+  padding: 6px 12px 3px;
+  box-shadow:
+    0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd),
+    inset 0 3px 0 0 rgb(58 42 51 / 0.2);
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--color-rose); }
+.btn-primary:hover:not(:disabled) { background: #ff86a3; }
+.btn-mint { background: var(--color-mint); }
+.btn-danger { background: #ffb3a6; }
+.btn-sm {
+  min-height: 24px;
+  padding: 0 8px 3px;
+  font-family: var(--font-small);
+  font-size: 12px;
+  --px: 2px;
+  margin: 2px;
+  box-shadow:
+    0 -2px 0 0 var(--bd), 0 2px 0 0 var(--bd), -2px 0 0 0 var(--bd), 2px 0 0 0 var(--bd),
+    inset 0 -2px 0 0 rgb(58 42 51 / 0.2);
+}
+.btn-sm:active:not(:disabled) { padding: 2px 8px 1px; }
+
+.input {
+  display: block;
+  width: calc(100% - 6px);
+  margin: 3px;
+  background: #fffdf6;
+  padding: 5px 8px;
+  --bd: var(--color-line);
+  box-shadow:
+    0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd),
+    inset 0 3px 0 0 rgb(58 42 51 / 0.07);
+}
+.input:focus { --bd: var(--color-ink); outline: none; }
+.input::placeholder { color: #b5a48f; }
+.label { display: block; margin-bottom: 3px; color: var(--color-ink); }
+.label::before { content: "▸ "; color: var(--color-rose-deep); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px;
+  --px: 2px;
+  background: #fffdf6;
+  padding: 0 6px;
+  font-family: var(--font-small);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.dotted { border-top: 3px dotted var(--color-line); }
+.card {
+  margin: 3px;
+  background: #fffdf6;
+  --bd: var(--color-line);
+  box-shadow: 0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd);
+}
+.card-on { --bd: var(--color-ink); background: var(--color-butter); }
+input[type="radio"], input[type="checkbox"] { accent-color: var(--color-rose-deep); width: 15px; height: 15px; }
+
+/* ── 마을 지도 위의 누를 수 있는 영역과 이름표 ── */
+.scene-hit {
+  position: absolute;
+  background: transparent;
+  cursor: pointer;
+}
+.scene-hit:disabled { cursor: default; }
+.scene-hit:not(:disabled):hover, .scene-hit:focus-visible {
+  outline: 3px dashed #fff;
+  outline-offset: 0;
+  background: rgb(255 255 255 / 0.14);
+}
+.scene-char { transform: translateX(-50%); z-index: 2; }
+.scene-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+  padding: 0 5px 1px;
+  --px: 2px;
+  background: var(--color-paper);
+  font-family: var(--font-small);
+  font-size: 12px;
+  line-height: 15px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.scene-label-mine { background: #ffc9d6; }
+.scene-label-empty { background: #e6dfd0; color: var(--color-ink-soft); }
+.scene-label-sign { background: #fff3c4; }
+.scene-label-name { font-family: "Galmuri9", var(--font-small); font-size: 10px; line-height: 12px; margin-top: 2px; }
