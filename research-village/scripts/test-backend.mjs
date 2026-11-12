@@ -144,6 +144,60 @@ await t("개인 노트는 본인만", async () => {
   assert.equal(ok(await m2.c.from("study_notes").select("*")).length, 0);
 });
 
+await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {
+  const notifs = async (x) => ok(await x.c.from("notifications").select("*").order("created_at"));
+  const item = ok(await m1.c.from("whiteboard_items").insert({ village_id: village, owner_id: m1.id, body: "방각본 간행 연대를 어떻게 추정할까?" }).select().single());
+  // 주민은 보고, 마을 밖 사람은 못 본다 / 남의 이름으로 쓰기 불가
+  assert.equal(ok(await m2.c.from("whiteboard_items").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("whiteboard_items").select("*")).length, 0);
+  assert.ok((await m2.c.from("whiteboard_items").insert({ village_id: village, owner_id: m1.id, body: "대신 씀" })).error);
+  assert.equal((await m2.c.from("whiteboard_items").update({ resolved: true }).eq("id", item.id).select()).data.length, 0);
+  // 댓글 → 주인에게 알림, 자기 댓글은 알림 없음
+  ok(await m2.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "판식과 지질을 보세요" }));
+  let n1 = await notifs(m1);
+  assert.equal(n1.length, 1); assert.equal(n1[0].kind, "comment"); assert.equal(n1[0].actor_id, m2.id); assert.equal(n1[0].room_owner_id, m1.id);
+  assert.equal((await notifs(m2)).length, 0);
+  ok(await m1.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "고맙습니다" }));
+  assert.equal((await notifs(m2)).length, 1); // 먼저 댓글 단 사람에게도 알림
+  ok(await m3.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "저도 궁금해요" }));
+  assert.equal((await notifs(m1)).length, 2); assert.equal((await notifs(m2)).length, 2);
+  assert.ok((await outside[0].c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "침입" })).error);
+  // 댓글 삭제: 작성자나 화이트보드 주인만
+  const cs = ok(await m1.c.from("whiteboard_comments").select("*").eq("item_id", item.id));
+  const c3 = cs.find((c) => c.author_id === m3.id);
+  assert.equal((await m2.c.from("whiteboard_comments").delete().eq("id", c3.id).select()).data.length, 0);
+  assert.equal((await m1.c.from("whiteboard_comments").delete().eq("id", c3.id).select()).data.length, 1);
+  // 포스트잇
+  ok(await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "응원합니다", color: "#ffb3c8" }));
+  assert.equal((await notifs(m1)).filter((n) => n.kind === "postit").length, 1);
+  ok(await m1.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "나에게 메모" })); // 내 벽: 알림 없음
+  assert.equal((await notifs(m1)).filter((n) => n.kind === "postit").length, 1);
+  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: outside[0].id, body: "x" })).error); // 마을 밖 사람의 방에는 못 붙인다
+  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "x", author_id: m3.id })).error);
+  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "x", color: "#000000" })).error);
+  assert.ok((await outside[0].c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "침입" })).error);
+  assert.equal(ok(await outside[0].c.from("postits").select("*")).length, 0);
+  const posts = ok(await m1.c.from("postits").select("*").eq("owner_id", m1.id));
+  const fromM2 = posts.find((p) => p.author_id === m2.id);
+  assert.equal((await m3.c.from("postits").delete().eq("id", fromM2.id).select()).data.length, 0);
+  assert.equal((await m1.c.from("postits").delete().eq("id", fromM2.id).select()).data.length, 1); // 주인은 뗄 수 있다
+  // 알림은 본인만 읽고 읽음 처리
+  assert.equal((await m3.c.from("notifications").select("*")).data.every((n) => n.user_id === m3.id), true);
+  assert.ok((await m1.c.from("notifications").update({ summary: "조작" }).eq("user_id", m1.id)).error);
+  const mine = await notifs(m1);
+  ok(await m1.c.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", mine[0].id));
+  assert.equal((await notifs(m1)).filter((n) => n.read_at).length, 1);
+  assert.ok((await m1.c.from("notifications").insert({ user_id: m1.id, village_id: village, actor_id: m2.id, kind: "postit", room_owner_id: m1.id })).error); // 알림은 서버만 만든다
+  // 책장(연구 성과)
+  const riss = "https://www.riss.kr/link?id=A100000000";
+  ok(await m1.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "조선 후기 방각본 연구", kind: "article", year: 2025, link_url: riss }));
+  assert.equal(ok(await m2.c.from("achievements").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("achievements").select("*")).length, 0);
+  assert.ok((await m1.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "x", link_url: "javascript:alert(1)" })).error);
+  assert.ok((await m2.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "대신" })).error);
+  assert.equal((await m2.c.from("achievements").delete().eq("owner_id", m1.id).select()).data.length, 0);
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

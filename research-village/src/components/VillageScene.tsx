@@ -275,7 +275,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       {houses.map((h) => {
         const r = bySlot.get(h.slot) ?? null;
         const mine = h.owner_id === myId;
-        const label = !r ? `${h.slot + 1}번 집 — 빈 집` : mine ? "내 집 — 눌러서 연구실로 들어가기" : `${r.profile.display_name}의 집 — ${STATUS_META[r.shown].label}. 눌러서 미니홈피 보기`;
+        const label = !r ? `${h.slot + 1}번 집 — 빈 집` : mine ? "내 집 — 눌러서 연구실로 들어가기" : `${r.profile.display_name}의 집 — ${STATUS_META[r.shown].label}. 눌러서 연구실 방문하기`;
         const pos = HOUSE_POS[h.slot];
         return (
           <button key={h.slot} type="button" className="scene-hit" style={pct(pos.x - 27, pos.y - HOUSE_H + 6, 54, HOUSE_H - 4)} aria-label={label} disabled={!r} onClick={() => onHouse(h.slot)}>

@@ -48,3 +48,27 @@ export const ROOFS = ["#e8837c", "#f2a65a", "#7fb3d9", "#8fc7a3", "#b497d6", "#d
 export const WALLS = ["#fff5e1", "#fde8ea", "#e9f4ec", "#e8f0fb", "#f4ecfa", "#f7e7cf"];
 /** 집 번호별 기본 지붕 색 */
 export const DEFAULT_ROOFS = ["#e8837c", "#7fb3d9", "#f2a65a", "#8fc7a3", "#b497d6", "#d98bb0"];
+
+export const POSTIT_COLORS = ["#ffe58a", "#ffb3c8", "#a9e5a0", "#a9d8f5", "#d8c0f5", "#ffc9a0"];
+export const ACHIEVEMENT_KINDS: { id: import("./types").AchievementKind; label: string; color: string }[] = [
+  { id: "article", label: "학술논문", color: "#e0605a" },
+  { id: "book", label: "단행본", color: "#5f8fd6" },
+  { id: "thesis", label: "학위논문", color: "#b08ae0" },
+  { id: "presentation", label: "학술발표", color: "#f2c64e" },
+  { id: "other", label: "기타", color: "#62b866" },
+];
+export function rissSearchUrl(q: string): string {
+  const e = encodeURIComponent(q.trim());
+  return `https://www.riss.kr/search/Search.do?isDetailSearch=N&searchGubun=true&viewYn=OP&queryText=&strQuery=${e}&query=${e}`;
+}
+export function linkHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+export function isRiss(url: string): boolean {
+  const h = linkHost(url);
+  return h === "riss.kr" || h.endsWith(".riss.kr");
+}

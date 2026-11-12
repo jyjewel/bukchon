@@ -120,7 +120,7 @@ dialog.window { border: none; overflow: visible; margin: auto; }
   padding: 3px 12px 6px;
   background: var(--color-paper);
   line-height: 18px;
-  cursor: pointer;
+  
   box-shadow:
     0 -3px 0 0 var(--bd), 0 3px 0 0 var(--bd), -3px 0 0 0 var(--bd), 3px 0 0 0 var(--bd),
     inset 0 -3px 0 0 rgb(58 42 51 / 0.2), inset 0 3px 0 0 rgb(255 255 255 / 0.5);
@@ -192,14 +192,8 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--color-rose-dee
 .scene-hit {
   position: absolute;
   background: transparent;
-  cursor: pointer;
 }
-.scene-hit:disabled { cursor: default; }
-.scene-hit:not(:disabled):hover, .scene-hit:focus-visible {
-  outline: 3px dashed #fff;
-  outline-offset: 0;
-  background: rgb(255 255 255 / 0.14);
-}
+.scene-hit:focus-visible { outline: 3px solid #2f6fd0; outline-offset: 1px; }
 .scene-char { transform: translateX(-50%); z-index: 2; }
 .scene-label {
   position: absolute;
@@ -219,3 +213,11 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--color-rose-dee
 .scene-label-empty { background: #e6dfd0; color: var(--color-ink-soft); }
 .scene-label-sign { background: #fff3c4; }
 .scene-label-name { font-family: "Galmuri9", var(--font-small); font-size: 10px; line-height: 12px; margin-top: 2px; }
+
+/* ── 커서: 흰 장갑 낀 손가락 (누를 수 있는 곳에서) ── */
+:root { --glove: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAiCAYAAABMfblJAAAAqUlEQVR42mNkIACstIz/I/OPXTvLyEABYGKgM2Ak5LOjV8+giFtrm1DkU7r7cNTCUQsHv4Us5GoktwQaOj7EUgIR5eOB8yEsTiitDWA+h/kY3Tz6+xC9VkCPC2r7dOBTKZLLiEqdhMQHT42Pq4anFKC3EAYuDmEugKUqavt06JWlpMbd4PEhreNy8LS80fNny+LNRBlYE+s7SOtDQsDRSHKYxyG5YMDzIQB9KFZQWMmv/wAAAABJRU5ErkJggg==") 10 1, pointer; }
+a[href], button:not(:disabled), [role="button"], [role="tab"], [role="radio"], summary, select, label[for],
+input[type="checkbox"], input[type="radio"], input[type="range"], .scene-hit:not(:disabled) {
+  cursor: var(--glove);
+}
+button:disabled, .scene-hit:disabled { cursor: default; }

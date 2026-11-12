@@ -118,12 +118,15 @@ export default function SettingsView({
   };
   const exportData = async () => {
     const sb = supabase();
-    const [sessions, notes, diary] = await Promise.all([
+    const [sessions, notes, diary, board, postits, shelf] = await Promise.all([
       sb.from("study_sessions").select("*").eq("user_id", profile.id).order("started_at"),
       sb.from("study_notes").select("*").eq("user_id", profile.id).maybeSingle(),
       sb.from("diary_entries").select("*").eq("author_id", profile.id).order("created_at"),
+      sb.from("whiteboard_items").select("*").eq("owner_id", profile.id).order("created_at"),
+      sb.from("postits").select("*").eq("author_id", profile.id).order("created_at"),
+      sb.from("achievements").select("*").eq("owner_id", profile.id).order("created_at"),
     ]);
-    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile, research_status: me.status, house: me.house, study_sessions: sessions.data, study_notes: notes.data, diary_entries: diary.data }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile, research_status: me.status, house: me.house, study_sessions: sessions.data, study_notes: notes.data, diary_entries: diary.data, whiteboard_items: board.data, postits_written: postits.data, achievements: shelf.data }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "research-village-my-data.json";
