@@ -37,15 +37,32 @@ export const HAIR_COLORS = [
 ];
 export const HAIR_STYLES = [
   { id: "short", label: "짧은 머리" },
-  { id: "undercut", label: "투블록" },
   { id: "bob", label: "단발" },
   { id: "curlybob", label: "곱슬 단발" },
   { id: "long", label: "긴 머리" },
+  { id: "hippie", label: "히피펌" },
   { id: "ponytail", label: "포니테일" },
   { id: "pigtails", label: "양갈래" },
-  { id: "bun", label: "올림머리" },
+  { id: "bun", label: "똥머리" },
   { id: "curly", label: "곱슬" },
+  { id: "receding", label: "반대머리" },
   { id: "bald", label: "삭발" },
+];
+export const BEARDS = [
+  { id: "none", label: "없음" },
+  { id: "stubble", label: "면도 자국" },
+  { id: "mustache", label: "콧수염" },
+  { id: "goatee", label: "턱수염" },
+  { id: "full", label: "풀수염" },
+];
+export const FEATURES = [{ id: "darkcircle", label: "다크서클" }];
+/** 청바지·슬랙스·치노·검정·카키 같은 바지 색 (처음 값은 예전 기본색) */
+export const PANTS = ["#5b5068", "#4a6fa5", "#3a3d4a", "#c9b48a", "#25252b", "#6f7a58", "#8a8fa3"];
+export const SHOES = [
+  { id: "default", label: "기본" },
+  { id: "sneakers", label: "운동화" },
+  { id: "dress", label: "구두" },
+  { id: "slipper", label: "연구실 슬리퍼" },
 ];
 export const EYES = [
   { id: "default", label: "기본" },
@@ -56,11 +73,18 @@ export const EYES = [
 ];
 export const TOPS = [
   { id: "tee", label: "티셔츠" },
-  { id: "hoodie", label: "회색 후드티" },
-  { id: "corduroy", label: "코듀로이 재킷" },
+  { id: "hoodie", label: "후드티" },
+  { id: "sweatshirt", label: "맨투맨" },
+  { id: "pullover", label: "풀오버" },
+  { id: "fleece", label: "플리스 점퍼" },
+  { id: "vest", label: "패딩 조끼" },
+  { id: "windbreaker", label: "바람막이" },
+  { id: "cardigan", label: "가디건" },
+  { id: "blazer", label: "블레이저" },
   { id: "suit", label: "셔츠·넥타이" },
-  { id: "labcoat", label: "연구실 가운" },
+  { id: "corduroy", label: "코듀로이 재킷" },
   { id: "stripe", label: "줄무늬 스웨터" },
+  { id: "labcoat", label: "연구실 가운" },
   { id: "gown", label: "학위복" },
 ];
 export const OUTFITS = [
@@ -84,17 +108,29 @@ export const ACCESSORIES = [
   { id: "hairpin", label: "머리핀" },
   { id: "ribbon", label: "리본" },
   { id: "mask", label: "마스크" },
+  { id: "lanyard", label: "사원증" },
   { id: "scarf", label: "목도리" },
 ];
 export const EYEWEAR = ["glasses", "square", "sunglasses"];
-export const PROPS = [
-  { id: "none", label: "없음" },
+/** 소품: 손에 든 것은 하나만, 가방도 하나만 고를 수 있고 둘은 같이 쓸 수 있다. */
+export const HAND_PROPS = [
   { id: "book", label: "책" },
+  { id: "thesis", label: "학위논문" },
   { id: "scroll", label: "두루마리" },
   { id: "laptop", label: "노트북" },
   { id: "coffee", label: "커피잔" },
+  { id: "americano", label: "아이스 아메리카노" },
+  { id: "stanley", label: "스탠리컵" },
   { id: "brush", label: "붓" },
 ];
+export const BAGS = [
+  { id: "backpack", label: "백팩" },
+  { id: "crossbody", label: "크로스백" },
+  { id: "briefcase", label: "서류가방" },
+  { id: "ecobag", label: "에코백" },
+];
+export const PROPS = [...HAND_PROPS, ...BAGS];
+
 export const ROOFS = ["#e8837c", "#f2a65a", "#7fb3d9", "#8fc7a3", "#b497d6", "#d98bb0", "#9a8f85"];
 export const WALLS = ["#fff5e1", "#fde8ea", "#e9f4ec", "#e8f0fb", "#f4ecfa", "#f7e7cf"];
 /** 집 번호별 기본 지붕 색 */

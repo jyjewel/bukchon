@@ -1,7 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
-import { ACCENTS, ACCESSORIES, EYES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
+import { ACCENTS, ACCESSORIES, BEARDS, EYES, FEATURES, PANTS, SHOES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 import { normalizeAvatar, type FullAvatar } from "@/pixel/avatar";
 import { CharacterIcon } from "./Character";
@@ -24,6 +24,12 @@ export default function ProfileForm({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const set = (patch: Partial<FullAvatar>) => { setAvatar((a) => ({ ...a, ...patch })); setSaved(false); };
+  /** 소품: 손에 든 것은 하나, 가방도 하나만. 둘은 같이 쓸 수 있다 */
+  const toggleProp = (id: string) => {
+    const has = avatar.props.includes(id);
+    const group = (HAND_PROPS.some((p) => p.id === id) ? HAND_PROPS : BAGS).map((p) => p.id);
+    set({ props: has ? avatar.props.filter((p) => p !== id) : [...avatar.props.filter((p) => !group.includes(p)), id] });
+  };
   /** 액세서리는 여러 개를 동시에 쓸 수 있고, 안경류만 하나로 제한한다 */
   const toggleAccessory = (id: string) => {
     const has = avatar.accessories.includes(id);
@@ -62,12 +68,16 @@ export default function ProfileForm({
           <Choices label="헤어스타일" options={HAIR_STYLES} value={avatar.hair} onChange={(hair) => set({ hair })} />
           <Swatches label="머리 색" options={HAIR_COLORS} value={avatar.hairColor} onChange={(hairColor) => set({ hairColor })} />
           <Choices label="표정" options={EYES} value={avatar.eyes} onChange={(eyes) => set({ eyes })} />
+          <Choices label="수염" options={BEARDS} value={avatar.beard} onChange={(beard) => set({ beard })} />
+          <Toggles label="얼굴" options={FEATURES} values={avatar.features} onToggle={(id) => set({ features: avatar.features.includes(id) ? avatar.features.filter((x) => x !== id) : [...avatar.features, id] })} />
           <Choices label="옷" options={TOPS} value={avatar.top} onChange={(top) => set({ top })} />
           <Swatches label="옷 색" options={OUTFITS} value={avatar.outfit} onChange={(outfit) => set({ outfit })} />
+          <Swatches label="바지 색" options={PANTS} value={avatar.pants} onChange={(pants) => set({ pants })} />
+          <Choices label="신발" options={SHOES} value={avatar.shoes} onChange={(shoes) => set({ shoes })} />
           <Choices label="모자" options={HATS} value={avatar.hat} onChange={(hat) => set({ hat })} />
           <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES} values={avatar.accessories} onToggle={toggleAccessory} />
           <Swatches label="모자·소품 색" options={ACCENTS} value={avatar.accent} onChange={(accent) => set({ accent })} />
-          <Choices label="손에 든 연구 소품" options={PROPS} value={avatar.prop} onChange={(prop) => set({ prop })} />
+          <Toggles label="소품" options={PROPS} values={avatar.props} onToggle={toggleProp} />
         </div>
       </div>
       <div className="dotted pt-3">

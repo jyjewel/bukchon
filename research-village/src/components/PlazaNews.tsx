@@ -47,7 +47,7 @@ export default function PlazaNews({
   };
 
   return (
-    <Modal title="마을 광장" tone="mint" onClose={onClose} wide>
+    <Modal title="마을 게시판" tone="mint" onClose={onClose} wide>
       <div className="space-y-4">
         <div className="card p-3" style={{ background: "#fff3c4" }}>
           <p className="font-display text-lg">새로운 소식을 알려주세요!</p>
