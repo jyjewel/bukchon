@@ -65,10 +65,17 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   px(g, 5, 11, "#f29aa8"); px(g, 12, 11, "#f29aa8");
   px(g, 8, 12, "#b5574f"); px(g, 9, 12, "#b5574f");
   if (acc === "glasses") {
-    for (const x of [5, 7, 8, 9, 10, 12]) px(g, x, 9, "#6b7fc4");
-    px(g, 5, 10, "#fdfdfd"); px(g, 7, 10, "#fdfdfd"); px(g, 10, 10, "#fdfdfd"); px(g, 12, 10, "#fdfdfd");
+    // 동그란 안경: 눈을 감싸는 4×4 고리 두 개 + 코다리 + 다리
+    const frame = "#4a3d5c", glass = "#e3f3fb";
+    for (const x0 of [5, 10]) {
+      px(g, x0 + 1, 8, frame); px(g, x0 + 2, 8, frame);
+      px(g, x0 + 1, 11, frame); px(g, x0 + 2, 11, frame);
+      px(g, x0, 9, frame); px(g, x0, 10, frame);
+      px(g, x0 + 3, 9, frame); px(g, x0 + 3, 10, frame);
+    }
+    for (const [x, y] of [[7, 9], [7, 10], [12, 9], [12, 10]]) px(g, x, y, glass);
+    px(g, 9, 9, frame); px(g, 4, 9, frame);
   }
-
   // 앞머리
   rect(g, 5, 2, 8, 1, hair);
   rect(g, 4, 3, 10, 1, hair);
