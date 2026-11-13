@@ -1,5 +1,6 @@
 "use client";
 import { useFold } from "@/hooks/useFold";
+import { syncPush } from "@/lib/push";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
@@ -49,7 +50,8 @@ interface Props {
 }
 
 export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendingHandled, onOpenInOtherVillage }: Props) {
-    const foldProfile = useFold("home-profile");
+    useEffect(() => { void syncPush(); }, []);
+  const foldProfile = useFold("home-profile");
   const foldChat = useFold("home-chat");
 const me = v.me!;
   const village = v.village!;

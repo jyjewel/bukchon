@@ -1,4 +1,5 @@
 "use client";
+import { detachPush } from "@/lib/push";
 import { useEffect, useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { VILLAGE_CAPACITY } from "@/lib/constants";
@@ -74,7 +75,7 @@ export default function VillageGate({ inviteCode, onClearInvite, onDone, onCance
       <p className="text-center">
         {onCancel
           ? <button type="button" className="btn" onClick={onCancel}>◀ 돌아가기</button>
-          : <button type="button" className="text-sm text-ink-soft underline" onClick={() => supabase().auth.signOut()}>로그아웃</button>}
+          : <button type="button" className="text-sm text-ink-soft underline" onClick={async () => { await detachPush(); await supabase().auth.signOut(); }}>로그아웃</button>}
       </p>
     </>
   );

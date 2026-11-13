@@ -7,6 +7,8 @@ import { houseTypeOf } from "@/pixel/village";
 import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
 import { useFold } from "@/hooks/useFold";
+import PushSettings from "./PushSettings";
+import { detachPush } from "@/lib/push";
 import { Notice, Window } from "./ui";
 
 function inviteUrl(code: string) {
@@ -164,6 +166,9 @@ export default function SettingsView({
         </Window>
       </div>
       <div className="space-y-4">
+        <Window title="폰 알림" icon="" tone="sky">
+          <PushSettings />
+        </Window>
         <Window title={`집 꾸미기 · ${village.name}`} icon="" tone="mint" controls={foldHouse}>
           <div className="space-y-3 p-3">
             <HousePicker value={houseTypeOf(me.house.style)} onChange={(t) => void setHouseType(t)} />
@@ -174,7 +179,7 @@ export default function SettingsView({
           <div className="space-y-3 p-3 text-sm">
             <div className="flex flex-wrap gap-2">
               <button type="button" className="btn" onClick={() => void exportData()}>내 데이터 내려받기</button>
-              <button type="button" className="btn" onClick={() => supabase().auth.signOut()}>로그아웃</button>
+              <button type="button" className="btn" onClick={async () => { await detachPush(); await supabase().auth.signOut(); }}>로그아웃</button>
             </div>
             <div className="dotted flex flex-wrap gap-2 pt-3">
               <button type="button" className="btn btn-danger" onClick={() => void leave()}>마을 떠나기</button>
