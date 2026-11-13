@@ -39,22 +39,26 @@ export function DeadlinePanel({ planner, userId, names = {} }: { planner: Planne
   const row = (d: (typeof planner.deadlines)[number]) => {
     const n = daysUntil(d.due_date, today);
     return (
-      <li key={d.id} className="card flex items-center gap-2 p-2 text-sm" style={d.done ? { opacity: 0.6 } : undefined}>
-        <Dday days={n} done={d.done} />
-        <span className="min-w-0 flex-1">
-          <span className={`block break-words ${d.done ? "line-through" : ""}`}>{d.title}</span>
-          <span className="text-xs text-ink-soft">{dateText(d.due_date)}</span>
-          {planner.cheers.filter((c) => c.deadline_id === d.id).length > 0 && (
-            <span className="block text-xs" style={{ color: "#c0504d" }}>응원 {planner.cheers.filter((c) => c.deadline_id === d.id).length}명: {planner.cheers.filter((c) => c.deadline_id === d.id).map((c) => names[c.from_user] ?? "이웃").join(", ")}</span>
-          )}
-        </span>
-        <label className="flex shrink-0 items-center gap-1 text-xs" title="공개하면 마을 주민이 이 마감을 보고 응원할 수 있어요">
-          <input type="checkbox" checked={d.shared} onChange={(e) => { const shared = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, shared } : x))); void run(sb.from("deadlines").update({ shared }).eq("id", d.id)); }} /> 공개
-        </label>
-        <label className="flex shrink-0 items-center gap-1 text-xs">
-          <input type="checkbox" checked={d.done} onChange={(e) => { const done = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, done } : x))); void run(sb.from("deadlines").update({ done }).eq("id", d.id)); }} /> 완료
-        </label>
-        <button type="button" className="btn btn-sm btn-danger shrink-0" aria-label={`${d.title} 삭제`} onClick={() => void run(sb.from("deadlines").delete().eq("id", d.id))}>삭제</button>
+      <li key={d.id} className="card space-y-1 p-2 text-sm" style={d.done ? { opacity: 0.6 } : undefined}>
+        <div className="flex items-start gap-2">
+          <Dday days={n} done={d.done} />
+          <span className="min-w-0 flex-1">
+            <span className={`block break-words ${d.done ? "line-through" : ""}`}>{d.title}</span>
+            <span className="text-xs text-ink-soft">{dateText(d.due_date)}</span>
+            {planner.cheers.filter((c) => c.deadline_id === d.id).length > 0 && (
+              <span className="block text-xs" style={{ color: "#c0504d" }}>응원 {planner.cheers.filter((c) => c.deadline_id === d.id).length}명: {planner.cheers.filter((c) => c.deadline_id === d.id).map((c) => names[c.from_user] ?? "이웃").join(", ")}</span>
+            )}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+          <label className="flex items-center gap-1 text-xs" title="공개하면 마을 주민이 이 마감을 보고 응원할 수 있어요">
+            <input type="checkbox" checked={d.shared} onChange={(e) => { const shared = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, shared } : x))); void run(sb.from("deadlines").update({ shared }).eq("id", d.id)); }} /> 공개
+          </label>
+          <label className="flex items-center gap-1 text-xs">
+            <input type="checkbox" checked={d.done} onChange={(e) => { const done = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, done } : x))); void run(sb.from("deadlines").update({ done }).eq("id", d.id)); }} /> 완료
+          </label>
+          <button type="button" className="btn btn-sm btn-danger" aria-label={`${d.title} 삭제`} onClick={() => void run(sb.from("deadlines").delete().eq("id", d.id))}>삭제</button>
+        </div>
       </li>
     );
   };
@@ -65,7 +69,7 @@ export function DeadlinePanel({ planner, userId, names = {} }: { planner: Planne
           <label className="sr-only" htmlFor="dl-title">마감 일정 제목</label>
           <input id="dl-title" className="input" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 학회 발표 원고 마감" />
         </div>
-        <div className="min-w-36 flex-1">
+        <div className="min-w-[10.5rem] flex-1">
           <label className="sr-only" htmlFor="dl-date">마감 날짜</label>
           <input id="dl-date" type="date" className="input" value={due} onChange={(e) => setDue(e.target.value)} />
         </div>
@@ -112,7 +116,7 @@ export function TodoPanel({ planner, userId }: { planner: Planner; userId: strin
           <label className="sr-only" htmlFor="td-body">할 일</label>
           <input id="td-body" className="input" maxLength={120} value={body} onChange={(e) => setBody(e.target.value)} placeholder="할 일을 적고 Enter" />
         </div>
-        <div className="min-w-36 flex-1">
+        <div className="min-w-[10.5rem] flex-1">
           <label className="sr-only" htmlFor="td-date">할 일 날짜 (선택)</label>
           <input id="td-date" type="date" className="input" value={due} onChange={(e) => setDue(e.target.value)} />
         </div>
