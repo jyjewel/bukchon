@@ -241,6 +241,28 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
     px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
     stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "hedwig") {
+    // 눈처럼 흰 부엉이(해리포터의 편지 배달 부엉이 풍): 흰 깃털에 회색 점, 노란 눈
+    const o = grid(12, 14);
+    disc(o, 6, 8, 5, 5.5, "#f7f7f2"); disc(o, 6, 4, 4.5, 4, "#ffffff");
+    rect(o, 1, 6, 2, 6, "#e3e3de"); rect(o, 9, 6, 2, 6, "#e3e3de");
+    for (const [x, y] of [[3, 8], [5, 9], [8, 8], [4, 11], [7, 11], [6, 7], [9, 10], [2, 9]]) px(o, x, y, "#8e8e98");
+    for (const [x, y] of [[4, 2], [8, 2], [3, 5], [9, 5]]) px(o, x, y, "#b9b9c2");
+    rect(o, 3, 4, 2, 2, "#f2c230"); rect(o, 7, 4, 2, 2, "#f2c230"); px(o, 4, 5, "#3a2a33"); px(o, 7, 5, "#3a2a33");
+    px(o, 5, 6, "#3a2a33"); px(o, 6, 6, "#3a2a33"); px(o, 5, 7, "#e0a45c");
+    rect(o, 3, 13, 2, 1, "#caa24e"); rect(o, 7, 13, 2, 1, "#caa24e");
+    stamp(g, outline(o), 104, 65);
+  } else if (st.pet === "duo") {
+    // 초록 부엉이(언어 학습 앱 마스코트 풍): 큰 흰 눈, 주황 부리와 발
+    const o = grid(13, 14);
+    disc(o, 6.5, 8.5, 5.5, 5, "#58cc02"); disc(o, 6.5, 10, 3, 3.5, "#89e219");
+    rect(o, 0, 7, 2, 5, "#46a302"); rect(o, 11, 7, 2, 5, "#46a302");
+    disc(o, 6.5, 4, 5.5, 3.5, "#58cc02"); rect(o, 1, 0, 2, 3, "#58cc02"); rect(o, 10, 0, 2, 3, "#58cc02");
+    disc(o, 4, 4, 2.4, 2.4, "#ffffff"); disc(o, 9, 4, 2.4, 2.4, "#ffffff");
+    px(o, 4, 4, "#3a2a33"); px(o, 5, 4, "#3a2a33"); px(o, 8, 4, "#3a2a33"); px(o, 9, 4, "#3a2a33"); px(o, 4, 5, "#3a2a33"); px(o, 9, 5, "#3a2a33");
+    rect(o, 5, 6, 3, 2, "#ff9600"); px(o, 6, 8, "#ff9600");
+    rect(o, 4, 13, 2, 1, "#ff9600"); rect(o, 8, 13, 2, 1, "#ff9600");
+    stamp(g, outline(o), 104, 65);
   }
   return g;
 }

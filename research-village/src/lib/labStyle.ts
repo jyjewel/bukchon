@@ -20,7 +20,7 @@ export const LAB_VIEWS = [
   { id: "auto", label: "시간 따라" }, { id: "day", label: "맑은 낮" }, { id: "night", label: "별 밤" },
   { id: "rain", label: "비" }, { id: "snow", label: "눈" }, { id: "sakura", label: "벚꽃" },
 ] as const;
-export const LAB_PETS = [{ id: "cat", label: "고양이" }, { id: "dog", label: "강아지" }, { id: "none", label: "없음" }] as const;
+export const LAB_PETS = [{ id: "cat", label: "고양이" }, { id: "dog", label: "강아지" }, { id: "hedwig", label: "해리포터 부엉이" }, { id: "duo", label: "듀오링고 부엉이" }, { id: "none", label: "없음" }] as const;
 export const LAB_EXTRAS = [
   { id: "plant", label: "화분" }, { id: "bigplant", label: "큰 화분" }, { id: "beanbag", label: "빈백" }, { id: "globe", label: "지구본" }, { id: "nameplate", label: "자개 명패" },
 ] as const;
