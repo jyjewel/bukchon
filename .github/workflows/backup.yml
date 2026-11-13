@@ -1,0 +1,50 @@
+# 매일 새벽(한국 시간 03:17) 전체 기록을 내려받아 암호화한 뒤 GitHub Actions 보관함(artifact)에 90일간 보관한다.
+# 이 저장소는 공개라서 반드시 암호화한다. 필요한 비밀값 두 개(SUPABASE_SERVICE_KEY, BACKUP_PASSPHRASE)는 docs/BACKUP.md 참고.
+name: Daily backup
+
+on:
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 비밀값 확인
+        env:
+          K: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          P: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$K" ] || [ -z "$P" ]; then echo "::error::SUPABASE_SERVICE_KEY 와 BACKUP_PASSPHRASE 비밀값을 GitHub 저장소 설정에 먼저 넣어 주세요 (docs/BACKUP.md)"; exit 1; fi
+      - name: 전체 기록 내려받기
+        env:
+          SUPABASE_URL: https://uxlwqkpghrcmkijqnlcf.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node research-village/scripts/backup.mjs backup-out
+      - name: 비어 있지 않은지 확인
+        run: |
+          test -s backup-out/backup.json
+          node -e "const j=require('./backup-out/backup.json'); if(!j.counts.profiles){console.error('프로필이 0개예요. 이상해서 중단합니다.');process.exit(1)}"
+      - name: 압축하고 암호화
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          D=$(date -u +%Y-%m-%d)
+          tar -czf backup.tar.gz -C backup-out .
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in backup.tar.gz -out "backup-$D.tar.gz.enc" -pass env:BACKUP_PASSPHRASE
+          rm -rf backup-out backup.tar.gz
+          ls -la
+      - uses: actions/upload-artifact@v4
+        with:
+          name: research-village-backup
+          path: backup-*.tar.gz.enc
+          retention-days: 90
+          if-no-files-found: error
