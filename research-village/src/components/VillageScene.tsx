@@ -6,8 +6,8 @@ import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
 import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
 import {
-  BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
-  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, lampGrid, libraryGrid, treeGrid,
+  BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_META, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
+  benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, houseTypeOf, lampGrid, libraryGrid, treeGrid,
 } from "@/pixel/village";
 
 const PHASE_LABEL: Record<DayPhase, string> = { dawn: "새벽", day: "낮", dusk: "해질녘", night: "밤" };
@@ -151,7 +151,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       for (const h of houses) {
         const pos = HOUSE_POS[h.slot], r = bySlot.get(h.slot);
         const lit = Boolean(r?.online), empty = !h.owner_id, mine = h.owner_id === data.current.myId;
-        const c = sp(`h${h.slot}${JSON.stringify(h.style)}${lit}${empty}${mine}`, () => houseGrid(h.slot, h.style, { lit, empty, mine }));
+        const meta = HOUSE_META[houseTypeOf(h.style)];
+        const c = sp(`h${houseTypeOf(h.style)}${lit}${empty}${mine}`, () => houseGrid(h.style, { lit, empty, mine }));
         items.push({
           y: pos.y,
           draw: () => {
@@ -161,22 +162,22 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
             if (inside) {
               // 창문 너머로 보이는 집중 중인 주민
               const av = sp(`a${JSON.stringify(r.profile.avatar)}0s`, () => avatarGrid(r.profile.avatar, 0, true));
-              const wx = pos.x - 16, wy = pos.y - 25;
+              const wx = pos.x - 27 + meta.window.x, wy = pos.y - 62 + meta.window.y;
               b.save();
               b.beginPath();
               b.rect(wx, wy, 10, 10);
               b.clip();
               b.drawImage(av, wx - 7, wy - 1 + (slow % 4 === 0 ? 1 : 0));
               b.restore();
-              b.drawImage(sp("bfocus", () => bubbleGrid("focus")), pos.x - 18, pos.y - 42 - (slow % 2));
+              b.drawImage(sp("bfocus", () => bubbleGrid("focus")), pos.x - 27 + meta.bubble.x, pos.y - 62 + meta.bubble.y - (slow % 2));
             }
-            if (lit) {
+            if (lit && meta.smoke) {
               for (let i = 0; i < 3; i++) {
                 const p = ((tick * 0.012 + i / 3) % 1);
                 b.globalAlpha = 0.85 * (1 - p);
                 b.fillStyle = "#ffffff";
                 const size = 2 + Math.round(p * 2);
-                b.fillRect(Math.round(pos.x + 13 + Math.sin(p * 5 + i) * 2 + p * 3), Math.round(pos.y - 58 - p * 16), size, size);
+                b.fillRect(Math.round(pos.x - 27 + meta.smoke.x + Math.sin(p * 5 + i) * 2 + p * 3), Math.round(pos.y - 62 + meta.smoke.y - p * 16), size, size);
               }
               b.globalAlpha = 1;
             }
@@ -237,7 +238,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           };
           const a = night ? 0.5 : 0.22;
           for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
-          for (const h of houses) if (bySlot.get(h.slot)?.online) glow(HOUSE_POS[h.slot].x - 11, HOUSE_POS[h.slot].y - 20, 20, a);
+          for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
           if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
           if (night) for (let i = 0; i < 10; i++) {
             if ((slow + i * 3) % 7 < 3) continue;

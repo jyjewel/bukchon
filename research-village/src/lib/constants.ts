@@ -126,11 +126,13 @@ export const BAGS = [
 ];
 export const PROPS = [...HAND_PROPS, ...BAGS];
 
-export const ROOFS = ["#e8837c", "#f2a65a", "#7fb3d9", "#8fc7a3", "#b497d6", "#d98bb0", "#9a8f85"];
-export const WALLS = ["#fff5e1", "#fde8ea", "#e9f4ec", "#e8f0fb", "#f4ecfa", "#f7e7cf"];
-/** 집 번호별 기본 지붕 색 */
-export const DEFAULT_ROOFS = ["#e8837c", "#7fb3d9", "#f2a65a", "#8fc7a3", "#b497d6", "#d98bb0"];
-
+/** 연구실 건물 종류 (고르는 순서) */
+export const HOUSE_TYPES: { id: import("./types").HouseType; label: string }[] = [
+  { id: "hut", label: "움집" },
+  { id: "office", label: "사무실 건물" },
+  { id: "classic", label: "기본 집" },
+  { id: "hanok", label: "한옥" },
+];
 export const POSTIT_COLORS = ["#ffe58a", "#ffb3c8", "#a9e5a0", "#a9d8f5", "#d8c0f5", "#ffc9a0"];
 export const ACHIEVEMENT_KINDS: { id: import("./types").AchievementKind; label: string; color: string }[] = [
   { id: "article", label: "학술논문", color: "#e0605a" },

@@ -1,10 +1,12 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
-import { DEFAULT_ROOFS, ROOFS, VILLAGE_CAPACITY, WALLS } from "@/lib/constants";
-import type { Profile, Resident, Village } from "@/lib/types";
+import { VILLAGE_CAPACITY } from "@/lib/constants";
+import type { HouseType, Profile, Resident, Village } from "@/lib/types";
+import { houseTypeOf } from "@/pixel/village";
+import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
-import { Notice, Swatches, Window } from "./ui";
+import { Notice, Window } from "./ui";
 
 function inviteUrl(code: string) {
   return `${window.location.origin}${window.location.pathname}?invite=${code}`;
@@ -102,14 +104,13 @@ export default function SettingsView({
   profile, me, village, residents, reloadProfile, reloadVillage,
 }: { profile: Profile; me: Resident; village: Village; residents: Resident[]; reloadProfile: () => Promise<void>; reloadVillage: () => Promise<void> }) {
   const [error, setError] = useState("");
-  const roof = me.house.style.roof ?? DEFAULT_ROOFS[me.slot];
-  const wall = me.house.style.wall ?? WALLS[0];
 
-  const setStyle = async (patch: { roof?: string; wall?: string }) => {
-    const { error } = await supabase().from("houses").update({ style: { ...me.house.style, ...patch } }).eq("village_id", village.id).eq("slot", me.slot);
+  const setHouseType = async (type: HouseType) => {
+    const { error } = await supabase().from("houses").update({ style: { type } }).eq("village_id", village.id).eq("slot", me.slot);
     if (error) setError(errorMessage(error));
     await reloadVillage();
   };
+
   const exportData = async () => {
     const sb = supabase();
     const [logs, rnotes, diary, board, postits, shelf, entries] = await Promise.all([
@@ -161,8 +162,7 @@ export default function SettingsView({
       <div className="space-y-4">
         <Window title="집 꾸미기" icon="" tone="mint">
           <div className="space-y-3 p-3">
-            <Swatches label="지붕 색" options={ROOFS} value={roof} onChange={(c) => void setStyle({ roof: c })} />
-            <Swatches label="벽 색" options={WALLS} value={wall} onChange={(c) => void setStyle({ wall: c })} />
+            <HousePicker value={houseTypeOf(me.house.style)} onChange={(t) => void setHouseType(t)} />
           </div>
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}
