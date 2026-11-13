@@ -25,7 +25,7 @@ export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: (
   return (
     <div className="space-y-3 p-3">
       {error && <Notice kind="error">{error}</Notice>}
-      <div className="px-box overflow-hidden" style={{ ["--bd" as string]: "#8e5f3b" }}>
+      <div className="px-box sticky top-0 z-10 overflow-hidden bg-paper" style={{ ["--bd" as string]: "#8e5f3b" }}>
         <RoomCanvas owner={{ ...me, profile: { ...me.profile, lab_style: style } }} inside={false} studying={false} boardCount={0} postitColors={[]} shelf={[]} />
       </div>
       <p className="text-xs text-ink-soft">내 연구실은 어느 마을에서 보아도 같은 모습이에요. 고르면 바로 저장돼요.</p>

@@ -315,7 +315,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onDecorate={() => setView("settings")} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
