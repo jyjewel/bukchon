@@ -1,9 +1,11 @@
 "use client";
+import { useDiary } from "@/hooks/useDiary";
 import { useJournal } from "@/hooks/useJournal";
 import { useResearchNotes } from "@/hooks/useResearchNotes";
 import { useRoom } from "@/hooks/useRoom";
 import { STATUS_META } from "@/lib/constants";
 import type { BoardTab, Resident } from "@/lib/types";
+import DiaryPanel from "./DiaryView";
 import JournalCard from "./JournalCard";
 import ResearchNotes from "./ResearchNotes";
 import RoomBoards from "./RoomBoards";
@@ -22,6 +24,7 @@ export default function StudyRoom({
   const room = useRoom(me.user_id, villageId);
   const journal = useJournal(me.user_id);
   const notes = useResearchNotes(me.user_id);
+  const diary = useDiary(villageId);
   const inside = me.status.status === "focus" || me.status.status === "offline";
   const st = me.status.status;
 
@@ -44,6 +47,9 @@ export default function StudyRoom({
         </Window>
         <Window title="연구노트" tone="rose">
           <ResearchNotes data={notes} userId={me.user_id} />
+        </Window>
+        <Window title="다이어리" tone="sky">
+          <DiaryPanel villageId={villageId} myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} />
         </Window>
       </div>
     </div>

@@ -20,7 +20,7 @@ export function useNews(villageId: string, enabled: boolean) {
     const sb = supabase();
     const channel = sb
       .channel(`news:${villageId}:${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "news_posts", filter: `village_id=eq.${villageId}` }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "news_posts" }, () => void load())
       .subscribe();
     return () => {
       void sb.removeChannel(channel);

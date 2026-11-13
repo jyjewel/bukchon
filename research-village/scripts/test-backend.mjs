@@ -121,24 +121,42 @@ await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => 
   assert.ok((await m1.c.from("houses").update({ owner_id: m1.id }).eq("owner_id", a.id)).error);
 });
 
-await t("다이어리 공개 범위: 나만 / 마을 / 선택한 주민", async () => {
-  const mk = async (visibility) => ok(await m1.c.from("diary_entries")
-    .insert({ village_id: village, body: visibility, visibility }).select().single());
-  const priv = await mk("private"), vil = await mk("village"), sel = await mk("selected");
-  ok(await m1.c.from("entry_permissions").insert({ entry_id: sel.id, user_id: m2.id }));
-  const ids = async (x) => ok(await x.c.from("diary_entries").select("id")).map((e) => e.id).sort();
-  assert.deepEqual(await ids(m1), [priv.id, vil.id, sel.id].sort());
-  assert.deepEqual(await ids(m2), [vil.id, sel.id].sort());
-  assert.deepEqual(await ids(m3), [vil.id]);
+await t("다이어리는 본인만 볼 수 있다 (공개 범위 없음)", async () => {
+  const mk = async (extra = {}) => ok(await m1.c.from("diary_entries").insert({ village_id: village, body: "내 기록", ...extra }).select().single());
+  const mine = await mk();
+  assert.equal(mine.visibility, "private");
+  // 마을 공개로 쓰려 해도 막힌다
+  assert.ok((await m1.c.from("diary_entries").insert({ village_id: village, body: "공개 시도", visibility: "village" })).error);
+  assert.ok((await m1.c.from("diary_entries").update({ visibility: "village" }).eq("id", mine.id)).error);
+  const ids = async (x) => ok(await x.c.from("diary_entries").select("id")).map((e) => e.id);
+  assert.deepEqual(await ids(m1), [mine.id]);
+  assert.deepEqual(await ids(m2), []);       // 같은 마을 주민도 못 본다
+  assert.deepEqual(await ids(a), []);        // 관리자도 못 본다
   assert.deepEqual(await ids(outside[0]), []);
-  // 남의 글에 권한을 부여하거나, 마을 밖 사람에게 공개할 수 없다
-  assert.ok((await m3.c.from("entry_permissions").insert({ entry_id: sel.id, user_id: m3.id })).error);
-  assert.ok((await m1.c.from("entry_permissions").insert({ entry_id: sel.id, user_id: outside[0].id })).error);
-  // 남의 글 수정/삭제 불가, 남의 이름으로 작성 불가
-  assert.equal((await m2.c.from("diary_entries").update({ body: "hack" }).eq("id", vil.id).select()).data.length, 0);
-  assert.equal((await m2.c.from("diary_entries").delete().eq("id", vil.id).select()).data.length, 0);
+  // 남의 글 수정·삭제·대리 작성 불가
+  assert.equal((await m2.c.from("diary_entries").update({ body: "hack" }).eq("id", mine.id).select()).data.length, 0);
+  assert.equal((await m2.c.from("diary_entries").delete().eq("id", mine.id).select()).data.length, 0);
   assert.ok((await m2.c.from("diary_entries").insert({ village_id: village, body: "x", author_id: m1.id })).error);
   assert.ok((await outside[0].c.from("diary_entries").insert({ village_id: village, body: "x" })).error);
+});
+
+await t("광장 외침: 광장에 있는 주민만 외치고, 마을 주민은 모두 읽는다", async () => {
+  const st = async (x, status) => ok(await x.c.from("research_status").update({ status }).eq("user_id", x.id));
+  await st(m1, "open");
+  assert.ok((await m1.c.from("shouts").insert({ village_id: village, body: "광장 밖에서 외침" })).error); // 광장이 아니면 불가
+  await st(m1, "rest");
+  const sh = ok(await m1.c.from("shouts").insert({ village_id: village, body: "오늘 저녁 세미나 같이 가요!" }).select().single());
+  assert.equal(ok(await m2.c.from("shouts").select("*")).length, 1);
+  assert.equal(ok(await outside[0].c.from("shouts").select("*")).length, 0);
+  assert.ok((await outside[0].c.from("shouts").insert({ village_id: village, body: "침입" })).error);
+  await st(m2, "rest");
+  assert.ok((await m2.c.from("shouts").insert({ village_id: village, body: "x", author_id: m1.id })).error); // 남의 이름 불가
+  assert.ok((await m2.c.from("shouts").insert({ village_id: village, body: "   " })).error);
+  assert.ok((await m2.c.from("shouts").insert({ village_id: village, body: "가".repeat(101) })).error);
+  assert.equal((await m2.c.from("shouts").delete().eq("id", sh.id).select()).data.length, 0);
+  assert.equal((await a.c.from("shouts").delete().eq("id", sh.id).select()).data.length, 1); // 관리자는 지울 수 있다
+  const mine = ok(await m2.c.from("shouts").insert({ village_id: village, body: "저도 갈게요" }).select().single());
+  assert.equal((await m2.c.from("shouts").delete().eq("id", mine.id).select()).data.length, 1);
 });
 
 await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {

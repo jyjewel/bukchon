@@ -1,4 +1,4 @@
-import type { DiaryKind, DiaryVisibility, ResearchState } from "./types";
+import type { DiaryKind, ResearchState } from "./types";
 
 /** heartbeat 가 이 시간(ms) 넘게 끊기면 오프라인으로 본다. DB 의 enter_village 와 같은 값. */
 export const STALE_MS = 150_000;
@@ -24,11 +24,6 @@ export const KIND_META: Record<DiaryKind, { label: string; icon: string }> = {
   writing: { label: "논문 작성", icon: "" },
 };
 
-export const VISIBILITY_META: Record<DiaryVisibility, { label: string; icon: string }> = {
-  private: { label: "나만 보기", icon: "" },
-  village: { label: "우리 마을 주민", icon: "" },
-  selected: { label: "선택한 연구자만", icon: "" },
-};
 
 export const SKINS = ["#ffe0c7", "#f6cba6", "#e0a97f", "#b97d56", "#8a5a3c"];
 export const HAIR_COLORS = [

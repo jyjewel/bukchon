@@ -33,12 +33,11 @@ export function useLibrary(villageId: string) {
       clearTimeout(timer);
       timer = setTimeout(() => void load(), 200);
     };
-    const f = `village_id=eq.${villageId}`;
     const channel = sb
       .channel(`library:${villageId}:${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "books", filter: f }, again)
-      .on("postgres_changes", { event: "*", schema: "public", table: "book_entries", filter: f }, again)
-      .on("postgres_changes", { event: "*", schema: "public", table: "meetings", filter: f }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "books" }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "book_entries" }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, again)
       .subscribe();
     const poll = setInterval(() => void load(), 60_000);
     return () => {

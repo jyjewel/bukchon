@@ -40,13 +40,12 @@ export function useRoom(ownerId: string, villageId: string, enabled = true) {
       clearTimeout(timer);
       timer = setTimeout(() => void load(), 200);
     };
-    const f = `village_id=eq.${villageId}`;
     const channel = sb
       .channel(`room:${villageId}:${ownerId}:${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_items", filter: f }, again)
-      .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_comments", filter: f }, again)
-      .on("postgres_changes", { event: "*", schema: "public", table: "postits", filter: f }, again)
-      .on("postgres_changes", { event: "*", schema: "public", table: "achievements", filter: f }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_items" }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_comments" }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "postits" }, again)
+      .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, again)
       .subscribe();
     const poll = setInterval(() => void load(), 45_000);
     return () => {

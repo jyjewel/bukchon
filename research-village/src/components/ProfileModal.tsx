@@ -1,17 +1,15 @@
 "use client";
 import { STATUS_META } from "@/lib/constants";
-import type { DiaryEntry, Resident } from "@/lib/types";
+import type { Resident } from "@/lib/types";
 import { CharacterIcon, StatusIcon } from "./Character";
-import { EntryCard } from "./DiaryView";
 import { Modal } from "./ui";
 
-/** 주민의 프로필: 지금 상태, 소개, 공개한 다이어리 */
+/** 주민의 프로필: 지금 상태와 소개 */
 export default function ProfileModal({
-  resident, isMe, entries, onClose, onEditProfile, onVisit, onChat,
-}: { resident: Resident; isMe: boolean; entries: DiaryEntry[]; onClose: () => void; onEditProfile: () => void; onVisit: () => void; onChat: () => void }) {
+  resident, isMe, onClose, onEditProfile, onVisit, onChat,
+}: { resident: Resident; isMe: boolean; onClose: () => void; onEditProfile: () => void; onVisit: () => void; onChat: () => void }) {
   const { profile, status } = resident;
   const meta = STATUS_META[resident.shown];
-  const theirs = entries.filter((e) => e.author_id === resident.user_id && (isMe || e.visibility !== "private")).slice(0, 5);
 
   return (
     <Modal title={`${profile.display_name}의 프로필`} icon="" tone="rose" onClose={onClose} wide>
@@ -38,14 +36,6 @@ export default function ProfileModal({
             {resident.online && status.topic && <div><dt className="label">지금 연구하는 주제</dt><dd>{status.topic}</dd></div>}
             {status.reading && <div><dt className="label">읽고 있는 책</dt><dd>{status.reading}</dd></div>}
           </dl>
-          <section className="dotted pt-3">
-            <h3 className="label">최근 다이어리</h3>
-            {theirs.length === 0 ? (
-              <p className="text-sm text-ink-soft">{isMe ? "아직 쓴 기록이 없어요." : "아직 나에게 공개된 기록이 없어요."}</p>
-            ) : (
-              <div className="space-y-2">{theirs.map((e) => <EntryCard key={e.id} entry={e} author={resident} mine={isMe} compact />)}</div>
-            )}
-          </section>
         </div>
       </div>
     </Modal>
