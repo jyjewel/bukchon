@@ -2,16 +2,17 @@
 import { STATUS_META } from "@/lib/constants";
 import { useRoom } from "@/hooks/useRoom";
 import type { BoardTab, Resident } from "@/lib/types";
-import { awayDays } from "@/lib/social";
-import GiveBox from "./GiveBox";
+import { useState } from "react";
+import { GiftBox } from "./GiveBox";
 import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
-import { Window } from "./ui";
+import { Modal, Window } from "./ui";
 
 /** 다른 주민의 연구실 방문. 주민이 연구실 안에서 집중하고 있어도 들어가 볼 수 있다. */
 export default function RoomVisit({
   owner, myId, residents, tab, onTab, onBack, onProfile, give,
-}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: Omit<React.ComponentProps<typeof GiveBox>, "name" | "nudgeDays"> }) {
+}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"]; onTip: (title: string, note: string) => Promise<string | null> | string | null } }) {
+  const [giving, setGiving] = useState(false);
   const room = useRoom(owner.user_id, false);
   const meta = STATUS_META[owner.shown];
   const name = owner.profile.display_name;
@@ -26,18 +27,19 @@ export default function RoomVisit({
         <Window title={`${name}의 연구실`} tone="butter">
           <RoomCanvas
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-            note={inRoom ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={onTab}
+            note={inRoom ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={onTab} onDesk={() => setGiving(true)}
           />
+          <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">책상을 누르면 커피나 간식을 올려 줄 수 있어요</p>
         </Window>
-        <div className="space-y-5">
-          <Window title="구경하고 남기기" tone="sky">
-            <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} />
-          </Window>
-          <Window title="마음 전하기" tone="rose">
-            <div className="p-3"><GiveBox name={name} nudgeDays={!owner.online && awayDays(owner.status.left_at ?? owner.status.last_seen_at) >= 3 ? awayDays(owner.status.left_at ?? owner.status.last_seen_at) : null} {...give} /></div>
-          </Window>
-        </div>
+        <Window title="구경하고 남기기" tone="sky">
+          <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} onTip={give.onTip} />
+        </Window>
       </div>
+      {giving && (
+        <Modal title={`${name}님 책상에 건네기`} tone="mint" onClose={() => setGiving(false)}>
+          <GiftBox name={name} onGift={give.onGift} onDone={() => setTimeout(() => setGiving(false), 900)} />
+        </Modal>
+      )}
     </div>
   );
 }

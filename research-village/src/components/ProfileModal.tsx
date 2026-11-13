@@ -3,13 +3,13 @@ import { STATUS_META } from "@/lib/constants";
 import type { Resident } from "@/lib/types";
 import { awayDays } from "@/lib/social";
 import { CharacterIcon, StatusIcon } from "./Character";
-import GiveBox from "./GiveBox";
+import { NudgeBox, ThrowBox } from "./GiveBox";
 import { Modal } from "./ui";
 
 /** 주민의 프로필: 지금 상태와 소개 */
 export default function ProfileModal({
   resident, isMe, onClose, onEditProfile, onVisit, onChat, give,
-}: { resident: Resident; isMe: boolean; onClose: () => void; onEditProfile: () => void; onVisit: () => void; onChat: () => void; give: Omit<React.ComponentProps<typeof GiveBox>, "name" | "nudgeDays"> }) {
+}: { resident: Resident; isMe: boolean; onClose: () => void; onEditProfile: () => void; onVisit: () => void; onChat: () => void; give: { onGesture: React.ComponentProps<typeof ThrowBox>["onGesture"]; onNudge: React.ComponentProps<typeof NudgeBox>["onNudge"] } }) {
   const { profile, status } = resident;
   const meta = STATUS_META[resident.shown];
 
@@ -38,7 +38,16 @@ export default function ProfileModal({
             {resident.online && status.topic && <div><dt className="label">지금 연구하는 주제</dt><dd>{status.topic}</dd></div>}
             {status.reading && <div><dt className="label">읽고 있는 책</dt><dd>{status.reading}</dd></div>}
           </dl>
-          {!isMe && <div className="dotted pt-3"><GiveBox name={profile.display_name} nudgeDays={!resident.online && awayDays(status.left_at ?? status.last_seen_at) >= 3 ? awayDays(status.left_at ?? status.last_seen_at) : null} {...give} /></div>}
+          {!isMe && (() => {
+            const out = ["rest", "library", "open"].includes(resident.shown);
+            const days = !resident.online ? awayDays(status.left_at ?? status.last_seen_at) : 0;
+            return (
+              <div className="dotted space-y-2 pt-3">
+                {out ? <ThrowBox name={profile.display_name} onGesture={give.onGesture} /> : <p className="text-xs text-ink-soft">던지기는 이웃이 마을에 나와 있을 때(광장·도서관·집 앞 책상) 할 수 있어요. 커피나 책은 연구실에 가서 건네 보세요.</p>}
+                {days >= 3 && <NudgeBox name={profile.display_name} days={days} onNudge={give.onNudge} />}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </Modal>

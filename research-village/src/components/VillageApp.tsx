@@ -116,7 +116,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
     if (n.kind === "book_tip") return visit(me.user_id, "shelf");
     visit(n.room_owner_id, "whiteboard");
   };
-  /** 이웃에게 마음 전하기 (장난·선물·책 추천·독촉). 오류 문구를 돌려주고 성공이면 null */
+  /** 이웃에게 마음 전하기 (던지기·선물·책 추천·독촉). 오류 문구를 돌려주고 성공이면 null */
   const give = (userId: string) => {
     const call = async (fn: string, args: Record<string, unknown>) => {
       const { error } = await supabase().rpc(fn, { p_village: village.id, p_target: userId, ...args });

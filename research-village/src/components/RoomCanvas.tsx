@@ -12,9 +12,9 @@ function pos(x: number, y: number, w: number, h: number) {
 
 /** 연구실 내부 도트 그림. 화이트보드·책장·포스트잇이 실제 데이터를 반영하고, 누르면 해당 탭으로 이동한다. */
 export default function RoomCanvas({
-  owner, inside, studying, boardCount, postitColors, shelf, gifts = [], tips = 0, note, onPick,
+  owner, inside, studying, boardCount, postitColors, shelf, gifts = [], tips = 0, note, onPick, onDesk,
 }: {
-  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; note?: string; onPick?: (t: BoardTab) => void;
+  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; note?: string; onPick?: (t: BoardTab) => void; onDesk?: () => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const avatarKey = JSON.stringify(owner.profile.avatar);
@@ -45,6 +45,7 @@ export default function RoomCanvas({
           <button type="button" className="scene-hit" style={pos(102, 6, 34, 50)} aria-label="책장 보기" onClick={() => onPick("shelf")} />
         </>
       )}
+      {onDesk && <button type="button" className="scene-hit" style={pos(50, 40, 46, 14)} aria-label="책상에 건네기" onClick={onDesk} />}
       {note && <p className="scene-label" style={{ top: "88%" }}>{note}</p>}
     </div>
   );

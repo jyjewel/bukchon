@@ -8,6 +8,7 @@ import type { useRoom } from "@/hooks/useRoom";
 import { CharacterIcon } from "./Character";
 import PublicJournal from "./PublicJournal";
 import PublicDeadlines from "./PublicDeadlines";
+import { TipBox } from "./GiveBox";
 import { giftOf } from "@/lib/social";
 import { Notice } from "./ui";
 
@@ -20,9 +21,9 @@ const TABS: { id: BoardTab; label: string }[] = [
 
 /** 화이트보드(고민과 댓글) · 포스트잇 · 책장(연구 성과) 패널. 주인이면 쓰고 지울 수 있고, 방문자는 댓글과 포스트잇을 남길 수 있다. */
 export default function RoomBoards({
-  owner, myId, residents, room, tab, onTab,
+  owner, myId, residents, room, tab, onTab, onTip,
 }: {
-  owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void;
+  owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void; onTip?: (title: string, note: string) => Promise<string | null> | string | null;
 }) {
   const isOwner = owner.user_id === myId;
   const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
@@ -185,6 +186,7 @@ export default function RoomBoards({
           </div>
         </form>
       )}
+      {!isOwner && onTip && <TipBox name={owner.profile.display_name} onTip={onTip} />}
       {room.tips.length > 0 && (
         <section aria-label="추천받은 책" className="space-y-1">
           <h3 className="label">{isOwner ? "이웃이 추천해 준 책" : `${owner.profile.display_name}님에게 추천된 책`}</h3>

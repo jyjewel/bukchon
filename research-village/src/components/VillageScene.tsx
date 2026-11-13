@@ -30,7 +30,7 @@ export interface SceneProps {
   onPlace: (place: "library" | "plaza" | "board") => void;
   /** 연구실 앞 책상을 눌렀을 때 */
   onDesk: (slot: number) => void;
-  /** 이웃에게 던지는 장난 (논문 던지기 등). id 가 바뀔 때마다 한 번 재생된다 */
+  /** 이웃에게 던지기 (논문·각주 폭탄 등). id 가 바뀔 때마다 한 번 재생된다 */
   fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
@@ -228,7 +228,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       items.sort((a, c) => a.y - c.y);
       for (const it of items) it.draw();
 
-      // ── 던지기 장난: 보낸 사람에게서 받은 사람에게 날아가 별이 튄다 ──
+      // ── 던지기: 보낸 사람에게서 받은 사람에게 날아가 별이 튄다 ──
       const f = fxRef.current;
       if (f) {
         const el = (performance.now() - f.start) / 1000;
