@@ -4,6 +4,7 @@ import { STATUS_META } from "@/lib/constants";
 import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/time";
 import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
+import { fxGrid } from "@/pixel/fx";
 import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
 import {
   BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_META, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
@@ -29,14 +30,20 @@ export interface SceneProps {
   onPlace: (place: "library" | "plaza" | "board") => void;
   /** 연구실 앞 책상을 눌렀을 때 */
   onDesk: (slot: number) => void;
+  /** 이웃에게 던지는 장난 (논문 던지기 등). id 가 바뀔 때마다 한 번 재생된다 */
+  fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
   const walkers = useRef(new Map<string, Walker>());
   const data = useRef({ houses, residents, myId });
+  const fxRef = useRef<{ id: number; kind: string; from: string; to: string; start: number } | null>(null);
+  useEffect(() => {
+    if (fx && fxRef.current?.id !== fx.id) fxRef.current = { ...fx, start: performance.now() };
+  }, [fx]);
   const [clock, setClock] = useState<{ season: Season; phase: DayPhase }>({ season: "spring", phase: "day" });
   useEffect(() => {
     data.current = { houses, residents, myId };
@@ -220,6 +227,35 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       }
       items.sort((a, c) => a.y - c.y);
       for (const it of items) it.draw();
+
+      // ── 던지기 장난: 보낸 사람에게서 받은 사람에게 날아가 별이 튄다 ──
+      const f = fxRef.current;
+      if (f) {
+        const el = (performance.now() - f.start) / 1000;
+        const a = walkers.current.get(f.from), t = walkers.current.get(f.to);
+        if (!a || !t || el > 1.5) fxRef.current = null;
+        else {
+          const sx = a.x, sy = a.y - AV_H / 2, tx = t.x, ty = t.y - AV_H / 2;
+          if (el < 0.7) {
+            const u = el / 0.7, x = sx + (tx - sx) * u, y = sy + (ty - sy) * u - Math.sin(Math.PI * u) * 22;
+            const spr = sp(`fx-${f.kind}`, () => fxGrid(f.kind) ?? fxGrid("thesis")!);
+            const spin = Math.floor(el * 14) % 4;
+            b.save();
+            b.translate(Math.round(x), Math.round(y));
+            b.rotate((spin * Math.PI) / 2);
+            b.drawImage(spr, -Math.floor(spr.width / 2), -Math.floor(spr.height / 2));
+            b.restore();
+          } else {
+            const u = (el - 0.7) / 0.8, star = sp("fx-star", () => fxGrid("star")!);
+            for (let i = 0; i < 6; i++) {
+              const ang = (i / 6) * Math.PI * 2 + 0.4, r = 4 + u * 16;
+              b.globalAlpha = Math.max(0, 1 - u);
+              b.drawImage(star, Math.round(tx + Math.cos(ang) * r - 2), Math.round(ty + Math.sin(ang) * r - 2));
+            }
+            b.globalAlpha = 1;
+          }
+        }
+      }
 
       // ── 시간대 색조와 불빛 ──
       const tint = TINT[phase];

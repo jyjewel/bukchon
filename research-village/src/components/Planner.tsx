@@ -18,7 +18,7 @@ const dateText = (key: string) => {
 };
 
 /** 마감 일정: 제목과 날짜를 넣으면 D-○○ 이 뜬다. 여러 개를 추가할 수 있다. */
-export function DeadlinePanel({ planner, userId }: { planner: Planner; userId: string }) {
+export function DeadlinePanel({ planner, userId, names = {} }: { planner: Planner; userId: string; names?: Record<string, string> }) {
   const today = useToday();
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
@@ -44,7 +44,13 @@ export function DeadlinePanel({ planner, userId }: { planner: Planner; userId: s
         <span className="min-w-0 flex-1">
           <span className={`block break-words ${d.done ? "line-through" : ""}`}>{d.title}</span>
           <span className="text-xs text-ink-soft">{dateText(d.due_date)}</span>
+          {planner.cheers.filter((c) => c.deadline_id === d.id).length > 0 && (
+            <span className="block text-xs" style={{ color: "#c0504d" }}>응원 {planner.cheers.filter((c) => c.deadline_id === d.id).length}명: {planner.cheers.filter((c) => c.deadline_id === d.id).map((c) => names[c.from_user] ?? "이웃").join(", ")}</span>
+          )}
         </span>
+        <label className="flex shrink-0 items-center gap-1 text-xs" title="공개하면 마을 주민이 이 마감을 보고 응원할 수 있어요">
+          <input type="checkbox" checked={d.shared} onChange={(e) => { const shared = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, shared } : x))); void run(sb.from("deadlines").update({ shared }).eq("id", d.id)); }} /> 공개
+        </label>
         <label className="flex shrink-0 items-center gap-1 text-xs">
           <input type="checkbox" checked={d.done} onChange={(e) => { const done = e.target.checked; planner.setDeadlines((all) => all.map((x) => (x.id === d.id ? { ...x, done } : x))); void run(sb.from("deadlines").update({ done }).eq("id", d.id)); }} /> 완료
         </label>

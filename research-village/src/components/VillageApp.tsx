@@ -20,6 +20,8 @@ import LibraryView from "./LibraryView";
 import ShoutBoard from "./ShoutBoard";
 import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
+import WelcomeBack from "./WelcomeBack";
+import { awayDays } from "@/lib/social";
 import { Notice, Window } from "./ui";
 
 type View = "home" | "room" | "visit" | "library" | "chat" | "alerts" | "settings";
@@ -57,8 +59,16 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
   const [chatId, setChatId] = useState<string | null>(null);
   const [newsOpen, setNewsOpen] = useState(false);
   const [notice, setNotice] = useState("");
-  const onNew = useCallback((n: AppNotification) => setToast({ kind: "notif", n }), []);
-  const onIncoming = useCallback((conv: Conversation) => setToast({ kind: "chat", conv }), []);
+  const [fx, setFx] = useState<{ id: number; kind: string; from: string; to: string } | null>(null);
+  const viewRef = useRef<View>("home");
+  const statusRef = useRef(me.status.status);
+  useEffect(() => { viewRef.current = view; statusRef.current = me.status.status; });
+  // 집중 연구 중에는 팝업을 띄우지 않고 알림함에만 조용히 쌓는다
+  const onNew = useCallback((n: AppNotification) => {
+    if (n.kind === "gesture" && viewRef.current === "home") setFx({ id: Date.now(), kind: n.summary, from: n.actor_id, to: n.user_id });
+    if (statusRef.current !== "focus") setToast({ kind: "notif", n });
+  }, []);
+  const onIncoming = useCallback((conv: Conversation) => { if (statusRef.current !== "focus") setToast({ kind: "chat", conv }); }, []);
   const notifs = useNotifications(me.user_id, onNew);
   const chat = useChat(me.user_id, village.id, onIncoming);
   const lib = useLibrary(village.id);
@@ -100,7 +110,28 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
     if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
     if (n.kind === "meeting") return setView("library");
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
+    if (n.kind === "gift") return visit(me.user_id, "whiteboard");
+    if (n.kind === "journal_reaction" || n.kind === "journal_comment") return visit(n.room_owner_id, "whiteboard");
+    if (n.kind === "gesture" || n.kind === "cheer" || n.kind === "nudge") return setView("home");
+    if (n.kind === "book_tip") return visit(me.user_id, "shelf");
     visit(n.room_owner_id, "whiteboard");
+  };
+  /** 이웃에게 마음 전하기 (장난·선물·책 추천·독촉). 오류 문구를 돌려주고 성공이면 null */
+  const give = (userId: string) => {
+    const call = async (fn: string, args: Record<string, unknown>) => {
+      const { error } = await supabase().rpc(fn, { p_village: village.id, p_target: userId, ...args });
+      return error ? errorMessage(error) : null;
+    };
+    return {
+      onGesture: async (kind: string) => {
+        const e = await call("send_gesture", { p_kind: kind });
+        if (!e) { setSelected(null); setFx({ id: Date.now(), kind, from: me.user_id, to: userId }); setView("home"); }
+        return e;
+      },
+      onGift: (kind: string, note: string) => call("send_gift", { p_kind: kind, p_note: note }),
+      onTip: (title: string, note: string) => call("send_book_tip", { p_title: title, p_note: note }),
+      onNudge: () => call("send_nudge", {}),
+    };
   };
   /** 집 앞 책상에 나와 있는 주민에게 대화를 신청한다 */
   const startChat = async (userId: string) => {
@@ -165,6 +196,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
       </header>
       {notice && <Notice kind="error">{notice}</Notice>}
 
+      {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
       {view === "home" && (
         <main className="grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)_276px]">
           <div className="order-2 space-y-4 lg:order-1">
@@ -239,6 +271,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
                       visit(owner.user_id, undefined, true);
                     }}
                     onPlace={goPlace}
+                    fx={fx}
                     onDesk={(slot) => {
                       const owner = v.residents.find((r) => r.slot === slot);
                       if (!owner) return;
@@ -262,6 +295,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-sm">{r.profile.display_name}</span>
                         <StatusChip r={r} />
+                        {!r.online && awayDays(r.status.left_at ?? r.status.last_seen_at) >= 2 && <span className="ml-1 text-xs text-ink-soft">{awayDays(r.status.left_at ?? r.status.last_seen_at)}일째 안 와요</span>}
                         {r.online && r.status.topic && <span className="mt-0.5 block truncate text-xs text-ink-soft">{r.status.topic}</span>}
                       </span>
                     </button>
@@ -285,16 +319,16 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
-          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} /></main>
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} give={give(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
       {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
-      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
+      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification} onReply={(n) => give(n.actor_id).onGesture(n.summary)} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
       {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} /></main>}
 
       {selectedResident && (
-        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} />
+        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} give={give(selectedResident.user_id)} />
       )}
       {newsOpen && <PlazaNews villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} onClose={() => setNewsOpen(false)} />}
       {toast && !(toast.kind === "notif" && view === "alerts") && !(toast.kind === "chat" && view === "chat" && chatId === toast.conv.id) && (

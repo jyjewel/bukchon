@@ -154,7 +154,7 @@ export interface AppNotification {
   user_id: string;
   village_id: string;
   actor_id: string;
-  kind: "postit" | "comment" | "chat_request" | "meeting";
+  kind: "postit" | "comment" | "chat_request" | "meeting" | "gesture" | "gift" | "book_tip" | "journal_reaction" | "journal_comment" | "cheer" | "nudge";
   room_owner_id: string;
   summary: string;
   created_at: string;
@@ -245,3 +245,6 @@ export interface Shout {
   body: string;
   created_at: string;
 }
+
+export interface Gift { id: string; from_user: string; to_user: string; kind: string; note: string; created_at: string }
+export interface BookTip { id: string; from_user: string; to_user: string; title: string; note: string; created_at: string }

@@ -12,13 +12,13 @@ function pos(x: number, y: number, w: number, h: number) {
 
 /** 연구실 내부 도트 그림. 화이트보드·책장·포스트잇이 실제 데이터를 반영하고, 누르면 해당 탭으로 이동한다. */
 export default function RoomCanvas({
-  owner, inside, studying, boardCount, postitColors, shelf, note, onPick,
+  owner, inside, studying, boardCount, postitColors, shelf, gifts = [], tips = 0, note, onPick,
 }: {
-  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; note?: string; onPick?: (t: BoardTab) => void;
+  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; note?: string; onPick?: (t: BoardTab) => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const avatarKey = JSON.stringify(owner.profile.avatar);
-  const pcKey = postitColors.join(","), shelfKey = shelf.join(",");
+  const pcKey = postitColors.join(","), shelfKey = shelf.join(","), giftKey = gifts.join(",");
   const styleKey = JSON.stringify(normalizeLabStyle(owner.profile.lab_style));
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
@@ -27,7 +27,7 @@ export default function RoomCanvas({
     const draw = () => {
       paint(ctx, roomGrid({
         slot: owner.slot, avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame,
-        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [], style: JSON.parse(styleKey),
+        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [], gifts: giftKey ? giftKey.split(",") : [], tips, style: JSON.parse(styleKey),
       }), 0, 0);
       frame++;
     };
@@ -35,7 +35,7 @@ export default function RoomCanvas({
     draw();
     const t = setInterval(draw, 700);
     return () => clearInterval(t);
-  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey, styleKey]);
+  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey, giftKey, tips, styleKey]);
   return (
     <div className="relative">
       <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={`${owner.profile.display_name}의 연구실`} />
