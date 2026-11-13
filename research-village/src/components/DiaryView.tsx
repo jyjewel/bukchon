@@ -99,7 +99,7 @@ function Editor({
       </div>
       <div>
         <label className="label" htmlFor="d-body">내용</label>
-        <textarea id="d-body" className="input" rows={6} value={body} onChange={(e) => setBody(e.target.value)} maxLength={10000} required />
+        <textarea id="d-body" className="input big-write" rows={6} value={body} onChange={(e) => setBody(e.target.value)} maxLength={10000} required />
       </div>
       <div>
         <label className="label" htmlFor="d-link">링크 <span className="text-ink-soft">(선택)</span></label>

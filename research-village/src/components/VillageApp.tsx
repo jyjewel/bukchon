@@ -12,7 +12,7 @@ import NotificationsView, { notifText } from "./NotificationsView";
 import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
-import StudyRoom from "./StudyRoom";
+import StudyRoom from "./StudyRoomWork";
 import SayBox from "./SayBox";
 import PlazaNews from "./PlazaNews";
 import ChatView from "./ChatView";

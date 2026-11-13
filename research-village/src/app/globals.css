@@ -326,3 +326,8 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   background: linear-gradient(90deg, #d9a971 0 2px, #b98552 2px);
   box-shadow: -2px 0 0 var(--color-ink), 2px 0 0 var(--color-ink), 0 2px 0 var(--color-ink), 6px 4px 0 0 rgb(58 42 51 / 0.22), 4px 4px 0 0 rgb(58 42 51 / 0.22);
 }
+
+/* 내 연구실 작업 화면: 글쓰기 창은 크게, 글줄 폭은 읽기 좋게, 줄 간격은 넉넉하게 */
+.lab-main textarea.big-write { min-height: 58vh; font-size: 1.0625rem; line-height: 1.85; padding: 14px 16px; }
+.lab-main { padding-bottom: 8px; }
+.lab-focus textarea.big-write { min-height: calc(100vh - 230px); font-size: 1.125rem; padding: 20px 26px; }
