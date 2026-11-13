@@ -24,7 +24,7 @@ export default function JournalCard({ journal }: { journal: Journal }) {
       <p className="font-display">{date === today ? "오늘" : "지난 일지"} · {dateLabel(date)}</p>
       <label className="sr-only" htmlFor="journal-body">일지</label>
       <textarea
-        id="journal-body" className="input" rows={8} maxLength={20000} value={journal.body} disabled={!journal.loaded}
+        id="journal-body" className="input big-write" rows={8} maxLength={20000} value={journal.body} disabled={!journal.loaded}
         onChange={(e) => journal.edit(e.target.value)} onBlur={() => void journal.flush()}
         placeholder={date === today ? "오늘 한 연구, 읽은 것, 막힌 점, 내일 할 일…" : "이 날의 일지가 비어 있어요."}
       />

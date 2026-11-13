@@ -87,7 +87,7 @@ function NoteEditor({
       </div>
       <div>
         <label className="label" htmlFor="rn-body">내용</label>
-        <textarea id="rn-body" className="input" rows={9} maxLength={20000} value={body} onChange={(e) => setBody(e.target.value)} />
+        <textarea id="rn-body" className="input big-write" rows={9} maxLength={20000} value={body} onChange={(e) => setBody(e.target.value)} />
       </div>
       {error && <Notice kind="error">{error}</Notice>}
       <div className="flex flex-wrap gap-1">
