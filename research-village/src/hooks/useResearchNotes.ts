@@ -9,7 +9,7 @@ export function useResearchNotes(userId: string) {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase().from("research_notes").select("id, category, title, body, created_at, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
+    const { data } = await supabase().from("research_notes").select("id, rev, category, title, body, created_at, updated_at").eq("user_id", userId).order("updated_at", { ascending: false });
     if (data) setNotes(data as ResearchNote[]);
     setLoaded(true);
   }, [userId]);

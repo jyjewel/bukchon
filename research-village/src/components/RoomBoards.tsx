@@ -6,6 +6,7 @@ import { relativeTime } from "@/lib/time";
 import type { Achievement, AchievementKind, BoardTab, Resident } from "@/lib/types";
 import type { useRoom } from "@/hooks/useRoom";
 import { CharacterIcon } from "./Character";
+import PublicJournal from "./PublicJournal";
 import { Notice } from "./ui";
 
 type Room = ReturnType<typeof useRoom>;
@@ -74,6 +75,8 @@ export default function RoomBoards({
   const [cm, setCm] = useState<Record<string, string>>({});
   const whiteboard = (
     <div className="space-y-3">
+      <PublicJournal ownerId={owner.user_id} isOwner={isOwner} name={owner.profile.display_name} />
+      <div className="dotted" />
       {postitsBlock}
       {!isOwner && <h3 className="label dotted pt-3">고민하는 문제</h3>}
       {isOwner && <div className="dotted" />}

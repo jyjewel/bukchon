@@ -105,6 +105,7 @@ export interface Resident {
 
 export interface DiaryEntry {
   id: string;
+  rev: number;
   author_id: string;
   kind: DiaryKind;
   title: string;
@@ -163,6 +164,7 @@ export type BoardTab = "whiteboard" | "shelf";
 
 export interface ResearchNote {
   id: string;
+  rev: number;
   category: string;
   title: string;
   body: string;

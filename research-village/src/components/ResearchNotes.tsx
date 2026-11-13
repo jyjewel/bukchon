@@ -1,18 +1,25 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
 import type { useResearchNotes } from "@/hooks/useResearchNotes";
 import type { ResearchNote } from "@/lib/types";
+import { useAutosave, type PersistResult } from "@/hooks/useAutosave";
+import { DocTools, SaveStatusBar } from "./DocTools";
 import { Notice } from "./ui";
 
 type Notes = ReturnType<typeof useResearchNotes>;
 const ALL = "__all__";
 
 /** 카테고리별 연구노트 (나만 볼 수 있음) */
-export default function ResearchNotes({ data, userId }: { data: Notes; userId: string }) {
+export default function ResearchNotes({ data, userId, openId }: { data: Notes; userId: string; openId?: string }) {
   const [filter, setFilter] = useState(ALL);
   const [editing, setEditing] = useState<ResearchNote | "new" | null>(null);
+  const [openedFor, setOpenedFor] = useState<string | undefined>(undefined);
+  if (openId && openId !== openedFor && data.loaded) {
+    const n = data.notes.find((x) => x.id === openId);
+    if (n) { setOpenedFor(openId); setEditing(n); }
+  }
   const shown = filter === ALL ? data.notes : data.notes.filter((n) => n.category === filter);
   const count = (c: string) => data.notes.filter((n) => n.category === c).length;
 
@@ -26,7 +33,7 @@ export default function ResearchNotes({ data, userId }: { data: Notes; userId: s
       </div>
       {editing ? (
         <NoteEditor key={editing === "new" ? "new" : editing.id} note={editing === "new" ? null : editing} userId={userId} categories={data.categories} defaultCategory={filter === ALL ? "" : filter}
-          onDone={async () => { setEditing(null); await data.reload(); }} onCancel={() => setEditing(null)} />
+          onChanged={data.reload} onClose={() => setEditing(null)} />
       ) : (
         <button type="button" className="btn btn-primary btn-sm" onClick={() => setEditing("new")}>+ 새 노트</button>
       )}
@@ -45,56 +52,75 @@ export default function ResearchNotes({ data, userId }: { data: Notes; userId: s
   );
 }
 
-function NoteEditor({
-  note, userId, categories, defaultCategory, onDone, onCancel,
-}: { note: ResearchNote | null; userId: string; categories: string[]; defaultCategory: string; onDone: () => void | Promise<void>; onCancel: () => void }) {
-  const [category, setCategory] = useState(note?.category ?? defaultCategory);
-  const [title, setTitle] = useState(note?.title ?? "");
-  const [body, setBody] = useState(note?.body ?? "");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+interface NoteFields extends Record<string, unknown> { category: string; title: string; body: string }
 
-  const save = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    const fields = { category: category.trim() || "기타", title: title.trim(), body };
-    const { error } = note
-      ? await supabase().from("research_notes").update(fields).eq("id", note.id)
-      : await supabase().from("research_notes").insert({ user_id: userId, ...fields });
-    setBusy(false);
-    if (error) return setError(errorMessage(error));
-    await onDone();
+function NoteEditor({
+  note, userId, categories, defaultCategory, onChanged, onClose,
+}: { note: ResearchNote | null; userId: string; categories: string[]; defaultCategory: string; onChanged: () => void | Promise<void>; onClose: () => void }) {
+  const [error, setError] = useState("");
+  const auto = useAutosave<NoteFields>({
+    userId, kind: "note", docKey: note?.id ?? "new",
+    snapshotKey: (id) => id,
+    initial: { fields: { category: note?.category ?? defaultCategory, title: note?.title ?? "", body: note?.body ?? "" }, id: note?.id ?? null, rev: note?.rev ?? null },
+    isEmpty: (f) => f.title.trim() === "" && f.body.trim() === "",
+    toSnapshot: (f) => ({ title: f.title, category: f.category, body: f.body }),
+    fetchServer: async (id) => {
+      if (!id) return null;
+      const { data } = await supabase().from("research_notes").select("category, title, body, rev").eq("id", id).maybeSingle();
+      return data ? { fields: { category: data.category as string, title: data.title as string, body: data.body as string }, rev: data.rev as number } : null;
+    },
+    persist: async (f, id, rev): Promise<PersistResult> => {
+      const fields = { category: f.category.trim() || "기타", title: f.title.trim(), body: f.body };
+      const sb = supabase();
+      if (id === null) {
+        const { data, error } = await sb.from("research_notes").insert({ user_id: userId, ...fields }).select("id, rev").single();
+        return error ? { error: error.message } : { ok: true, id: data.id as string, rev: data.rev as number };
+      }
+      const { data, error } = await sb.from("research_notes").update(fields).eq("id", id).eq("rev", rev ?? 0).select("rev");
+      if (error) return { error: error.message };
+      return !data || data.length === 0 ? { conflict: true } : { ok: true, id, rev: data[0].rev as number };
+    },
+    onSaved: () => void onChanged(),
+  });
+  const { fields } = auto;
+
+  const close = async () => {
+    await auto.flush();
+    if (auto.unsaved && !window.confirm("아직 저장되지 않은 글이 있어요. 그래도 닫을까요? (글은 이 기기에 임시 보관돼 있어서, 이 노트를 다시 열면 되살려요.)")) return;
+    onClose();
   };
   const remove = async () => {
-    if (!note || !window.confirm("이 노트를 지울까요? 되돌릴 수 없어요.")) return;
-    const { error } = await supabase().from("research_notes").delete().eq("id", note.id);
+    if (!auto.id || !window.confirm("이 노트를 지울까요? 지워도 ‘찾기·내보내기’의 삭제한 글 보관함에서 되살릴 수 있어요.")) return;
+    const { error } = await supabase().from("research_notes").delete().eq("id", auto.id);
     if (error) return setError(errorMessage(error));
-    await onDone();
+    await onChanged();
+    onClose();
   };
   return (
-    <form onSubmit={save} className="card space-y-2 p-2">
+    <div className="card space-y-2 p-2">
       <div className="flex flex-wrap gap-2">
         <div className="min-w-36 flex-1">
           <label className="label" htmlFor="rn-cat">카테고리</label>
-          <input id="rn-cat" className="input" list="rn-cats" maxLength={30} value={category} onChange={(e) => setCategory(e.target.value)} placeholder="예: 방각본, 논문 구상" />
+          <input id="rn-cat" className="input" list="rn-cats" maxLength={30} value={fields.category} onChange={(e) => auto.set({ category: e.target.value })} placeholder="예: 방각본, 논문 구상" />
           <datalist id="rn-cats">{categories.map((c) => <option key={c} value={c} />)}</datalist>
         </div>
         <div className="min-w-36 flex-[2]">
           <label className="label" htmlFor="rn-title">제목</label>
-          <input id="rn-title" className="input" maxLength={100} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <input id="rn-title" className="input" maxLength={100} value={fields.title} onChange={(e) => auto.set({ title: e.target.value })} />
         </div>
       </div>
       <div>
         <label className="label" htmlFor="rn-body">내용</label>
-        <textarea id="rn-body" className="input big-write" rows={9} maxLength={20000} value={body} onChange={(e) => setBody(e.target.value)} />
+        <textarea id="rn-body" className="input big-write" rows={9} maxLength={20000} value={fields.body} onChange={(e) => auto.set({ body: e.target.value })} />
       </div>
+      <SaveStatusBar auto={auto} />
       {error && <Notice kind="error">{error}</Notice>}
-      <div className="flex flex-wrap gap-1">
-        <button type="submit" className="btn btn-primary btn-sm" disabled={busy || (!title.trim() && !body.trim())}>{busy ? "저장 중…" : "저장"}</button>
-        <button type="button" className="btn btn-sm" onClick={onCancel}>닫기</button>
-        {note && <button type="button" className="btn btn-sm btn-danger" onClick={() => void remove()}>지우기</button>}
+      <div className="flex flex-wrap items-center gap-1">
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => void close()}>닫기</button>
+        <DocTools kind="note" itemKey={auto.id} text={`${fields.title}\n[${fields.category}]\n\n${fields.body}`} filename={`노트-${fields.title || "제목없음"}`} onRestore={(r) => auto.set({ title: r.title, category: r.category || fields.category, body: r.body })} />
+        <span className="flex-1" />
+        {auto.id && <button type="button" className="btn btn-sm btn-danger" onClick={() => void remove()}>지우기</button>}
       </div>
-    </form>
+    </div>
   );
 }

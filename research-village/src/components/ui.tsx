@@ -70,9 +70,9 @@ export function Modal({
 export function Notice({ kind = "info", children }: { kind?: "info" | "error" | "ok"; children: ReactNode }) {
   const style = kind === "error" ? "!bg-[#ffd9d2] [--bd:#d9547a]" : kind === "ok" ? "!bg-[#dff5d8] [--bd:#3f8a4e]" : "!bg-[#fff3c4]";
   return (
-    <p role={kind === "error" ? "alert" : "status"} className={`rounded-lg card px-3 py-2 text-sm ${style}`}>
+    <div role={kind === "error" ? "alert" : "status"} className={`rounded-lg card px-3 py-2 text-sm ${style}`}>
       {children}
-    </p>
+    </div>
   );
 }
 
