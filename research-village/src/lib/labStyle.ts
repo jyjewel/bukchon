@@ -20,9 +20,10 @@ export const LAB_VIEWS = [
   { id: "auto", label: "시간 따라" }, { id: "day", label: "맑은 낮" }, { id: "night", label: "별 밤" },
   { id: "rain", label: "비" }, { id: "snow", label: "눈" }, { id: "sakura", label: "벚꽃" },
 ] as const;
-export const LAB_PETS = [{ id: "cat", label: "고양이" }, { id: "dog", label: "강아지" }, { id: "hedwig", label: "해리포터 부엉이" }, { id: "duo", label: "듀오링고 부엉이" }, { id: "none", label: "없음" }] as const;
+export const LAB_PETS = [{ id: "cat", label: "고양이" }, { id: "dog", label: "강아지" }, { id: "hedwig", label: "헤드위그" }, { id: "duo", label: "듀오링고" }, { id: "squirrel", label: "다람쥐" }, { id: "baby", label: "기저귀 입은 아기" }, { id: "none", label: "없음" }] as const;
 export const LAB_EXTRAS = [
-  { id: "plant", label: "화분" }, { id: "bigplant", label: "큰 화분" }, { id: "beanbag", label: "빈백" }, { id: "globe", label: "지구본" }, { id: "nameplate", label: "자개 명패" }, { id: "suseok", label: "수석" },
+  { id: "plant", label: "화분" }, { id: "bigplant", label: "큰 화분" }, { id: "beanbag", label: "빈백" }, { id: "globe", label: "지구본" }, { id: "nameplate", label: "자개 명패" }, { id: "suseok", label: "수석" }, { id: "yunhoemae", label: "윤회매" },
+  { id: "slime", label: "슬라임" }, { id: "train", label: "빨간 기차" }, { id: "xmastree", label: "크리스마스 트리" },
 ] as const;
 
 export const DEFAULT_LAB_STYLE: LabStyle = {

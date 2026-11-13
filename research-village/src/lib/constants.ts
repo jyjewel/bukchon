@@ -43,14 +43,12 @@ export const HAIR_STYLES = [
   { id: "receding", label: "반대머리" },
   { id: "bald", label: "삭발" },
 ];
+/** 얼굴: 없음 / 면도 자국 / 수염 (예전의 콧수염·턱수염·풀수염은 '수염'으로 합쳐 불러온다) */
 export const BEARDS = [
   { id: "none", label: "없음" },
   { id: "stubble", label: "면도 자국" },
-  { id: "mustache", label: "콧수염" },
-  { id: "goatee", label: "턱수염" },
-  { id: "full", label: "풀수염" },
+  { id: "beard", label: "수염" },
 ];
-export const FEATURES = [{ id: "darkcircle", label: "다크서클" }];
 /** 청바지·슬랙스·치노·검정·카키 같은 바지 색 (처음 값은 예전 기본색) */
 export const PANTS = ["#5b5068", "#4a6fa5", "#3a3d4a", "#c9b48a", "#25252b", "#6f7a58", "#8a8fa3"];
 export const SHOES = [
@@ -65,6 +63,7 @@ export const EYES = [
   { id: "sleepy", label: "졸린 눈" },
   { id: "wink", label: "윙크" },
   { id: "focus", label: "활활 집중" },
+  { id: "darkcircle", label: "다크서클" },
 ];
 export const TOPS = [
   { id: "tee", label: "티셔츠" },

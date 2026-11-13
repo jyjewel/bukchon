@@ -12,7 +12,7 @@ const OX = 3;
 export interface FullAvatar {
   skin: string; hair: string; hairColor: string; eyes: string; top: string;
   outfit: string; accent: string; hat: string; accessories: string[]; props: string[];
-  beard: string; features: string[]; pants: string; shoes: string;
+  beard: string; pants: string; shoes: string;
 }
 
 /** 저장된 값에서 빠진 항목을 기본값으로 채운다. 예전의 '한 개만 고르던' 액세서리도 새 형식으로 바꾼다. */
@@ -20,9 +20,12 @@ export function normalizeAvatar(a: Avatar): FullAvatar {
   const legacy = a.accessory ?? "none";
   const hat = a.hat ?? (legacy === "beret" ? "beret" : "none");
   const accessories = a.accessories ?? (["glasses", "ribbon", "scarf"].includes(legacy) ? [legacy] : []);
+  // 예전 저장값: 콧수염·턱수염·풀수염은 '수염'으로, 따로 켜 둔 다크서클은 표정 '다크서클'로 합친다.
+  const beard = ["mustache", "goatee", "full"].includes(a.beard ?? "") ? "beard" : a.beard ?? "none";
+  const eyes = (a.eyes === undefined || a.eyes === "default") && a.features?.includes("darkcircle") ? "darkcircle" : a.eyes ?? "default";
   return {
-    skin: a.skin ?? SKINS[0], hair: a.hair === "undercut" ? "short" : a.hair ?? "short", hairColor: a.hairColor ?? HAIR_COLORS[0], eyes: a.eyes ?? "default",
-    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, beard: a.beard ?? "none", features: a.features ?? [], pants: a.pants ?? "#5b5068", shoes: a.shoes ?? "default",
+    skin: a.skin ?? SKINS[0], hair: a.hair === "undercut" ? "short" : a.hair ?? "short", hairColor: a.hairColor ?? HAIR_COLORS[0], eyes,
+    top: a.top ?? "tee", outfit: a.outfit ?? OUTFITS[0], accent: a.accent ?? "#e0605a", hat, accessories, beard, pants: a.pants ?? "#5b5068", shoes: a.shoes ?? "default",
     props: a.props ?? (a.prop && a.prop !== "none" ? [a.prop] : []),
   };
 }
@@ -241,7 +244,7 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   px(g, 4, 13, null); px(g, 13, 13, null);
   rect(g, 5, 13, 8, 1, skinD);
   drawEyes(g, f.eyes);
-  if (f.features.includes("darkcircle")) { const dc = mix(skin, "#5a4a7a", 0.5); for (const x of [6, 7, 10, 11]) px(g, x, 11, dc); }
+  if (f.eyes === "darkcircle") { const dc = mix(skin, "#5a4a7a", 0.5); for (const x of [6, 7, 10, 11]) px(g, x, 11, dc); }
   px(g, 5, 11, "#f29aa8"); px(g, 12, 11, "#f29aa8");
   if (f.eyes === "smile") { px(g, 7, 12, "#b5574f"); px(g, 8, 13, "#b5574f"); px(g, 9, 13, "#b5574f"); px(g, 10, 12, "#b5574f"); }
   else { px(g, 8, 12, "#b5574f"); px(g, 9, 12, "#b5574f"); }
@@ -255,14 +258,10 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
       for (let y = 11; y <= 13; y++) for (let x = 5; x <= 12; x++) if ((x + y) % 2 === 0 && !(y === 12 && (x === 8 || x === 9)) && !(y === 11 && (x === 5 || x === 12))) px(g, x, y, st);
       for (const [x, y] of [[4, 11], [4, 12], [13, 11], [13, 12]]) px(g, x, y, st);
     }
-    if (f.beard === "mustache" || f.beard === "goatee" || f.beard === "full") {
-      rect(g, 7, 11, 4, 1, bc); px(g, 6, 12, bc); px(g, 11, 12, bc);
-    }
-    if (f.beard === "goatee") { rect(g, 7, 13, 4, 1, bc); px(g, 8, 14, bc); px(g, 9, 14, bc); }
-    if (f.beard === "full") {
-      rect(g, 4, 9, 2, 5, bc); rect(g, 12, 9, 2, 5, bc);
-      rect(g, 5, 13, 8, 1, bc); rect(g, 6, 12, 1, 1, bc); rect(g, 11, 12, 1, 1, bc);
-      px(g, 8, 12, "#b5574f"); px(g, 9, 12, "#b5574f"); rect(g, 7, 14, 4, 1, bc);
+    if (f.beard === "beard") {
+      rect(g, 7, 11, 4, 1, bc); px(g, 6, 12, bc); px(g, 11, 12, bc);       // 콧수염
+      rect(g, 6, 13, 6, 1, bc); rect(g, 7, 14, 4, 1, bc);                  // 턱수염
+      px(g, 5, 12, bc); px(g, 12, 12, bc);
     }
   }
 
@@ -430,14 +429,19 @@ function drawEcoBag(g: Grid, accent: string) {
 /** 오른손에 든 소품 (24칸 좌표: 오른손이 (16, 18)) */
 function drawHandProp(g: Grid, prop: string, accent: string) {
   if (prop === "book") {
-    rect(g, 17, 15, 5, 6, "#c0504d"); rect(g, 17, 15, 1, 6, "#8e3330"); rect(g, 21, 16, 1, 4, "#fff8e4");
-    rect(g, 19, 17, 2, 1, "#f2c64e"); rect(g, 19, 19, 1, 1, "#f2c64e"); rect(g, 17, 20, 5, 1, "#8e3330");
+    // 책: 뒤로 비치는 종이 두께, 앞표지·책등·표제 딱지·가름끈
+    rect(g, 18, 14, 5, 7, "#fff8e4"); rect(g, 22, 15, 1, 6, "#e6dcc3");
+    rect(g, 17, 15, 5, 7, "#c0504d"); rect(g, 17, 15, 1, 7, "#8e3330"); rect(g, 17, 21, 5, 1, "#8e3330");
+    rect(g, 19, 17, 2, 2, "#fff3c9"); px(g, 19, 17, "#d9b45a"); rect(g, 19, 19, 2, 1, "#e8d8a8");
+    px(g, 21, 22, "#f2c64e"); px(g, 21, 23, "#f2c64e");
   }
   if (prop === "thesis") {
-    // 학위논문: 두껍게 제본된 남색 표지에 금박 글씨
-    rect(g, 17, 13, 6, 8, "#1f3a6e"); rect(g, 17, 13, 1, 8, "#14264a"); rect(g, 22, 14, 1, 6, "#f6f2ea");
-    rect(g, 19, 15, 3, 1, "#e8c24a"); rect(g, 19, 17, 2, 1, "#e8c24a"); rect(g, 19, 19, 3, 1, "#b8963a");
-    rect(g, 17, 20, 6, 1, "#14264a");
+    // 학위논문: 두껍게 양장 제본한 남색 표지, 금박 문양과 글씨, 겹겹이 쌓인 쪽 단면
+    rect(g, 18, 12, 6, 9, "#fff8e4"); rect(g, 23, 13, 1, 8, "#d9cfb6"); rect(g, 19, 12, 5, 1, "#d9cfb6"); rect(g, 19, 14, 4, 1, "#efe6cd");
+    rect(g, 17, 13, 6, 9, "#1f3a6e"); rect(g, 17, 13, 1, 9, "#14264a"); rect(g, 17, 21, 6, 1, "#14264a"); rect(g, 17, 13, 6, 1, "#2c4f92");
+    rect(g, 19, 15, 2, 2, "#e8c24a"); px(g, 20, 14, "#e8c24a"); px(g, 21, 15, "#b8963a");   // 금박 문양
+    rect(g, 19, 18, 3, 1, "#e8c24a"); rect(g, 19, 19, 2, 1, "#b8963a");                      // 금박 글씨
+    rect(g, 17, 17, 1, 1, "#e8c24a"); rect(g, 17, 20, 1, 1, "#e8c24a");                      // 책등 띠
   }
   if (prop === "scroll") {
     rect(g, 18, 13, 3, 9, "#f6e7c1"); rect(g, 17, 12, 5, 1, "#c0504d"); rect(g, 17, 22, 5, 1, "#c0504d");

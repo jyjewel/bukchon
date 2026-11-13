@@ -3,6 +3,7 @@ import type { Avatar, LabStyle } from "@/lib/types";
 import { ACHIEVEMENT_KINDS } from "@/lib/constants";
 import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { avatarGrid } from "./avatar";
+import { petSprite } from "./pets";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const ROOM_W = 144;
@@ -149,9 +150,12 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
 
   // 소품 (꾸미기에서 고른 것)
   if (st.extras.includes("plant")) {
+    // 꽃 화분: 작은 잎 위에 분홍·노랑·하늘색 꽃
     rect(g, 93, 60, 9, 8, "#e08a5c"); rect(g, 92, 59, 11, 2, "#c96f45"); rect(g, 100, 61, 2, 7, "#c96f45");
-    disc(g, 97, 52, 5, 5, "#62b866"); disc(g, 93, 55, 3, 3, "#4f9a54"); disc(g, 101, 56, 3, 3, "#7fcf74");
-    px(g, 96, 50, "#a3e08f"); px(g, 99, 53, "#a3e08f"); px(g, 97, 58, "#3f8a4e");
+    rect(g, 96, 52, 1, 7, "#3f8a4e"); rect(g, 94, 55, 2, 1, "#4f9a54"); rect(g, 98, 56, 2, 1, "#4f9a54");
+    disc(g, 95, 56, 2, 2, "#62b866"); disc(g, 99, 57, 2, 2, "#4f9a54"); disc(g, 97, 54, 3, 2.5, "#62b866");
+    const bloom = (x: number, y: number, c: string) => { px(g, x, y - 1, c); px(g, x - 1, y, c); px(g, x + 1, y, c); px(g, x, y + 1, c); px(g, x, y, "#fff3b0"); };
+    bloom(94, 51, "#ff8fb4"); bloom(99, 50, "#ffd65c"); bloom(97, 47, "#ff8fb4"); bloom(101, 54, "#9ad0ff");
   }
   if (st.extras.includes("bigplant")) {
     rect(g, 3, 64, 10, 9, "#e08a5c"); rect(g, 2, 63, 12, 2, "#c96f45"); rect(g, 11, 65, 2, 8, "#c96f45");
@@ -171,6 +175,62 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(g, 33, 35, 2, 3, "#6f7480"); rect(g, 25, 37, 3, 1, "#6f7480");
     px(g, 29, 33, "#9aa0ab"); px(g, 30, 32, "#b9bec8"); px(g, 28, 35, "#9aa0ab"); px(g, 31, 35, "#8a909c"); px(g, 30, 37, "#8a909c");
     px(g, 29, 36, "#3f424b"); px(g, 32, 34, "#3f424b"); px(g, 33, 37, "#3f424b");
+  }
+  if (st.extras.includes("slime")) {
+    // 슬라임: 말랑한 민트색 덩어리, 반짝이는 하이라이트와 점 눈
+    disc(g, 61, 78, 6, 2, shade("#7be0a8", -40));
+    disc(g, 61, 76, 6, 4.5, "#7be0a8"); disc(g, 61, 72, 3, 3, "#7be0a8"); rect(g, 60, 69, 2, 2, "#7be0a8");
+    px(g, 58, 73, "#d9fff0"); px(g, 59, 72, "#d9fff0"); px(g, 58, 74, "#bff2dc"); px(g, 64, 76, "#58c98a"); px(g, 57, 77, "#58c98a");
+    px(g, 59, 76, "#3a2a33"); px(g, 63, 76, "#3a2a33"); px(g, 61, 78, "#3a2a33");
+  }
+  if (st.extras.includes("train")) {
+    // 유리 장식 같은 증기기관차: 빨간 탄수차(금테)와 운전실, 금띠 두른 검은 보일러, 금테 두른 빨간 바퀴와 은색 연결봉
+    const X = 68, T = 72, GOLD = "#e8c24a", RED = "#c41e2a", REDD = "#8e1520", BLK = "#1d1d23";
+    rect(g, X, T + 3, 9, 5, RED); rect(g, X, T + 3, 9, 1, GOLD); rect(g, X, T + 7, 9, 1, GOLD); rect(g, X, T + 3, 1, 5, GOLD); rect(g, X + 8, T + 3, 1, 5, GOLD);
+    for (const [dx, dy] of [[3, T + 5], [5, T + 4], [6, T + 6], [2, T + 6]]) px(g, X + dx, dy, "#f6d27a");
+    rect(g, X + 1, T + 2, 7, 1, "#2f2f37");                                      // 석탄
+    rect(g, X, T + 8, 31, 1, BLK);                                               // 차대
+    rect(g, X + 9, T + 6, 2, 1, "#6a5a3a");                                      // 연결고리
+    rect(g, X + 10, T, 7, 9, RED); rect(g, X + 9, T - 1, 9, 1, REDD); rect(g, X + 10, T, 7, 1, GOLD); rect(g, X + 10, T + 7, 7, 1, GOLD);
+    rect(g, X + 11, T + 2, 2, 3, "#4aa3d6"); rect(g, X + 14, T + 2, 2, 3, "#4aa3d6"); px(g, X + 11, T + 2, "#bfe6fa"); px(g, X + 14, T + 2, "#bfe6fa"); // 파란 창
+    rect(g, X + 17, T + 3, 11, 6, BLK);                                          // 보일러
+    for (let i = 0; i < 4; i++) { px(g, X + 18 + i * 2, T + 3, GOLD); px(g, X + 18 + i * 2, T + 4, GOLD); }
+    rect(g, X + 22, T + 3, 1, 6, GOLD); rect(g, X + 18, T + 7, 9, 1, GOLD);
+    rect(g, X + 19, T + 1, 3, 2, GOLD); px(g, X + 20, T, GOLD);                  // 금빛 증기돔
+    rect(g, X + 25, T, 3, 3, RED); rect(g, X + 24, T - 1, 5, 1, REDD); px(g, X + 27, T - 2, "#ffffff"); px(g, X + 28, T - 3, "#e6e6ee"); // 빨간 굴뚝과 김
+    rect(g, X + 28, T + 6, 2, 3, "#d9232d"); px(g, X + 29, T + 7, GOLD);         // 앞쪽 배장기
+    for (const cx of [X + 2, X + 6, X + 19, X + 23, X + 27]) { disc(g, cx, T + 8, 2.3, 2.3, GOLD); disc(g, cx, T + 8, 1.5, 1.5, "#d9232d"); px(g, cx, T + 8, "#f6d27a"); }
+    rect(g, X + 19, T + 8, 9, 1, "#d9dde6");                                     // 은색 연결봉
+  }
+  if (st.extras.includes("yunhoemae")) {
+    // 윤회매: 붉은 매화(뜨개 꽃) 가지를 갈색 뜨개 화분에 꽂은 것. 책장 맨 위 칸에 놓인다.
+    const x0 = 119, y0 = 8, BR = "#4a3426", R = "#d9232d", RD = "#a8161f", Y = "#ffe14a";
+    rect(g, x0 + 2, y0 + 6, 7, 3, "#c98a3a"); rect(g, x0 + 1, y0 + 5, 9, 2, "#e0a85a"); rect(g, x0 + 2, y0 + 5, 7, 1, "#8a5a2a");
+    for (const [dx, dy] of [[3, 7], [5, 8], [7, 7], [4, 8]]) px(g, x0 + dx, y0 + dy, "#a8702a");
+    px(g, x0 + 5, y0 + 4, BR); px(g, x0 + 5, y0 + 3, BR); px(g, x0 + 4, y0 + 2, BR); px(g, x0 + 3, y0 + 1, BR); px(g, x0 + 6, y0 + 2, BR); px(g, x0 + 7, y0 + 1, BR); px(g, x0 + 8, y0 + 3, BR); px(g, x0 + 7, y0 + 4, BR);
+    const bloom = (x: number, y: number) => { px(g, x, y - 1, R); px(g, x - 1, y, R); px(g, x + 1, y, R); px(g, x, y + 1, RD); px(g, x, y, Y); };
+    bloom(x0 + 2, y0 + 2); bloom(x0 + 8, y0 + 2); bloom(x0 + 4, y0 + 0 + 1 - 0);
+    rect(g, x0 + 7, y0, 2, 2, RD); px(g, x0 + 7, y0, R);                         // 꽃봉오리
+    rect(g, x0 + 1, y0 + 4, 2, 1, R); px(g, x0 + 9, y0 + 5, R);
+  }
+  if (st.extras.includes("xmastree")) {
+    // 꾸민 크리스마스 트리: 세 단 초록 가지, 꼭대기 별, 전구·오너먼트·반짝이 줄, 아래에 선물
+    const cx = 130;
+    [[48, 9, 2], [57, 9, 4], [66, 9, 6]].forEach(([y0, rows, hw0], t) => {
+      for (let i = 0; i < rows + 1; i++) {
+        const hw = hw0 + Math.floor(i * (t === 2 ? 0.62 : 0.55)) + 1, y = y0 + i;
+        rect(g, cx - hw, y, hw * 2 + 1, 1, i % 2 ? "#2f7d3f" : "#3f9a4e");
+        px(g, cx - hw, y, "#256a34"); px(g, cx + hw, y, "#256a34");
+      }
+    });
+    rect(g, cx - 1, 76, 3, 4, "#7a4a2a");
+    for (const [x, y] of [[-1, 50], [-3, 55], [3, 59], [-6, 63], [2, 68], [-8, 72], [7, 73], [0, 63], [-3, 69]]) { px(g, cx + x, y, "#ffd65c"); }
+    const orn: [number, number, string][] = [[2, 52, "#e0302a"], [-4, 59, "#5f8fd6"], [5, 62, "#e0302a"], [-2, 66, "#ffd65c"], [4, 70, "#5f8fd6"], [-7, 70, "#e0302a"], [8, 74, "#ffd65c"], [-1, 73, "#e0302a"]];
+    for (const [dx, y, c] of orn) { rect(g, cx + dx, y, 2, 2, c); px(g, cx + dx, y, "#ffffff"); }
+    for (let i = 0; i < 17; i++) px(g, cx - 8 + i, 66 + Math.round(Math.sin(i / 2.7) * 2), "#fff8d6"); // 반짝이 줄
+    rect(g, cx - 2, 44, 5, 1, "#ffd65c"); rect(g, cx - 1, 43, 3, 3, "#ffd65c"); px(g, cx, 42, "#ffd65c"); px(g, cx, 47, "#ffd65c"); px(g, cx, 44, "#fff3b0");
+    rect(g, cx - 12, 77, 6, 5, "#e0605a"); rect(g, cx - 10, 77, 2, 5, "#ffd65c"); rect(g, cx - 12, 79, 6, 1, "#ffd65c");
+    rect(g, cx + 6, 78, 7, 4, "#5f8fd6"); rect(g, cx + 8, 78, 2, 4, "#ffffff"); rect(g, cx + 6, 80, 7, 1, "#ffffff");
   }
   if (st.extras.includes("globe")) {
     rect(g, 40, 76, 8, 1, WOOD_D); rect(g, 43, 71, 2, 5, WOOD_D);
@@ -249,6 +309,17 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
     px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
     stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "squirrel") {
+    // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
+    const q = grid(13, 12);
+    disc(q, 10, 6, 2.5, 5, "#c98a4e"); disc(q, 10, 4, 2, 3, "#d9a066"); px(q, 9, 1, "#c98a4e");              // 꼬리
+    disc(q, 5, 8, 4, 3.5, "#b8743a"); rect(q, 3, 6, 5, 1, "#3a2a33"); rect(q, 3, 8, 6, 1, "#3a2a33");            // 몸 + 등 줄무늬
+    disc(q, 5, 9, 2, 2, "#f3dcb4");                                                                            // 배
+    disc(q, 3, 5, 3, 2.7, "#c98a4e"); px(q, 1, 2, "#8a5a3a"); px(q, 4, 2, "#8a5a3a");                          // 머리와 귀
+    px(q, 2, 5, "#3a2a33"); px(q, 4, 5, "#3a2a33"); px(q, 1, 6, "#3a2a33"); px(q, 3, 7, "#f29aa8");
+    rect(q, 2, 8, 3, 2, "#8a5a3a"); rect(q, 2, 8, 3, 1, "#c98a4e"); px(q, 3, 10, "#8a5a3a");                    // 도토리
+    rect(q, 3, 11, 2, 1, "#8a5a3a"); rect(q, 6, 11, 2, 1, "#8a5a3a");
+    stamp(g, outline(q), 104, 69);
   } else if (st.pet === "hedwig") {
     // 눈처럼 흰 부엉이(해리포터의 편지 배달 부엉이 풍): 흰 깃털에 회색 점, 노란 눈
     const o = grid(12, 14);
@@ -271,6 +342,9 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(o, 5, 6, 3, 2, "#ff9600"); px(o, 6, 8, "#ff9600");
     rect(o, 4, 13, 2, 1, "#ff9600"); rect(o, 8, 13, 2, 1, "#ff9600");
     stamp(g, outline(o), 104, 65);
+    } else if (st.pet === "baby") {
+    const baby = petSprite("baby");
+    if (baby) stamp(g, baby, 100, 83 - baby.h);
   }
   return g;
 }
