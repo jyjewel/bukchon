@@ -51,7 +51,7 @@ export default function ShoutBoard({
               {who ? <CharacterIcon avatar={who.profile.avatar} size={36} /> : <span className="w-[27px]" />}
               <div className={`min-w-0 max-w-[80%] ${mine ? "text-right" : ""}`}>
                 <p className="text-xs text-ink-soft">{who?.profile.display_name ?? "떠난 주민"} · {relativeTime(s.created_at)}</p>
-                <p className="px-box inline-block break-words px-2 py-1 text-left text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "2px" }}>{s.body}</p>
+                <p className="px-box inline-block break-words px-2 py-1 text-left text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{s.body}</p>
                 {(mine || isAdmin) && <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void remove(s.id)}>삭제</button>}
               </div>
             </li>
@@ -60,13 +60,13 @@ export default function ShoutBoard({
       </ul>
       {error && <div className="px-3 pb-2"><Notice kind="error">{error}</Notice></div>}
       {inPlaza ? (
-        <form onSubmit={send} className="flex items-start gap-1 border-t-[3px] border-ink p-2">
+        <form onSubmit={send} className="flex items-start gap-1 border-t border-ink p-2">
           <label className="sr-only" htmlFor="shout-input">모두에게 외치기</label>
           <input id="shout-input" className="input" maxLength={100} autoComplete="off" value={text} onChange={(e) => setText(e.target.value)} placeholder="광장에서 모두에게 외치기" />
-          <button type="submit" className="btn btn-primary mt-[3px] shrink-0 whitespace-nowrap" disabled={!text.trim()}>외치기</button>
+          <button type="submit" className="btn btn-primary shrink-0 whitespace-nowrap" disabled={!text.trim()}>외치기</button>
         </form>
       ) : (
-        <div className="flex flex-wrap items-center gap-2 border-t-[3px] border-ink p-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 border-t border-ink p-2 text-sm">
           <span className="flex-1 text-ink-soft">광장에 나오면 모두에게 외칠 수 있어요.</span>
           <button type="button" className="btn btn-sm btn-primary" onClick={onGoPlaza}>광장으로 가기</button>
         </div>

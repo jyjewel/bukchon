@@ -116,7 +116,7 @@ function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Residen
                 return (
                   <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                     <div className="max-w-[80%]">
-                      <p className="px-box whitespace-pre-wrap break-words px-2 py-1 text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "2px" }}>{m.body}</p>
+                      <p className="px-box whitespace-pre-wrap break-words px-2 py-1 text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{m.body}</p>
                       <p className={`text-xs text-ink-soft ${mine ? "text-right" : ""}`}>{relativeTime(m.created_at)}</p>
                     </div>
                   </li>
@@ -125,12 +125,12 @@ function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Residen
               <div ref={endRef} />
             </ul>
             {conv.status === "active" ? (
-              <form onSubmit={send} className="flex items-start gap-1 border-t-[3px] border-ink p-2">
+              <form onSubmit={send} className="flex items-start gap-1 border-t border-ink p-2">
                 <label className="sr-only" htmlFor="chat-input">메시지</label>
                 <input id="chat-input" className="input" autoComplete="off" maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder={`${name}님에게 보낼 말`} />
-                <button type="submit" className="btn btn-primary mt-[3px] shrink-0 whitespace-nowrap" disabled={!text.trim()}>보내기</button>
+                <button type="submit" className="btn btn-primary shrink-0 whitespace-nowrap" disabled={!text.trim()}>보내기</button>
               </form>
-            ) : <p className="border-t-[3px] border-ink p-3 text-center text-sm text-ink-soft">대화가 끝났어요.</p>}
+            ) : <p className="border-t border-ink p-3 text-center text-sm text-ink-soft">대화가 끝났어요.</p>}
           </>
         )}
       </div>
