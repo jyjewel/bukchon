@@ -136,6 +136,16 @@ await t("마감 일정과 할 일은 본인만", async () => {
   assert.equal((await m1.c.from("todos").delete().eq("id", td.id).select()).data.length, 1);
 });
 
+await t("연구실 창 배치는 본인 것만 바꾼다", async () => {
+  const layout = { order: ["todos", "deadlines", "journal", "notes", "diary"], collapsed: ["diary"] };
+  ok(await m1.c.from("profiles").update({ lab_layout: layout }).eq("id", m1.id));
+  assert.deepEqual(ok(await m1.c.from("profiles").select("lab_layout").eq("id", m1.id).single()).lab_layout, layout);
+  assert.equal((await m2.c.from("profiles").update({ lab_layout: { order: [] } }).eq("id", m1.id).select()).data.length, 0);
+  assert.ok((await m1.c.from("profiles").update({ lab_layout: [1, 2] }).eq("id", m1.id)).error);            // 객체만
+  assert.ok((await m1.c.from("profiles").update({ lab_layout: { x: "가".repeat(1200) } }).eq("id", m1.id)).error); // 크기 제한
+  ok(await m1.c.from("profiles").update({ lab_layout: {} }).eq("id", m1.id));
+});
+
 await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => {
   ok(await m1.c.from("houses").update({ style: { roof: "#f00" } }).eq("owner_id", m1.id));
   assert.equal((await m1.c.from("houses").update({ style: { roof: "#0f0" } }).eq("owner_id", a.id).select()).data.length, 0);
