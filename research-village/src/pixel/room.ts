@@ -296,20 +296,55 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
 
   // 러그 위 반려동물
-  const art = petSprite(st.pet);
-  if (art) {
-    stamp(g, art, 100, 83 - art.h);
-  } else if (st.pet === "haetae") {
-    // 해태: 궁궐 앞에 앉아 있는 돌 해태 상 (뿔, 불꽃 갈기, 부리부리한 눈)
-    const h = grid(14, 14);
-    rect(h, 3, 8, 9, 5, "#c9c3b2"); rect(h, 3, 12, 9, 1, "#9d9784"); rect(h, 4, 11, 2, 2, "#b3ad9a"); rect(h, 9, 11, 2, 2, "#b3ad9a");
-    rect(h, 2, 3, 8, 7, "#d6d0bf"); rect(h, 2, 9, 8, 1, "#b3ad9a");
-    rect(h, 5, 0, 2, 3, "#e8e2d0"); px(h, 5, 0, "#b3ad9a");                                  // 뿔
-    for (const [x, y] of [[1, 4], [1, 6], [1, 8], [10, 4], [10, 6], [10, 8], [3, 3], [8, 3]]) { px(h, x, y, "#6f9a86"); px(h, x, y + 1, "#4f7a68"); } // 청록빛 갈기
-    rect(h, 3, 5, 2, 2, "#ffffff"); rect(h, 7, 5, 2, 2, "#ffffff"); px(h, 4, 6, "#3a2a33"); px(h, 7, 6, "#3a2a33"); // 눈
-    rect(h, 4, 8, 4, 1, "#3a2a33"); px(h, 5, 8, "#e0605a"); px(h, 6, 8, "#e0605a");              // 벌린 입
-    rect(h, 10, 9, 3, 2, "#6f9a86"); px(h, 12, 8, "#4f7a68");                                // 꼬리
-    stamp(g, outline(h), 103, 65);
+  if (st.pet === "cat") {
+    const cat = grid(13, 8);
+    rect(cat, 2, 3, 9, 4, "#f2c98a"); rect(cat, 1, 2, 4, 4, "#f2c98a"); px(cat, 1, 1, "#f2c98a"); px(cat, 4, 1, "#f2c98a");
+    rect(cat, 6, 3, 2, 4, "#e0a45c"); rect(cat, 9, 3, 1, 4, "#e0a45c"); px(cat, 11, 5, "#f2c98a"); px(cat, 11, 4, "#e0a45c");
+    px(cat, 2, 4, "#3a2a33"); px(cat, 4, 4, "#3a2a33"); px(cat, 3, 5, "#f29aa8");
+    stamp(g, outline(cat), 104, 70);
+  } else if (st.pet === "dog") {
+    const dog = grid(15, 9);
+    rect(dog, 3, 3, 9, 4, "#d9a066"); rect(dog, 1, 2, 5, 5, "#d9a066"); rect(dog, 1, 1, 2, 3, "#8a5a3a"); rect(dog, 5, 1, 1, 2, "#8a5a3a");
+    rect(dog, 7, 3, 3, 3, "#f3dcb4"); rect(dog, 3, 6, 2, 2, "#c58c52"); rect(dog, 9, 6, 2, 2, "#c58c52");
+    rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
+    px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
+    stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "squirrel") {
+    // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
+    const q = grid(13, 12);
+    disc(q, 10, 6, 2.5, 5, "#c98a4e"); disc(q, 10, 4, 2, 3, "#d9a066"); px(q, 9, 1, "#c98a4e");              // 꼬리
+    disc(q, 5, 8, 4, 3.5, "#b8743a"); rect(q, 3, 6, 5, 1, "#3a2a33"); rect(q, 3, 8, 6, 1, "#3a2a33");            // 몸 + 등 줄무늬
+    disc(q, 5, 9, 2, 2, "#f3dcb4");                                                                            // 배
+    disc(q, 3, 5, 3, 2.7, "#c98a4e"); px(q, 1, 2, "#8a5a3a"); px(q, 4, 2, "#8a5a3a");                          // 머리와 귀
+    px(q, 2, 5, "#3a2a33"); px(q, 4, 5, "#3a2a33"); px(q, 1, 6, "#3a2a33"); px(q, 3, 7, "#f29aa8");
+    rect(q, 2, 8, 3, 2, "#8a5a3a"); rect(q, 2, 8, 3, 1, "#c98a4e"); px(q, 3, 10, "#8a5a3a");                    // 도토리
+    rect(q, 3, 11, 2, 1, "#8a5a3a"); rect(q, 6, 11, 2, 1, "#8a5a3a");
+    stamp(g, outline(q), 104, 69);
+  } else if (st.pet === "hedwig") {
+    // 눈처럼 흰 부엉이(해리포터의 편지 배달 부엉이 풍): 흰 깃털에 회색 점, 노란 눈
+    const o = grid(12, 14);
+    disc(o, 6, 8, 5, 5.5, "#f7f7f2"); disc(o, 6, 4, 4.5, 4, "#ffffff");
+    rect(o, 1, 6, 2, 6, "#e3e3de"); rect(o, 9, 6, 2, 6, "#e3e3de");
+    for (const [x, y] of [[3, 8], [5, 9], [8, 8], [4, 11], [7, 11], [6, 7], [9, 10], [2, 9]]) px(o, x, y, "#8e8e98");
+    for (const [x, y] of [[4, 2], [8, 2], [3, 5], [9, 5]]) px(o, x, y, "#b9b9c2");
+    rect(o, 3, 4, 2, 2, "#f2c230"); rect(o, 7, 4, 2, 2, "#f2c230"); px(o, 4, 5, "#3a2a33"); px(o, 7, 5, "#3a2a33");
+    px(o, 5, 6, "#3a2a33"); px(o, 6, 6, "#3a2a33"); px(o, 5, 7, "#e0a45c");
+    rect(o, 3, 13, 2, 1, "#caa24e"); rect(o, 7, 13, 2, 1, "#caa24e");
+    stamp(g, outline(o), 104, 65);
+  } else if (st.pet === "duo") {
+    // 초록 부엉이(언어 학습 앱 마스코트 풍): 큰 흰 눈, 주황 부리와 발
+    const o = grid(13, 14);
+    disc(o, 6.5, 8.5, 5.5, 5, "#58cc02"); disc(o, 6.5, 10, 3, 3.5, "#89e219");
+    rect(o, 0, 7, 2, 5, "#46a302"); rect(o, 11, 7, 2, 5, "#46a302");
+    disc(o, 6.5, 4, 5.5, 3.5, "#58cc02"); rect(o, 1, 0, 2, 3, "#58cc02"); rect(o, 10, 0, 2, 3, "#58cc02");
+    disc(o, 4, 4, 2.4, 2.4, "#ffffff"); disc(o, 9, 4, 2.4, 2.4, "#ffffff");
+    px(o, 4, 4, "#3a2a33"); px(o, 5, 4, "#3a2a33"); px(o, 8, 4, "#3a2a33"); px(o, 9, 4, "#3a2a33"); px(o, 4, 5, "#3a2a33"); px(o, 9, 5, "#3a2a33");
+    rect(o, 5, 6, 3, 2, "#ff9600"); px(o, 6, 8, "#ff9600");
+    rect(o, 4, 13, 2, 1, "#ff9600"); rect(o, 8, 13, 2, 1, "#ff9600");
+    stamp(g, outline(o), 104, 65);
+    } else if (st.pet === "baby") {
+    const baby = petSprite("baby");
+    if (baby) stamp(g, baby, 100, 83 - baby.h);
   }
   return g;
 }
