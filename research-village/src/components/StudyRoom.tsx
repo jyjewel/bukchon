@@ -1,5 +1,6 @@
 "use client";
 import { useDiary } from "@/hooks/useDiary";
+import { usePlanner } from "@/hooks/usePlanner";
 import { useJournal } from "@/hooks/useJournal";
 import { useResearchNotes } from "@/hooks/useResearchNotes";
 import { useRoom } from "@/hooks/useRoom";
@@ -7,6 +8,7 @@ import { STATUS_META } from "@/lib/constants";
 import type { BoardTab, Resident } from "@/lib/types";
 import DiaryPanel from "./DiaryView";
 import JournalCard from "./JournalCard";
+import { DeadlinePanel, TodoPanel } from "./Planner";
 import ResearchNotes from "./ResearchNotes";
 import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
@@ -25,6 +27,7 @@ export default function StudyRoom({
   const journal = useJournal(me.user_id);
   const notes = useResearchNotes(me.user_id);
   const diary = useDiary(villageId);
+  const planner = usePlanner(me.user_id);
   const inside = me.status.status === "focus" || me.status.status === "offline";
   const st = me.status.status;
 
@@ -42,6 +45,12 @@ export default function StudyRoom({
       </div>
 
       <div className="space-y-5">
+        <Window title="마감 일정" tone="butter">
+          <DeadlinePanel planner={planner} userId={me.user_id} />
+        </Window>
+        <Window title="할 일" tone="lilac">
+          <TodoPanel planner={planner} userId={me.user_id} />
+        </Window>
         <Window title="오늘의 일지" tone="mint">
           <JournalCard journal={journal} />
         </Window>

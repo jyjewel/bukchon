@@ -63,3 +63,13 @@ export function dateLabel(key: string): string {
 export function clockLabel(iso: string): string {
   return new Date(iso).toLocaleString("ko-KR", { month: "long", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit" });
 }
+
+/** 마감일까지 남은 날수 (오늘이면 0, 지났으면 음수). 둘 다 YYYY-MM-DD */
+export function daysUntil(due: string, today: string): number {
+  const [y, m, d] = due.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ty, tm - 1, td)) / 86_400_000);
+}
+export function ddayLabel(n: number): string {
+  return n > 0 ? `D-${n}` : n === 0 ? "D-DAY" : `D+${-n}`;
+}

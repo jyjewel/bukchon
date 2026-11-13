@@ -115,6 +115,27 @@ await t("광장 소식: 주민만 읽고 쓰고, 지우기는 작성자·관리�
   assert.equal((await m2.c.from("news_posts").delete().eq("id", mine.id).select()).data.length, 1);
 });
 
+await t("마감 일정과 할 일은 본인만", async () => {
+  const d = ok(await m1.c.from("deadlines").insert({ title: "학회 발표 원고", due_date: "2026-12-01" }).select().single());
+  ok(await m1.c.from("deadlines").insert({ title: "논문 투고", due_date: "2026-12-20" }));
+  const td = ok(await m1.c.from("todos").insert({ body: "참고문헌 정리" }).select().single());
+  ok(await m1.c.from("todos").insert({ body: "교수님께 메일", due_date: "2026-11-30" }));
+  ok(await m1.c.from("todos").update({ done: true }).eq("id", td.id));
+  assert.equal(ok(await m1.c.from("deadlines").select("*")).length, 2);
+  assert.equal(ok(await m1.c.from("todos").select("*")).length, 2);
+  for (const x of [m2, a, outside[0]]) { // 같은 마을 주민·관리자·마을 밖 사람 모두 볼 수 없다
+    assert.equal(ok(await x.c.from("deadlines").select("*")).length, 0);
+    assert.equal(ok(await x.c.from("todos").select("*")).length, 0);
+  }
+  assert.equal((await m2.c.from("deadlines").update({ done: true }).eq("id", d.id).select()).data.length, 0);
+  assert.equal((await m2.c.from("todos").delete().eq("id", td.id).select()).data.length, 0);
+  assert.ok((await m2.c.from("deadlines").insert({ user_id: m1.id, title: "대신", due_date: "2026-12-01" })).error);
+  assert.ok((await m1.c.from("deadlines").insert({ title: "   ", due_date: "2026-12-01" })).error);
+  assert.ok((await m1.c.from("deadlines").insert({ title: "날짜 없음" })).error);
+  assert.ok((await m1.c.from("todos").insert({ body: "가".repeat(121) })).error);
+  assert.equal((await m1.c.from("todos").delete().eq("id", td.id).select()).data.length, 1);
+});
+
 await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => {
   ok(await m1.c.from("houses").update({ style: { roof: "#f00" } }).eq("owner_id", m1.id));
   assert.equal((await m1.c.from("houses").update({ style: { roof: "#0f0" } }).eq("owner_id", a.id).select()).data.length, 0);
