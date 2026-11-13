@@ -280,91 +280,109 @@ function hutGrid(opts: HouseOpts): Grid {
 /** 현대식 사무실 건물: 유리창이 줄지어 있고 빨간 띠와 차양이 있다. 큰 창은 (11..20, 37..46) */
 function officeGrid(opts: HouseOpts): Grid {
   const g = grid(HOUSE_W, HOUSE_H);
-  const wall = "#cfd6de", wallD = "#b3bcc8", steel = "#4a5a6a";
+  const wall = "#d9dfe8", wallD = "#b6c0ce", steel = "#44546a";
   rect(g, 6, 10, 42, 50, wall);
-  rect(g, 44, 10, 4, 50, wallD);
-  for (let y = 12; y < 58; y += 5) for (let x = 7; x < 44; x++) if (hash(x >> 2, y) > 0.8) px(g, x, y, "#dde3ea");
-  // 옥상 난간·실외기·안테나
-  rect(g, 5, 6, 44, 4, "#aab4c0"); rect(g, 5, 6, 44, 1, "#e6ebf0");
+  rect(g, 44, 10, 4, 50, wallD);                               // 옆면 그늘
+  rect(g, 6, 10, 1, 50, "#eef2f7");
+  for (const y of [24, 35]) { rect(g, 6, y, 42, 1, wallD); rect(g, 6, y + 1, 42, 1, "#c4ccd8"); }  // 층 구분 띠
+  // 옥상: 난간, 작은 정원, 실외기, 안테나
+  rect(g, 5, 6, 44, 4, "#aab4c0"); rect(g, 5, 6, 44, 1, "#eef2f7"); rect(g, 5, 9, 44, 1, "#8d98a6");
+  for (let x = 7; x < 47; x += 3) rect(g, x, 7, 1, 2, "#8d98a6");
+  rect(g, 8, 2, 16, 4, "#7a5a3a"); rect(g, 8, 2, 16, 1, "#9a7a55");  // 화단
+  disc(g, 12, 2, 4, 3, "#62b866"); disc(g, 18, 1, 4, 3, "#4f9a54"); disc(g, 22, 3, 3, 2, "#7fcf74");
+  px(g, 13, 0, "#ff8fb4"); px(g, 19, 0, "#ffd65c"); px(g, 10, 1, "#ffd65c");
   rect(g, 34, 1, 9, 5, "#8a93a0"); rect(g, 36, 2, 5, 3, "#6a7380"); px(g, 38, 3, "#c9ced6");
-  rect(g, 12, 0, 1, 6, "#6a7380");
-  rect(g, 6, 10, 42, 2, RED);                     // 빨간 띠
-  // 위층 창
+  rect(g, 6, 10, 42, 2, RED);                                   // 빨간 띠
+  // 위층 창 (창틀 + 반사)
   const lightPane = (x: number, y: number, w: number, h: number, i: number) => {
     const on = opts.lit && hash(x, y + i) > 0.35;
     rect(g, x - 1, y - 1, w + 2, h + 2, steel);
     rect(g, x, y, w, h, on ? "#ffe9a3" : "#a8d6ee");
     rect(g, x, y, 2, h, on ? "#fff4cf" : "#d6effa");
     rect(g, x + w - 3, y + h - 2, 3, 2, on ? "#ffd45c" : "#7fb6d4");
+    rect(g, x + (w >> 1), y, 1, h, steel);                        // 가운데 창틀
+    rect(g, x - 2, y + h + 1, w + 4, 1, "#9aa5b4");               // 창턱
   };
   let i = 0;
-  for (const y of [16, 27]) for (const x of [9, 20, 31]) lightPane(x, y, 8, 8, i++);
-  rect(g, 41, 16, 4, 19, "#a8d6ee"); rect(g, 40, 15, 6, 1, steel); rect(g, 40, 35, 6, 1, steel);
+  for (const y of [15, 27]) for (const x of [9, 20, 31]) lightPane(x, y, 8, 7, i++);
+  rect(g, 41, 15, 4, 19, "#a8d6ee"); rect(g, 40, 14, 6, 1, steel); rect(g, 40, 34, 6, 1, steel); rect(g, 41, 15, 1, 19, "#d6effa");
   // 1층 큰 창 (집 안 모습이 비치는 창)
   const w = glow(opts.lit);
   rect(g, 10, 36, 12, 12, steel);
   rect(g, 11, 37, 10, 10, opts.lit ? w.glass : "#a8d6ee");
   if (opts.lit) { rect(g, 11, 37, 4, 4, w.hi); rect(g, 17, 43, 4, 4, w.lo); } else { rect(g, 11, 37, 2, 10, "#d6effa"); rect(g, 13, 37, 1, 4, "#d6effa"); }
   rect(g, 16, 37, 1, 10, steel);
-  // 유리문과 차양
+  rect(g, 9, 48, 14, 1, "#9aa5b4");
+  // 간판(책 모양 로고)과 유리문, 차양
+  rect(g, 26, 34, 18, 4, "#2f4a6a"); rect(g, 26, 34, 18, 1, "#4f7098");
+  rect(g, 30, 35, 4, 3, "#fff8e4"); rect(g, 34, 35, 4, 3, "#fff8e4"); rect(g, 34, 35, 1, 3, "#c0504d");
   rect(g, 28, 38, 16, 3, RED);
   for (let x = 28; x < 44; x += 4) rect(g, x, 38, 2, 3, shade(RED, 40));
   rect(g, 29, 41, 14, 18, steel);
   rect(g, 30, 42, 6, 17, opts.lit ? "#ffe9a3" : "#a8d6ee"); rect(g, 37, 42, 5, 17, opts.lit ? "#ffe9a3" : "#a8d6ee");
   rect(g, 30, 42, 2, 17, opts.lit ? "#fff4cf" : "#d6effa");
-  px(g, 35, 49, "#e8e8f0"); px(g, 37, 49, "#e8e8f0");
-  rect(g, 6, 58, 42, 3, "#8a93a0"); rect(g, 28, 59, 16, 1, STONE_L);
+  px(g, 35, 49, "#e8e8f0"); px(g, 37, 49, "#e8e8f0"); rect(g, 35, 47, 1, 4, "#e8e8f0"); rect(g, 37, 47, 1, 4, "#e8e8f0");
+  // 입구 화단과 계단
+  for (const [x0, w0] of [[24, 4], [44, 4]] as const) {
+    rect(g, x0, 56, w0, 3, "#7a5a3a"); disc(g, x0 + (w0 >> 1), 55, 2.5, 2.5, "#62b866"); px(g, x0 + 1, 54, "#ff8fb4");
+  }
+  rect(g, 6, 59, 42, 2, "#8a93a0"); rect(g, 27, 59, 18, 2, STONE_L); rect(g, 26, 61, 20, 1, STONE);
   return finish(g, opts, { x: 21, top: 0, height: 6 });
 }
 
-/** 한옥: 처마가 들린 기와지붕, 흰 벽과 나무 기둥, 창호 격자. 창 안쪽은 (12..21, 37..46) */
+/** 한옥: 짙은 갈색 기와의 넓은 지붕과 들린 처마, 처마 끝 주황 등, 크림색 벽·나무 기둥·창살 창호, 가운데 쌍여닫이문, 마루와 돌계단. 창 안쪽은 (12..21, 37..46) */
 function hanokGrid(opts: HouseOpts): Grid {
   const g = grid(HOUSE_W, HOUSE_H);
-  const tile = "#4d4a58", tileL = "#6a6678", tileD = "#35323f", plaster = "#f6efe2", plasterD = "#ddd2bc";
+  const roofB = "#7a4430", roofD = "#55291c", roofL = "#9a5c40", beam = "#8e4f2a", beamD = "#6a371c", plaster = "#fdf3e0", plasterD = "#e6d9bd", orange = "#f08a2a";
   const w = glow(opts.lit);
   // 굴뚝(지붕 뒤)
-  rect(g, 43, 12, 6, 20, "#9a8f85"); rect(g, 42, 10, 8, 3, "#7a6f65");
-  for (let y = 14; y < 30; y += 3) rect(g, 43, y, 6, 1, "#8a7f75");
+  rect(g, 45, 8, 5, 16, "#9a8f85"); rect(g, 44, 6, 7, 3, "#7a6f65");
+  for (let y = 11; y < 24; y += 3) rect(g, 45, y, 5, 1, "#8a7f75");
   // 벽
-  rect(g, 7, 31, 40, 28, plaster);
+  rect(g, 7, 31, 40, 25, plaster);
   rect(g, 7, 31, 40, 3, plasterD);
-  for (const x of [6, 45]) rect(g, x, 31, 3, 28, WOOD_D);
-  rect(g, 26, 34, 2, 25, WOOD_D);
-  rect(g, 6, 31, 42, 3, "#8e5f3b");                   // 도리
-  rect(g, 6, 33, 42, 1, RED);                         // 붉은 단청 띠
-  for (let x = 8; x < 46; x += 4) px(g, x, 32, "#c98f5f");
-  rect(g, 5, 58, 44, 3, "#b4a999"); for (let x = 7; x < 48; x += 6) px(g, x, 59, STONE);
-  // 기와지붕
-  for (let y = 12; y <= 29; y++) {
-    const hw = 13 + Math.round(((y - 12) * 12) / 17);
+  rect(g, 7, 53, 40, 3, "#c98a50"); rect(g, 7, 53, 40, 1, "#e0a468");            // 하방(아래 나무띠)
+  for (const x of [6, 25, 41, 45]) rect(g, x, 34, x === 25 || x === 41 ? 2 : 3, 22, beam);
+  for (const x of [6, 25, 41, 45]) rect(g, x + (x === 25 || x === 41 ? 1 : 2), 34, 1, 22, beamD);
+  rect(g, 6, 31, 42, 3, beam); rect(g, 6, 33, 42, 1, beamD);                   // 도리
+  // 지붕: 짙은 갈색 기와, 대각선 골
+  for (let y = 16; y <= 29; y++) {
+    const hw = 16 + Math.round(((y - 16) * 9) / 13);
     for (let x = 27 - hw; x <= 27 + hw; x++) {
-      let c = tile;
-      if (x % 4 === 0) c = tileD;
-      else if ((x + 2) % 4 === 0) c = tileL;
-      if ((y - 12) % 4 === 3) c = tileD;
+      const k = (x + y) % 4;
+      let c = k === 0 ? roofD : k === 2 ? roofL : roofB;
+      if (x === 27 - hw || x === 27 + hw) c = roofD;
       px(g, x, y, c);
     }
   }
-  rect(g, 14, 10, 26, 2, tileD); rect(g, 14, 10, 26, 1, tileL);      // 용마루
-  rect(g, 13, 8, 2, 3, tileD); rect(g, 39, 8, 2, 3, tileD);           // 치미
-  rect(g, 3, 28, 48, 3, tileD);                                         // 처마
-  for (let x = 4; x < 51; x += 3) px(g, x, 29, "#d9d2c4");            // 막새기와
-  for (const [x, y] of [[2, 27], [1, 26], [0, 25], [51, 27], [52, 26], [53, 25]]) px(g, x, y, tileD);
-  px(g, 3, 27, tileD); px(g, 50, 27, tileD);
-  // 창호
-  rect(g, 10, 35, 14, 13, WOOD_D);
-  rect(g, 12, 37, 10, 10, opts.lit ? w.glass : "#e9e3d2");
+  rect(g, 11, 13, 32, 3, roofD); rect(g, 11, 13, 32, 1, roofL);               // 용마루
+  rect(g, 9, 10, 3, 6, roofD); rect(g, 42, 10, 3, 6, roofD); px(g, 9, 10, roofL); px(g, 43, 10, roofL);   // 치미
+  rect(g, 3, 28, 48, 3, roofD);                                                 // 처마 두께
+  for (const [x, y] of [[2, 28], [1, 27], [0, 26], [0, 25], [2, 27], [1, 26], [51, 28], [52, 27], [53, 26], [53, 25], [51, 27], [52, 26]]) px(g, x, y, roofD);   // 하늘로 들린 처마 끝
+  for (const [x, y] of [[0, 25], [53, 25]]) px(g, x, y, roofL);
+  for (let x = 5; x < 50; x += 4) { px(g, x, 31, orange); px(g, x, 32, "#ffc26a"); }   // 처마 끝 주황 등
+  // 창호(왼쪽 격자창)
+  rect(g, 10, 35, 14, 13, beamD);
+  rect(g, 12, 37, 10, 10, opts.lit ? w.glass : "#f1e8d2");
   if (opts.lit) { rect(g, 12, 37, 4, 4, w.hi); rect(g, 18, 43, 4, 4, w.lo); }
-  for (let x = 14; x <= 20; x += 3) rect(g, x, 37, 1, 10, "#8e5f3b");
-  for (let y = 40; y <= 44; y += 3) rect(g, 12, y, 10, 1, "#8e5f3b");
-  rect(g, 10, 48, 14, 2, WOOD);
-  // 문 (격자 쌍여닫이)
-  rect(g, 30, 41, 12, 18, WOOD_D);
-  rect(g, 31, 42, 5, 16, opts.lit ? "#ffe9a8" : "#e8d8b0"); rect(g, 37, 42, 4, 16, opts.lit ? "#ffe9a8" : "#e8d8b0");
-  for (let y = 45; y < 58; y += 4) rect(g, 31, y, 10, 1, "#8e5f3b");
-  rect(g, 36, 42, 1, 16, WOOD_D);
-  px(g, 35, 50, RED); px(g, 37, 50, RED);
-  rect(g, 28, 59, 16, 1, STONE_L);
+  for (let x = 14; x <= 20; x += 3) rect(g, x, 37, 1, 10, beam);
+  for (let y = 40; y <= 44; y += 3) rect(g, 12, y, 10, 1, beam);
+  rect(g, 10, 48, 14, 2, "#c98a50");
+  // 가운데 쌍여닫이문(창살)
+  rect(g, 28, 38, 12, 18, beamD);
+  rect(g, 29, 39, 5, 16, opts.lit ? "#ffe9a8" : "#ecdcb4"); rect(g, 35, 39, 4, 16, opts.lit ? "#ffe9a8" : "#ecdcb4");
+  for (let y = 42; y < 55; y += 3) { rect(g, 29, y, 10, 1, beam); }
+  for (const x of [31, 37]) rect(g, x, 39, 1, 16, beam);
+  rect(g, 34, 39, 1, 16, beamD);
+  px(g, 33, 48, "#e8c24a"); px(g, 35, 48, "#e8c24a");
+  // 오른쪽 작은 격자창
+  rect(g, 42, 37, 4, 11, beamD); rect(g, 43, 38, 2, 9, opts.lit ? "#ffe9a8" : "#f1e8d2"); rect(g, 43, 42, 2, 1, beam);
+  // 마루와 돌계단·기단
+  rect(g, 4, 56, 46, 3, "#c98a50"); rect(g, 4, 56, 46, 1, "#e0a468");
+  for (let x = 8; x < 48; x += 6) rect(g, x, 57, 1, 2, beam);
+  rect(g, 4, 59, 46, 3, "#3b2a22");
+  for (let x = 6; x < 46; x += 8) { rect(g, x, 59, 4, 3, "#a39d90"); rect(g, x, 59, 4, 1, "#c7c2b5"); }
+  rect(g, 27, 59, 14, 2, STONE_L); rect(g, 26, 61, 16, 1, STONE);
   return finish(g, opts, { x: 14, top: 2, height: 9 });
 }
 
