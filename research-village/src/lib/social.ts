@@ -15,11 +15,12 @@ export const GIFTS = [
 ] as const;
 export type GiftId = (typeof GIFTS)[number]["id"];
 
+/** 일지 반응: id 는 DB 값, icon 은 도트 아이콘 이름 */
 export const REACTIONS = [
-  { id: "coffee", label: "응원해요", icon: "☕" },
-  { id: "clap", label: "대단해요", icon: "👏" },
-  { id: "book", label: "저도 읽었어요", icon: "📚" },
-  { id: "heart", label: "공감해요", icon: "💗" },
+  { id: "heart", label: "공감해요", icon: "heart" },
+  { id: "clap", label: "좋아요", icon: "thumbsup" },
+  { id: "coffee", label: "응원해요", icon: "coffee" },
+  { id: "book", label: "저도 읽었어요", icon: "book" },
 ] as const;
 
 export const gestureOf = (id: string) => GESTURES.find((g) => g.id === id);

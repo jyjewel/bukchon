@@ -32,7 +32,7 @@ export default function StudyRoomWork({
   const [roomView, setRoomView] = useState<"view" | "decorate" | null>(null);
   const [section, setSection] = useState<Section>("journal");
   const [focus, setFocus] = useState(false);
-  const room = useRoom(me.user_id);
+  const room = useRoom(me.user_id, true);
   const [target, setTarget] = useState<OpenTarget | null>(null);
   const notes = useResearchNotes(me.user_id);
   const diary = useDiary();

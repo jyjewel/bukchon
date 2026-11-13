@@ -246,5 +246,6 @@ export interface Shout {
   created_at: string;
 }
 
-export interface Gift { id: string; from_user: string; to_user: string; kind: string; note: string; created_at: string }
+/** 방문자가 보는 선물은 종류와 시각뿐이고, 보낸 사람·한마디는 받은 사람(과 보낸 사람)에게만 온다 */
+export interface Gift { id: string; kind: string; created_at: string; from_user?: string; note?: string }
 export interface BookTip { id: string; from_user: string; to_user: string; title: string; note: string; created_at: string }

@@ -8,6 +8,7 @@ import type { useRoom } from "@/hooks/useRoom";
 import { CharacterIcon } from "./Character";
 import PublicJournal from "./PublicJournal";
 import PublicDeadlines from "./PublicDeadlines";
+import { TipBox } from "./GiveBox";
 import { giftOf } from "@/lib/social";
 import { Notice } from "./ui";
 
@@ -20,9 +21,9 @@ const TABS: { id: BoardTab; label: string }[] = [
 
 /** 화이트보드(고민과 댓글) · 포스트잇 · 책장(연구 성과) 패널. 주인이면 쓰고 지울 수 있고, 방문자는 댓글과 포스트잇을 남길 수 있다. */
 export default function RoomBoards({
-  owner, myId, residents, room, tab, onTab,
+  owner, myId, residents, room, tab, onTab, onTip,
 }: {
-  owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void;
+  owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void; onTip?: (title: string, note: string) => Promise<string | null> | string | null;
 }) {
   const isOwner = owner.user_id === myId;
   const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
@@ -79,10 +80,10 @@ export default function RoomBoards({
     <div className="space-y-3">
       {room.gifts.length > 0 && (
         <section aria-label="받은 선물" className="space-y-1">
-          <h3 className="label">{isOwner ? "받은 선물 (하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
+          <h3 className="label">{isOwner ? "받은 선물 (보낸 사람은 나에게만 보여요 · 하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
           <ul className="flex flex-wrap gap-1.5">
             {room.gifts.map((g) => (
-              <li key={g.id} className="chip" style={{ background: "#fff3c4" }}>{giftOf(g.kind)?.label ?? "선물"} · {who(g.from_user)}{g.note ? ` “${g.note}”` : ""} · {relativeTime(g.created_at)}</li>
+              <li key={g.id} className="chip" style={{ background: "#fff3c4" }}>{giftOf(g.kind)?.label ?? "선물"}{isOwner && g.from_user ? ` · ${who(g.from_user)}` : ""}{isOwner && g.note ? ` “${g.note}”` : ""} · {relativeTime(g.created_at)}</li>
             ))}
           </ul>
         </section>
@@ -185,6 +186,7 @@ export default function RoomBoards({
           </div>
         </form>
       )}
+      {!isOwner && onTip && <TipBox name={owner.profile.display_name} onTip={onTip} />}
       {room.tips.length > 0 && (
         <section aria-label="추천받은 책" className="space-y-1">
           <h3 className="label">{isOwner ? "이웃이 추천해 준 책" : `${owner.profile.display_name}님에게 추천된 책`}</h3>

@@ -10,7 +10,7 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
   const actor = nameOf(n.actor_id) ?? "누군가";
   if (n.kind === "chat_request") return `${actor}님이 대화를 신청했어요`;
   if (n.kind === "meeting") return `${actor}님이 Zoom 회의를 열었어요`;
-  if (n.kind === "gesture") return `${actor}님이 ${gestureOf(n.summary)?.hit ?? "장난을 쳤어요!"}`;
+  if (n.kind === "gesture") return `${actor}님이 ${gestureOf(n.summary)?.hit ?? "던지기를 했어요!"}`;
   if (n.kind === "gift") { const i = n.summary.indexOf(":"); const k = i < 0 ? n.summary : n.summary.slice(0, i); const note = i < 0 ? "" : n.summary.slice(i + 1); return `${actor}님이 ${giftOf(k)?.label ?? "선물"}을(를) 건넸어요${note ? ` — “${note}”` : ""}`; }
   if (n.kind === "book_tip") return `${actor}님이 책 《${n.summary}》을(를) 추천해 책장에 꽂아 두었어요`;
   if (n.kind === "journal_reaction") return `${actor}님이 ${n.room_owner_id === myId ? "내" : `${nameOf(n.room_owner_id) ?? ""}님의`} 공개 일지에 ‘${reactionOf(n.summary.split(":")[0])?.label ?? "반응"}’을 남겼어요`;
