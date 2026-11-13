@@ -16,27 +16,42 @@ const INK = "#3a2a33";
 
 export function petSprite(kind: string): Grid | null {
   if (kind === "baby") {
-    // 기저귀 입은 아기: 큰 둥근 머리에 뾰족한 머리 한 가닥(분홍 방울), 점 눈, 발그레한 볼, 앉아서 두 손을 모은 모습
+    // 기저귀 입은 아기: 동글동글한 큰 머리, 뾰족한 머리 한 가닥(분홍 방울), 또렷한 눈과 발그레한 볼, 앉아서 두 손을 모은 모습
     return sprite([
-      ".......r",
-      "......ss",
-      "....ssss",
-      "..ssssss",
-      ".sssssss",
-      "ssssssss",
-      "ssssssss",
-      "ssskssss",
-      "ssssssss",
-      "spsssssm",
-      ".sssssss",
-      "..ssssss",
-      "..sssdds",
-      "..ssssss",
-      ".wwwwwww",
-      ".wwwgwwy",
-      ".wwwwwww",
-      "..ss....",
-    ], { s: "#f6cba6", k: INK, p: "#f4a3a3", r: "#f06a7a", m: "#c0504d", d: "#e3a982", w: "#ffffff", g: "#d8dee9", y: "#f2c64e" });
+      ".....r",
+      ".....s",
+      "...sss",
+      "..ssss",
+      ".sssss",
+      "ssssss",
+      "ssssss",
+      "sshkss",
+      "sskkss",
+      "spsssm",
+      ".sssss",
+      "..ssss",
+      "..ssdd",
+      ".wwwww",
+      ".wwgww",
+      "..ss..",
+    ], { s: "#f8d3b2", k: INK, h: "#ffffff", p: "#f59aa0", r: "#f06a7a", m: "#c0504d", d: "#e8b48a", w: "#ffffff", g: "#d8dee9" },
+    (put) => { put(8, 13, "#e8eef8"); put(5, 13, "#d8dee9"); put(6, 13, "#f2c64e"); put(5, 14, "#e8eef8"); });
   }
   return null;
+}
+
+/** 위츄: 민트색 별 모양 캐릭터와 양옆의 푸른 별 박힌 구름 날개 (키링 속 그 모습). 책장 칸에 놓는 소품 */
+export function wichuSprite(): Grid {
+  return sprite([
+    ".........m",
+    "........mm",
+    "..cc....mm",
+    ".ccccmmmmm",
+    "cscccmmwkm",
+    "ccccCmpkkm",
+    ".CCCCmmmmm",
+    "..CC..ddd.",
+    "......dd..",
+  ], { m: "#98e6b4", d: "#6fc896", c: "#e4e9fb", C: "#b9c6ee", s: "#6a9be0", k: "#2b3a6b", w: "#ffffff", p: "#f7a8b8" },
+  (put) => { put(6, 3, "#c9f6d8"); put(13, 3, "#c9f6d8"); put(15, 3, "#6a9be0"); put(16, 2, "#e4e9fb"); put(17, 2, "#e4e9fb"); put(15, 4, "#e4e9fb"); }, 2);
 }
