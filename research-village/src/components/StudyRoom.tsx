@@ -36,10 +36,10 @@ export default function StudyRoom({
   const ctl = (id: CollapsibleId, extra?: { onUp?: () => void; onDown?: () => void }) => ({ collapsed: layout.collapsed.includes(id), onToggle: () => layout.toggle(id), ...extra });
   const widgets: Record<WidgetId, { title: string; tone: Tone; body: React.ReactNode }> = {
     deadlines: { title: "마감 일정", tone: "butter", body: <DeadlinePanel planner={planner} userId={me.user_id} /> },
-    todos: { title: "할 일", tone: "lilac", body: <TodoPanel planner={planner} userId={me.user_id} /> },
-    journal: { title: "오늘의 일지", tone: "mint", body: <JournalCard journal={journal} /> },
-    notes: { title: "연구노트", tone: "rose", body: <ResearchNotes data={notes} userId={me.user_id} /> },
-    diary: { title: "다이어리", tone: "sky", body: <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} /> },
+    todos: { title: "할 일", tone: "butter", body: <TodoPanel planner={planner} userId={me.user_id} /> },
+    journal: { title: "오늘의 일지", tone: "butter", body: <JournalCard journal={journal} /> },
+    notes: { title: "연구노트", tone: "butter", body: <ResearchNotes data={notes} userId={me.user_id} /> },
+    diary: { title: "다이어리", tone: "butter", body: <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} /> },
   };
 
   return (
@@ -50,7 +50,7 @@ export default function StudyRoom({
             note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={onTab} />
         </Window>
 
-        <Window title="내 화이트보드 · 책장" tone="lilac" controls={ctl("boards")}>
+        <Window title="내 화이트보드 · 책장" tone="butter" controls={ctl("boards")}>
           <RoomBoards owner={me} myId={me.user_id} residents={residents} room={room} tab={tab} onTab={onTab} />
         </Window>
       </div>
