@@ -242,6 +242,21 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(g, cx - 12, 77, 6, 5, "#e0605a"); rect(g, cx - 10, 77, 2, 5, "#ffd65c"); rect(g, cx - 12, 79, 6, 1, "#ffd65c");
     rect(g, cx + 6, 78, 7, 4, "#5f8fd6"); rect(g, cx + 8, 78, 2, 4, "#ffffff"); rect(g, cx + 6, 80, 7, 1, "#ffffff");
   }
+  if (st.extras.includes("brewing")) {
+    // 맥주 발효통(카보이): 나무 받침 위의 유리통에 황금빛 맥주가 익고, 윗부분에 거품, 마개에 꽂힌 에어락에서 보글보글
+    const cx = 125;
+    rect(g, cx - 9, 79, 19, 4, "#8a5a3a"); rect(g, cx - 9, 79, 19, 1, "#a8713f"); rect(g, cx - 4, 79, 1, 4, "#6d4528"); rect(g, cx + 4, 79, 1, 4, "#6d4528");
+    disc(g, cx, 69, 8.5, 10.5, "#7a5420");                         // 유리 테두리
+    disc(g, cx, 69, 7.5, 9.5, "#e0a53a");                          // 맥주
+    disc(g, cx + 2, 72, 4, 5, "#d4932a");                          // 깊은 쪽 색
+    rect(g, cx - 5, 60, 11, 3, "#fff3d0"); rect(g, cx - 4, 59, 9, 1, "#fff3d0"); px(g, cx - 2, 58, "#ffffff"); px(g, cx + 2, 58, "#ffffff"); // 거품층
+    rect(g, cx - 2, 51, 5, 8, "#7a5420"); rect(g, cx - 1, 51, 3, 8, "#cfe6ef"); rect(g, cx - 1, 55, 3, 4, "#e9c46a");   // 목
+    rect(g, cx - 3, 49, 7, 3, "#c9552e"); rect(g, cx - 3, 49, 7, 1, "#e6784a");                                          // 고무 마개
+    rect(g, cx, 44, 1, 5, "#e8f4fa"); rect(g, cx + 1, 43, 3, 1, "#e8f4fa"); rect(g, cx + 3, 44, 1, 3, "#e8f4fa"); rect(g, cx + 3, 46, 2, 2, "#a9d8f5"); // 에어락
+    px(g, cx + 4, 42, "#ffffff"); px(g, cx + 5, 40, "#e8f4fa");                                                         // 올라가는 거품
+    for (const [dx, dy] of [[-3, 64], [2, 66], [-1, 70], [3, 73], [-4, 74], [1, 77], [-2, 66]]) px(g, cx + dx, dy, "#fff0b8");  // 맥주 속 기포
+    rect(g, cx - 6, 63, 1, 10, "#fff3c4"); px(g, cx - 5, 62, "#fff3c4");                                                   // 유리 하이라이트
+  }
   if (st.extras.includes("globe")) {
     rect(g, 40, 76, 8, 1, WOOD_D); rect(g, 43, 71, 2, 5, WOOD_D);
     disc(g, 44, 66, 5, 5, "#5f8fd6"); px(g, 42, 64, "#62b866"); px(g, 43, 64, "#62b866"); px(g, 43, 65, "#62b866");
@@ -308,6 +323,10 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
       const c = k === "coffee" ? "#7a4a2a" : "#7fbf6a";
       rect(g, x, 42, 5, 4, "#ffffff"); rect(g, x, 42, 5, 1, c); px(g, x + 5, 43, "#ffffff"); px(g, x + 5, 44, "#ffffff");
       px(g, x + 1, 40, "#ffffff"); px(g, x + 2, 39, "#f0f0f6");
+    } else if (k === "beer") {
+      // 맥주잔: 황금빛 맥주에 하얀 거품, 손잡이
+      rect(g, x, 41, 4, 5, "#e0a53a"); rect(g, x, 41, 1, 5, "#f3c25a"); rect(g, x, 40, 4, 2, "#ffffff"); px(g, x + 1, 39, "#ffffff"); px(g, x + 3, 39, "#f0f0f6");
+      px(g, x + 4, 42, "#e9e2c8"); px(g, x + 5, 43, "#e9e2c8"); px(g, x + 4, 44, "#e9e2c8"); px(g, x + 2, 43, "#fff0b8");
     } else if (k === "americano") {
       rect(g, x, 41, 4, 5, "#e9f2f7"); rect(g, x, 42, 4, 3, "#4a2c1c"); px(g, x + 1, 43, "#f4fbff"); rect(g, x + 2, 38, 1, 4, "#2f2a3a");
     } else {

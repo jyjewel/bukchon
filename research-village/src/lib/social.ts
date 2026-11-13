@@ -12,6 +12,7 @@ export const GIFTS = [
   { id: "americano", label: "아이스 아메리카노", icon: "🧊" },
   { id: "snack", label: "간식", icon: "🍪" },
   { id: "tea", label: "따뜻한 차", icon: "🍵" },
+  { id: "beer", label: "맥주 한 잔", icon: "🍺" },
 ] as const;
 export type GiftId = (typeof GIFTS)[number]["id"];
 
