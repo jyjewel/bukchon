@@ -149,9 +149,12 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
 
   // 소품 (꾸미기에서 고른 것)
   if (st.extras.includes("plant")) {
+    // 꽃 화분: 작은 잎 위에 분홍·노랑·하늘색 꽃
     rect(g, 93, 60, 9, 8, "#e08a5c"); rect(g, 92, 59, 11, 2, "#c96f45"); rect(g, 100, 61, 2, 7, "#c96f45");
-    disc(g, 97, 52, 5, 5, "#62b866"); disc(g, 93, 55, 3, 3, "#4f9a54"); disc(g, 101, 56, 3, 3, "#7fcf74");
-    px(g, 96, 50, "#a3e08f"); px(g, 99, 53, "#a3e08f"); px(g, 97, 58, "#3f8a4e");
+    rect(g, 96, 52, 1, 7, "#3f8a4e"); rect(g, 94, 55, 2, 1, "#4f9a54"); rect(g, 98, 56, 2, 1, "#4f9a54");
+    disc(g, 95, 56, 2, 2, "#62b866"); disc(g, 99, 57, 2, 2, "#4f9a54"); disc(g, 97, 54, 3, 2.5, "#62b866");
+    const bloom = (x: number, y: number, c: string) => { px(g, x, y - 1, c); px(g, x - 1, y, c); px(g, x + 1, y, c); px(g, x, y + 1, c); px(g, x, y, "#fff3b0"); };
+    bloom(94, 51, "#ff8fb4"); bloom(99, 50, "#ffd65c"); bloom(97, 47, "#ff8fb4"); bloom(101, 54, "#9ad0ff");
   }
   if (st.extras.includes("bigplant")) {
     rect(g, 3, 64, 10, 9, "#e08a5c"); rect(g, 2, 63, 12, 2, "#c96f45"); rect(g, 11, 65, 2, 8, "#c96f45");
@@ -171,6 +174,43 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(g, 33, 35, 2, 3, "#6f7480"); rect(g, 25, 37, 3, 1, "#6f7480");
     px(g, 29, 33, "#9aa0ab"); px(g, 30, 32, "#b9bec8"); px(g, 28, 35, "#9aa0ab"); px(g, 31, 35, "#8a909c"); px(g, 30, 37, "#8a909c");
     px(g, 29, 36, "#3f424b"); px(g, 32, 34, "#3f424b"); px(g, 33, 37, "#3f424b");
+  }
+  if (st.extras.includes("slime")) {
+    // 슬라임: 말랑한 민트색 덩어리, 반짝이는 하이라이트와 점 눈
+    disc(g, 61, 78, 6, 2, shade("#7be0a8", -40));
+    disc(g, 61, 76, 6, 4.5, "#7be0a8"); disc(g, 61, 72, 3, 3, "#7be0a8"); rect(g, 60, 69, 2, 2, "#7be0a8");
+    px(g, 58, 73, "#d9fff0"); px(g, 59, 72, "#d9fff0"); px(g, 58, 74, "#bff2dc"); px(g, 64, 76, "#58c98a"); px(g, 57, 77, "#58c98a");
+    px(g, 59, 76, "#3a2a33"); px(g, 63, 76, "#3a2a33"); px(g, 61, 78, "#3a2a33");
+  }
+  if (st.extras.includes("train")) {
+    // 바닥에 두는 장난감 빨간 기차 (기관차 + 객차 두 칸)와 작은 선로
+    rect(g, 70, 83, 30, 1, "#6b5a48"); for (let x = 71; x < 100; x += 4) rect(g, x, 82, 2, 1, "#8a7358");
+    rect(g, 72, 77, 10, 4, "#d9302a"); rect(g, 72, 77, 10, 1, "#f06a62"); rect(g, 72, 74, 5, 4, "#b32520"); rect(g, 73, 75, 3, 2, "#ffe9a8");
+    rect(g, 79, 74, 2, 3, "#2a2a31"); px(g, 80, 72, "#ffffff"); px(g, 81, 71, "#e6e6ee"); rect(g, 82, 78, 1, 2, "#ffd65c");
+    for (const cx of [73, 77, 81]) { rect(g, cx, 81, 2, 2, "#2a2a31"); px(g, cx, 81, "#8a8fa3"); }
+    for (const x0 of [84, 92]) {
+      rect(g, x0, 77, 7, 4, "#e8453d"); rect(g, x0, 77, 7, 1, "#f48a83"); rect(g, x0 + 1, 78, 2, 2, "#ffe9a8"); rect(g, x0 + 4, 78, 2, 2, "#ffe9a8");
+      rect(g, x0, 81, 2, 2, "#2a2a31"); rect(g, x0 + 5, 81, 2, 2, "#2a2a31"); rect(g, x0 - 1, 80, 1, 1, "#8a8fa3");
+    }
+  }
+  if (st.extras.includes("xmastree")) {
+    // 꾸민 크리스마스 트리: 세 단 초록 가지, 꼭대기 별, 전구·오너먼트·반짝이 줄, 아래에 선물
+    const cx = 130;
+    [[48, 9, 2], [57, 9, 4], [66, 9, 6]].forEach(([y0, rows, hw0], t) => {
+      for (let i = 0; i < rows + 1; i++) {
+        const hw = hw0 + Math.floor(i * (t === 2 ? 0.62 : 0.55)) + 1, y = y0 + i;
+        rect(g, cx - hw, y, hw * 2 + 1, 1, i % 2 ? "#2f7d3f" : "#3f9a4e");
+        px(g, cx - hw, y, "#256a34"); px(g, cx + hw, y, "#256a34");
+      }
+    });
+    rect(g, cx - 1, 76, 3, 4, "#7a4a2a");
+    for (const [x, y] of [[-1, 50], [-3, 55], [3, 59], [-6, 63], [2, 68], [-8, 72], [7, 73], [0, 63], [-3, 69]]) { px(g, cx + x, y, "#ffd65c"); }
+    const orn: [number, number, string][] = [[2, 52, "#e0302a"], [-4, 59, "#5f8fd6"], [5, 62, "#e0302a"], [-2, 66, "#ffd65c"], [4, 70, "#5f8fd6"], [-7, 70, "#e0302a"], [8, 74, "#ffd65c"], [-1, 73, "#e0302a"]];
+    for (const [dx, y, c] of orn) { rect(g, cx + dx, y, 2, 2, c); px(g, cx + dx, y, "#ffffff"); }
+    for (let i = 0; i < 17; i++) px(g, cx - 8 + i, 66 + Math.round(Math.sin(i / 2.7) * 2), "#fff8d6"); // 반짝이 줄
+    rect(g, cx - 2, 44, 5, 1, "#ffd65c"); rect(g, cx - 1, 43, 3, 3, "#ffd65c"); px(g, cx, 42, "#ffd65c"); px(g, cx, 47, "#ffd65c"); px(g, cx, 44, "#fff3b0");
+    rect(g, cx - 12, 77, 6, 5, "#e0605a"); rect(g, cx - 10, 77, 2, 5, "#ffd65c"); rect(g, cx - 12, 79, 6, 1, "#ffd65c");
+    rect(g, cx + 6, 78, 7, 4, "#5f8fd6"); rect(g, cx + 8, 78, 2, 4, "#ffffff"); rect(g, cx + 6, 80, 7, 1, "#ffffff");
   }
   if (st.extras.includes("globe")) {
     rect(g, 40, 76, 8, 1, WOOD_D); rect(g, 43, 71, 2, 5, WOOD_D);
@@ -249,6 +289,28 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
     px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
     stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "haetae") {
+    // 해태: 궁궐 앞에 앉아 있는 돌 해태 상 (뿔, 불꽃 갈기, 부리부리한 눈)
+    const h = grid(14, 14);
+    rect(h, 3, 8, 9, 5, "#c9c3b2"); rect(h, 3, 12, 9, 1, "#9d9784"); rect(h, 4, 11, 2, 2, "#b3ad9a"); rect(h, 9, 11, 2, 2, "#b3ad9a");
+    rect(h, 2, 3, 8, 7, "#d6d0bf"); rect(h, 2, 9, 8, 1, "#b3ad9a");
+    rect(h, 5, 0, 2, 3, "#e8e2d0"); px(h, 5, 0, "#b3ad9a");                                  // 뿔
+    for (const [x, y] of [[1, 4], [1, 6], [1, 8], [10, 4], [10, 6], [10, 8], [3, 3], [8, 3]]) { px(h, x, y, "#6f9a86"); px(h, x, y + 1, "#4f7a68"); } // 청록빛 갈기
+    rect(h, 3, 5, 2, 2, "#ffffff"); rect(h, 7, 5, 2, 2, "#ffffff"); px(h, 4, 6, "#3a2a33"); px(h, 7, 6, "#3a2a33"); // 눈
+    rect(h, 4, 8, 4, 1, "#3a2a33"); px(h, 5, 8, "#e0605a"); px(h, 6, 8, "#e0605a");              // 벌린 입
+    rect(h, 10, 9, 3, 2, "#6f9a86"); px(h, 12, 8, "#4f7a68");                                // 꼬리
+    stamp(g, outline(h), 103, 65);
+  } else if (st.pet === "squirrel") {
+    // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
+    const q = grid(13, 12);
+    disc(q, 10, 6, 2.5, 5, "#c98a4e"); disc(q, 10, 4, 2, 3, "#d9a066"); px(q, 9, 1, "#c98a4e");              // 꼬리
+    disc(q, 5, 8, 4, 3.5, "#b8743a"); rect(q, 3, 6, 5, 1, "#3a2a33"); rect(q, 3, 8, 6, 1, "#3a2a33");            // 몸 + 등 줄무늬
+    disc(q, 5, 9, 2, 2, "#f3dcb4");                                                                            // 배
+    disc(q, 3, 5, 3, 2.7, "#c98a4e"); px(q, 1, 2, "#8a5a3a"); px(q, 4, 2, "#8a5a3a");                          // 머리와 귀
+    px(q, 2, 5, "#3a2a33"); px(q, 4, 5, "#3a2a33"); px(q, 1, 6, "#3a2a33"); px(q, 3, 7, "#f29aa8");
+    rect(q, 2, 8, 3, 2, "#8a5a3a"); rect(q, 2, 8, 3, 1, "#c98a4e"); px(q, 3, 10, "#8a5a3a");                    // 도토리
+    rect(q, 3, 11, 2, 1, "#8a5a3a"); rect(q, 6, 11, 2, 1, "#8a5a3a");
+    stamp(g, outline(q), 104, 69);
   } else if (st.pet === "hedwig") {
     // 눈처럼 흰 부엉이(해리포터의 편지 배달 부엉이 풍): 흰 깃털에 회색 점, 노란 눈
     const o = grid(12, 14);
