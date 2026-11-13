@@ -328,6 +328,6 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 
 /* 내 연구실 작업 화면: 글쓰기 창은 크게, 글줄 폭은 읽기 좋게, 줄 간격은 넉넉하게 */
-.lab-main textarea.big-write { min-height: 58vh; font-size: 1.0625rem; line-height: 1.85; padding: 14px 16px; }
+.lab-main textarea.big-write { min-height: 44vh; font-size: 1.0625rem; line-height: 1.85; padding: 14px 16px; }
 .lab-main { padding-bottom: 8px; }
 .lab-focus textarea.big-write { min-height: calc(100vh - 230px); font-size: 1.125rem; padding: 20px 26px; }

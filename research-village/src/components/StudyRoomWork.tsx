@@ -42,7 +42,7 @@ export default function StudyRoomWork({
   const current = SECTIONS.find((s) => s.id === section)!;
 
   return (
-    <div className={`grid gap-5 ${focus ? "" : "lg:grid-cols-[250px_minmax(0,1fr)_300px]"}`}>
+    <div className={`grid gap-5 ${focus ? "" : "lg:grid-cols-[250px_minmax(0,1fr)_360px]"}`}>
       {roomView && (
         <Modal title={roomView === "view" ? `${me.profile.display_name}의 연구실` : "내 연구실 꾸미기"} tone="butter" wide onClose={() => setRoomView(null)}>
           {roomView === "view" ? (
@@ -85,7 +85,7 @@ export default function StudyRoomWork({
 
       <div className="min-w-0">
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
-          <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" ? "max-w-[58rem]" : "max-w-[46rem]"}`}>
+          <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
             {section === "notes" && <ResearchNotes data={notes} userId={me.user_id} openId={target?.kind === "note" ? target.key : undefined} />}
             {section === "diary" && <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} openId={target?.kind === "diary" ? target.key : undefined} />}
