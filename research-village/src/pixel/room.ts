@@ -164,6 +164,14 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     disc(g, 23, 75, 9, 5, shade(accent, 10)); disc(g, 22, 73, 6, 3, shade(accent, 38));
     px(g, 19, 72, "#ffffff"); px(g, 20, 72, "#ffffff");
   }
+  if (st.extras.includes("suseok")) {
+    // 수석: 창틀 위 수반(물그릇)에 올린 산 모양 돌 (영화 <기생충>의 그 돌)
+    rect(g, 24, 38, 14, 2, "#ece8de"); rect(g, 25, 40, 12, 1, "#cfcabd"); rect(g, 26, 38, 10, 1, "#a9d8f5");
+    rect(g, 27, 36, 8, 2, "#5e626c"); rect(g, 28, 34, 6, 2, "#5e626c"); rect(g, 29, 32, 3, 2, "#5e626c"); px(g, 30, 31, "#5e626c");
+    rect(g, 33, 35, 2, 3, "#6f7480"); rect(g, 25, 37, 3, 1, "#6f7480");
+    px(g, 29, 33, "#9aa0ab"); px(g, 30, 32, "#b9bec8"); px(g, 28, 35, "#9aa0ab"); px(g, 31, 35, "#8a909c"); px(g, 30, 37, "#8a909c");
+    px(g, 29, 36, "#3f424b"); px(g, 32, 34, "#3f424b"); px(g, 33, 37, "#3f424b");
+  }
   if (st.extras.includes("globe")) {
     rect(g, 40, 76, 8, 1, WOOD_D); rect(g, 43, 71, 2, 5, WOOD_D);
     disc(g, 44, 66, 5, 5, "#5f8fd6"); px(g, 42, 64, "#62b866"); px(g, 43, 64, "#62b866"); px(g, 43, 65, "#62b866");

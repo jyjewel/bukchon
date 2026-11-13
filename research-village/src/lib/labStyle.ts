@@ -22,7 +22,7 @@ export const LAB_VIEWS = [
 ] as const;
 export const LAB_PETS = [{ id: "cat", label: "고양이" }, { id: "dog", label: "강아지" }, { id: "hedwig", label: "해리포터 부엉이" }, { id: "duo", label: "듀오링고 부엉이" }, { id: "none", label: "없음" }] as const;
 export const LAB_EXTRAS = [
-  { id: "plant", label: "화분" }, { id: "bigplant", label: "큰 화분" }, { id: "beanbag", label: "빈백" }, { id: "globe", label: "지구본" }, { id: "nameplate", label: "자개 명패" },
+  { id: "plant", label: "화분" }, { id: "bigplant", label: "큰 화분" }, { id: "beanbag", label: "빈백" }, { id: "globe", label: "지구본" }, { id: "nameplate", label: "자개 명패" }, { id: "suseok", label: "수석" },
 ] as const;
 
 export const DEFAULT_LAB_STYLE: LabStyle = {
