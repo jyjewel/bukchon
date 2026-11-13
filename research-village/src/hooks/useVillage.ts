@@ -24,6 +24,7 @@ export function useVillage(userId: string | null, accessToken: string | null) {
   const [loading, setLoading] = useState(true);
   const [raw, setRaw] = useState<Raw | null>(null);
   const [villages, setVillages] = useState<VillageInfo[]>([]);
+  const [prevSeen, setPrevSeen] = useState<Record<string, string>>({}); // 마을마다 이번에 들어오기 직전의 마지막 접속 시각
   const currentRef = useRef<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, StatusRow>>({});
   const [skew, setSkew] = useState(0); // 서버 시각 - 내 시각 (ms)
@@ -77,6 +78,8 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     if (!p.data) return;
     setRaw({ village: v.data as Village, members: m.data as Raw["members"], houses: h.data as House[], profiles: p.data as Profile[] });
     setStatuses(Object.fromEntries((s.data as StatusRow[]).map((r) => [r.user_id, r])));
+    const myRow = (s.data as StatusRow[]).find((r) => r.user_id === userId);
+    if (myRow) setPrevSeen((p) => (p[vid] ? p : { ...p, [vid]: myRow.left_at && myRow.left_at > myRow.last_seen_at ? myRow.left_at : myRow.last_seen_at }));
     setLoading(false);
   }, [userId]);
 
@@ -200,5 +203,5 @@ export function useVillage(userId: string | null, accessToken: string | null) {
 
   const setStatus = useCallback((status: ResearchState) => updateMyStatus({ status }), [updateMyStatus]);
 
-  return { loading, villages, switchVillage, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus };
+  return { loading, villages, switchVillage, prevSeen: villageId ? prevSeen[villageId] ?? null : null, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus };
 }

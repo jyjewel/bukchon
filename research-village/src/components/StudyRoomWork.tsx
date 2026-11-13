@@ -44,7 +44,7 @@ export default function StudyRoomWork({
       {!focus && (
         <div className="space-y-4">
           <Window title={`${me.profile.display_name}의 연구실`} tone="butter" actions={<button type="button" className="btn btn-sm" onClick={onDecorate}>꾸미기</button>}>
-            <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)}
+            <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
               note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection("boards"); }} />
             <nav aria-label="연구실 항목" className="space-y-1 p-2">
               {SECTIONS.map((s) => (
@@ -72,7 +72,7 @@ export default function StudyRoomWork({
 
       {!focus && (
         <div className="space-y-4">
-          <Window title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} /></Window>
+          <Window title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} /></Window>
           <Window title="할 일" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </div>
       )}

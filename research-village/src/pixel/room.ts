@@ -11,7 +11,7 @@ export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 
 /** 연구실 내부. 꾸미기 설정(style)이 벽지·바닥·커튼·러그·창밖 풍경·반려동물·소품에 쓰인다. */
-export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[]; style?: LabStyle }): Grid {
+export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; style?: LabStyle }): Grid {
   const st = opts.style ?? DEFAULT_LAB_STYLE;
   const wall = st.wall;
   const accent = st.accent; // 커튼·러그 색
@@ -130,6 +130,12 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
       x += w; n++;
     }
     if (sIdx === 0 && opts.shelf.length === 0) { rect(g, 108, y0 + 3, 6, 6, "#fdfdfb"); rect(g, 109, y0 + 5, 4, 1, "#c9ced6"); }
+  }
+  // 이웃이 추천해 꽂아 둔 책: 맨 아래 칸 오른쪽에서부터 분홍·보라 계열 책
+  const tipCols = ["#ff9fb6", "#c9a0f0", "#ffb36b", "#8fd6c0"];
+  for (let i = 0; i < Math.min(opts.tips ?? 0, 8); i++) {
+    const c = tipCols[i % 4], x = 131 - i * 3, h = 7 + (i % 2);
+    rect(g, x, 52 - h, 2, h, c); px(g, x, 52 - h + 1, shade(c, 50)); rect(g, x + 1, 52 - h, 1, h, shade(c, -40)); rect(g, x, 49, 2, 1, "#fff8e4");
   }
   rect(g, 103, 7, 32, 2, WOOD);
 
@@ -295,6 +301,19 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     }
     cx += w + 1;
   }
+  // 이웃이 건넨 선물 (책상 오른쪽에 하루 동안)
+  (opts.gifts ?? []).slice(0, 3).forEach((k, i) => {
+    const x = 73 + i * 7;
+    if (k === "coffee" || k === "tea") {
+      const c = k === "coffee" ? "#7a4a2a" : "#7fbf6a";
+      rect(g, x, 42, 5, 4, "#ffffff"); rect(g, x, 42, 5, 1, c); px(g, x + 5, 43, "#ffffff"); px(g, x + 5, 44, "#ffffff");
+      px(g, x + 1, 40, "#ffffff"); px(g, x + 2, 39, "#f0f0f6");
+    } else if (k === "americano") {
+      rect(g, x, 41, 4, 5, "#e9f2f7"); rect(g, x, 42, 4, 3, "#4a2c1c"); px(g, x + 1, 43, "#f4fbff"); rect(g, x + 2, 38, 1, 4, "#2f2a3a");
+    } else {
+      rect(g, x, 44, 6, 2, "#ffffff"); disc(g, x + 2, 43, 1.5, 1.5, "#e0a45c"); disc(g, x + 4, 43, 1.5, 1.5, "#c98a4e"); px(g, x + 2, 42, "#7a4a2a");
+    }
+  });
   rect(g, 87, 44, 5, 2, "#5a5568"); rect(g, 89, 36, 1, 8, "#5a5568"); rect(g, 85, 35, 5, 1, "#5a5568");
   rect(g, 82, 36, 6, 3, opts.studying ? "#ffe07a" : "#e9e2c8"); rect(g, 81, 39, 8, 1, "#5a5568");
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");

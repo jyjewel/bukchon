@@ -7,6 +7,8 @@ import type { Achievement, AchievementKind, BoardTab, Resident } from "@/lib/typ
 import type { useRoom } from "@/hooks/useRoom";
 import { CharacterIcon } from "./Character";
 import PublicJournal from "./PublicJournal";
+import PublicDeadlines from "./PublicDeadlines";
+import { giftOf } from "@/lib/social";
 import { Notice } from "./ui";
 
 type Room = ReturnType<typeof useRoom>;
@@ -75,7 +77,18 @@ export default function RoomBoards({
   const [cm, setCm] = useState<Record<string, string>>({});
   const whiteboard = (
     <div className="space-y-3">
-      <PublicJournal ownerId={owner.user_id} isOwner={isOwner} name={owner.profile.display_name} />
+      {room.gifts.length > 0 && (
+        <section aria-label="받은 선물" className="space-y-1">
+          <h3 className="label">{isOwner ? "받은 선물 (하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
+          <ul className="flex flex-wrap gap-1.5">
+            {room.gifts.map((g) => (
+              <li key={g.id} className="chip" style={{ background: "#fff3c4" }}>{giftOf(g.kind)?.label ?? "선물"} · {who(g.from_user)}{g.note ? ` “${g.note}”` : ""} · {relativeTime(g.created_at)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {!isOwner && <PublicDeadlines ownerId={owner.user_id} name={owner.profile.display_name} />}
+      <PublicJournal ownerId={owner.user_id} isOwner={isOwner} name={owner.profile.display_name} myId={myId} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} />
       <div className="dotted" />
       {postitsBlock}
       {!isOwner && <h3 className="label dotted pt-3">고민하는 문제</h3>}
@@ -172,7 +185,20 @@ export default function RoomBoards({
           </div>
         </form>
       )}
-      {room.loaded && room.achievements.length === 0 && <p className="py-3 text-center text-sm text-ink-soft">{isOwner ? "아직 책장이 비어 있어요." : "아직 꽂힌 책이 없어요."}</p>}
+      {room.tips.length > 0 && (
+        <section aria-label="추천받은 책" className="space-y-1">
+          <h3 className="label">{isOwner ? "이웃이 추천해 준 책" : `${owner.profile.display_name}님에게 추천된 책`}</h3>
+          <ul className="space-y-1">
+            {room.tips.map((t) => (
+              <li key={t.id} className="card flex items-start gap-2 p-2 text-sm" style={{ background: "#fff0f5" }}>
+                <span className="min-w-0 flex-1"><span className="block break-words font-display">《{t.title}》</span><span className="block text-xs text-ink-soft">{who(t.from_user)} 추천{t.note ? ` — ${t.note}` : ""} · {relativeTime(t.created_at)}</span></span>
+                {(isOwner || t.from_user === myId) && <button type="button" className="btn btn-sm" onClick={() => void run(sb.from("book_tips").delete().eq("id", t.id))}>떼기</button>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {room.loaded && room.achievements.length === 0 && room.tips.length === 0 && <p className="py-3 text-center text-sm text-ink-soft">{isOwner ? "아직 책장이 비어 있어요." : "아직 꽂힌 책이 없어요."}</p>}
       <ul className="space-y-2">
         {room.achievements.map((a) => (
           <li key={a.id} className="card flex items-start gap-2 p-2 text-sm">
