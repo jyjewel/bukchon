@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { currentPhase } from "@/lib/time";
 import type { BoardTab, Resident } from "@/lib/types";
+import { normalizeLabStyle } from "@/lib/labStyle";
 import { paint } from "@/pixel/core";
 import { ROOM_H, ROOM_W, roomGrid } from "@/pixel/room";
 
@@ -18,6 +19,7 @@ export default function RoomCanvas({
   const ref = useRef<HTMLCanvasElement>(null);
   const avatarKey = JSON.stringify(owner.profile.avatar);
   const pcKey = postitColors.join(","), shelfKey = shelf.join(",");
+  const styleKey = JSON.stringify(normalizeLabStyle(owner.profile.lab_style));
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
     if (!ctx) return;
@@ -25,7 +27,7 @@ export default function RoomCanvas({
     const draw = () => {
       paint(ctx, roomGrid({
         slot: owner.slot, avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame,
-        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [],
+        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [], style: JSON.parse(styleKey),
       }), 0, 0);
       frame++;
     };
@@ -33,7 +35,7 @@ export default function RoomCanvas({
     draw();
     const t = setInterval(draw, 700);
     return () => clearInterval(t);
-  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey]);
+  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey, styleKey]);
   return (
     <div className="relative">
       <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={`${owner.profile.display_name}의 연구실`} />

@@ -16,12 +16,13 @@ import RoomCanvas from "./RoomCanvas";
 import { Window, type Tone } from "./ui";
 
 export default function StudyRoom({
-  me, residents, tab, onTab,
+  me, residents, tab, onTab, onDecorate,
 }: {
   me: Resident;
   residents: Resident[];
   tab: BoardTab;
   onTab: (t: BoardTab) => void;
+  onDecorate: () => void;
 }) {
   const room = useRoom(me.user_id);
   const journal = useJournal(me.user_id);
@@ -44,7 +45,7 @@ export default function StudyRoom({
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="space-y-5">
-        <Window title={`${me.profile.display_name}의 연구실`} tone="butter" controls={ctl("room")}>
+        <Window title={`${me.profile.display_name}의 연구실`} tone="butter" controls={ctl("room")} actions={<button type="button" className="btn btn-sm" onClick={onDecorate}>꾸미기</button>}>
           <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)}
             note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={onTab} />
         </Window>

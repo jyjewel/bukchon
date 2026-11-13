@@ -146,6 +146,15 @@ await t("연구실 창 배치는 본인 것만 바꾼다", async () => {
   ok(await m1.c.from("profiles").update({ lab_layout: {} }).eq("id", m1.id));
 });
 
+await t("연구실 안쪽 꾸미기는 본인 것만 바꾸고, 주민은 볼 수 있다", async () => {
+  const style = { wall: "#e4f4e1", pattern: "dots", floor: "tile", accent: "#5f8fd6", rug: "square", view: "rain", pet: "dog", extras: ["plant", "globe"] };
+  ok(await m1.c.from("profiles").update({ lab_style: style }).eq("id", m1.id));
+  assert.deepEqual(ok(await m2.c.from("profiles").select("lab_style").eq("id", m1.id).single()).lab_style, style); // 같은 마을 주민에게 보인다
+  assert.equal((await m2.c.from("profiles").update({ lab_style: {} }).eq("id", m1.id).select()).data.length, 0);
+  assert.ok((await m1.c.from("profiles").update({ lab_style: "x" }).eq("id", m1.id)).error);
+  assert.ok((await m1.c.from("profiles").update({ lab_style: { x: "가".repeat(700) } }).eq("id", m1.id)).error);
+});
+
 await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => {
   ok(await m1.c.from("houses").update({ style: { roof: "#f00" } }).eq("owner_id", m1.id));
   assert.equal((await m1.c.from("houses").update({ style: { roof: "#0f0" } }).eq("owner_id", a.id).select()).data.length, 0);
