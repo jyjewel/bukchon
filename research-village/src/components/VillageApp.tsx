@@ -136,13 +136,17 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
       <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff3c4" }}>
         <div className="flex items-baseline gap-2">
           <h1 className="font-display text-xl">연구자 마을</h1>
-          <select
-            aria-label="마을 바꾸기" value={village.id} className="input font-display !w-auto !py-0 text-sm text-rose-deep"
-            onChange={(e) => (e.target.value === "__add" ? onAddVillage() : void v.switchVillage(e.target.value))}
-          >
-            {v.villages.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-            <option value="__add">＋ 다른 마을 추가</option>
-          </select>
+          <span className="relative inline-flex items-center">
+            <select
+              aria-label="마을 바꾸기" value={village.id} style={{ fieldSizing: "content" } as React.CSSProperties}
+              className="cursor-[inherit] appearance-none border-0 bg-transparent py-0 pl-0 pr-4 font-display text-sm text-rose-deep outline-offset-2"
+              onChange={(e) => (e.target.value === "__add" ? onAddVillage() : void v.switchVillage(e.target.value))}
+            >
+              {v.villages.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+              <option value="__add">＋ 다른 마을 추가</option>
+            </select>
+            <span aria-hidden className="pointer-events-none absolute right-0 flex flex-col text-[8px] leading-[8px] text-rose-deep"><span>▲</span><span>▼</span></span>
+          </span>
         </div>
         <nav aria-label="주 메뉴" className="flex basis-full flex-wrap gap-2 sm:flex-1 sm:basis-auto">
           {NAV.map((n) => (
