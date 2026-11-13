@@ -6,6 +6,7 @@ import type { HouseType, Profile, Resident, Village } from "@/lib/types";
 import { houseTypeOf } from "@/pixel/village";
 import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
+import { useFold } from "@/hooks/useFold";
 import { Notice, Window } from "./ui";
 
 function inviteUrl(code: string) {
@@ -13,6 +14,7 @@ function inviteUrl(code: string) {
 }
 
 function AdminPanel({ village, residents, myId, reload }: { village: Village; residents: Resident[]; myId: string; reload: () => Promise<void> }) {
+  const fold = useFold("settings-admin");
   const [name, setName] = useState(village.name);
   const [invite, setInvite] = useState<{ code: string; expires_at: string; expired: boolean } | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -46,7 +48,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
   };
 
   return (
-    <Window title="마을 관리" icon="" tone="butter">
+    <Window title="마을 관리" icon="" tone="butter" controls={fold}>
       <div className="space-y-4 p-3">
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
         <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); void act(() => supabase().from("villages").update({ name: name.trim() }).eq("id", village.id), "마을 이름을 바꿨어요."); }}>
@@ -142,6 +144,8 @@ export default function SettingsView({
     await supabase().auth.signOut({ scope: "local" });
   };
 
+  const foldHouse = useFold("settings-house");
+  const foldData = useFold("settings-data");
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-4">
@@ -160,13 +164,13 @@ export default function SettingsView({
         </Window>
       </div>
       <div className="space-y-4">
-        <Window title={`집 꾸미기 · ${village.name}`} icon="" tone="mint">
+        <Window title={`집 꾸미기 · ${village.name}`} icon="" tone="mint" controls={foldHouse}>
           <div className="space-y-3 p-3">
             <HousePicker value={houseTypeOf(me.house.style)} onChange={(t) => void setHouseType(t)} />
           </div>
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}
-        <Window title="내 데이터와 계정" icon="" tone="rose">
+        <Window title="내 데이터와 계정" icon="" tone="rose" controls={foldData}>
           <div className="space-y-3 p-3 text-sm">
             <div className="flex flex-wrap gap-2">
               <button type="button" className="btn" onClick={() => void exportData()}>내 데이터 내려받기</button>
