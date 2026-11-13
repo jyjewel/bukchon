@@ -10,8 +10,8 @@ const safeLink = (url: string) => (/^https?:\/\//i.test(url) ? url : null);
 
 /** 내 연구실 안의 다이어리. 쓴 글은 항상 나만 볼 수 있다. */
 export default function DiaryPanel({
-  villageId, myId, entries, loaded, reload,
-}: { villageId: string; myId: string; entries: DiaryEntry[]; loaded: boolean; reload: () => Promise<void> }) {
+  myId, entries, loaded, reload,
+}: { myId: string; entries: DiaryEntry[]; loaded: boolean; reload: () => Promise<void> }) {
   const [editing, setEditing] = useState<DiaryEntry | "new" | null>(null);
   const [error, setError] = useState("");
 
@@ -25,7 +25,7 @@ export default function DiaryPanel({
   return (
     <div className="space-y-2 p-3">
       {editing ? (
-        <Editor key={editing === "new" ? "new" : editing.id} villageId={villageId} myId={myId} entry={editing === "new" ? null : editing}
+        <Editor key={editing === "new" ? "new" : editing.id} myId={myId} entry={editing === "new" ? null : editing}
           onDone={async () => { setEditing(null); await reload(); }} onCancel={() => setEditing(null)} />
       ) : (
         <button type="button" className="btn btn-primary btn-sm" onClick={() => setEditing("new")}>+ 새 글</button>
@@ -60,8 +60,8 @@ export default function DiaryPanel({
 }
 
 function Editor({
-  villageId, myId, entry, onDone, onCancel,
-}: { villageId: string; myId: string; entry: DiaryEntry | null; onDone: () => void | Promise<void>; onCancel: () => void }) {
+  myId, entry, onDone, onCancel,
+}: { myId: string; entry: DiaryEntry | null; onDone: () => void | Promise<void>; onCancel: () => void }) {
   const [kind, setKind] = useState<DiaryKind>(entry?.kind ?? "daily");
   const [title, setTitle] = useState(entry?.title ?? "");
   const [body, setBody] = useState(entry?.body ?? "");
@@ -77,7 +77,7 @@ function Editor({
     const fields = { kind, title: title.trim(), body: body.trim(), link_url: link.trim(), visibility: "private" };
     const { error } = entry
       ? await supabase().from("diary_entries").update(fields).eq("id", entry.id)
-      : await supabase().from("diary_entries").insert({ ...fields, village_id: villageId, author_id: myId });
+      : await supabase().from("diary_entries").insert({ ...fields, author_id: myId });
     setBusy(false);
     if (error) return setError(errorMessage(error));
     await onDone();

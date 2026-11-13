@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase";
 import { HEARTBEAT_MS, SAY_MS, STALE_MS } from "@/lib/constants";
 import { PROFILE_COLUMNS } from "./useAuth";
-import type { House, Profile, ResearchState, Resident, StatusRow, Village } from "@/lib/types";
+import type { House, Profile, ResearchState, Resident, StatusRow, Village, VillageInfo } from "@/lib/types";
+
+const lastKey = (userId: string) => `rv.village.${userId}`;
 
 interface Raw {
   village: Village;
@@ -13,13 +15,16 @@ interface Raw {
 }
 
 /**
- * 내가 사는 마을의 주민·집·연구 상태를 불러오고 실시간으로 동기화한다.
+ * 내가 사는 마을(여러 곳일 수 있다)들 가운데 지금 머무는 마을의 주민·집·연구 상태를 불러오고 실시간으로 동기화한다.
+ *  - 마지막으로 머문 마을을 기억해 두었다가 다음에 그 마을로 들어간다
  *  - research_status 변경은 Realtime 으로 즉시 반영
  *  - 25초마다 heartbeat 로 접속 중임을 서버에 알리고, 놓친 이벤트에 대비해 다시 읽는다
  */
 export function useVillage(userId: string | null, accessToken: string | null) {
   const [loading, setLoading] = useState(true);
   const [raw, setRaw] = useState<Raw | null>(null);
+  const [villages, setVillages] = useState<VillageInfo[]>([]);
+  const currentRef = useRef<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, StatusRow>>({});
   const [skew, setSkew] = useState(0); // 서버 시각 - 내 시각 (ms)
   const [now, setNow] = useState(() => Date.now());
@@ -37,21 +42,36 @@ export function useVillage(userId: string | null, accessToken: string | null) {
   const load = useCallback(async () => {
     if (!userId) return;
     const sb = supabase();
-    const mine = await sb.from("village_members").select("village_id").eq("user_id", userId).order("joined_at").limit(1);
-    const vid = mine.data?.[0]?.village_id as string | undefined;
+    const mine = await sb.from("village_members").select("village_id, role").eq("user_id", userId).order("joined_at");
     if (mine.error) return; // 일시적 오류: 기존 화면 유지
-    if (!vid) {
+    const ids = (mine.data ?? []).map((x) => x.village_id as string);
+    if (!ids.length) {
       setRaw(null);
+      setVillages([]);
       setStatuses({});
       setLoading(false);
       return;
     }
-    const [v, m, h, s] = await Promise.all([
-      sb.from("villages").select("id, name, theme").eq("id", vid).maybeSingle(),
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(lastKey(userId));
+    } catch {}
+    const vid = [currentRef.current, stored].find((x): x is string => !!x && ids.includes(x)) ?? ids[0];
+    currentRef.current = vid;
+    const vs = await sb.from("villages").select("id, name, theme").in("id", ids);
+    if (vs.error || !vs.data) return;
+    setVillages(
+      mine.data!.flatMap((x) => {
+        const info = vs.data!.find((y) => y.id === x.village_id);
+        return info ? [{ id: info.id as string, name: info.name as string, role: x.role as "admin" | "member" }] : [];
+      }),
+    );
+    const [m, h, s] = await Promise.all([
       sb.from("village_members").select("user_id, role, joined_at").eq("village_id", vid),
       sb.from("houses").select("village_id, slot, owner_id, style").eq("village_id", vid).order("slot"),
       sb.from("research_status").select("*").eq("village_id", vid),
     ]);
+    const v = { data: vs.data.find((x) => x.id === vid) };
     if (!v.data || !m.data || !h.data || !s.data) return;
     const p = await sb.from("profiles").select(PROFILE_COLUMNS).in("id", m.data.map((x) => x.user_id));
     if (!p.data) return;
@@ -161,7 +181,24 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     [villageId, userId, skew, load],
   );
 
+  /** 다른 마을로 옮겨 간다. 떠나는 마을에서는 곧바로 자리를 비운 것으로 보인다. */
+  const switchVillage = useCallback(
+    async (id: string) => {
+      if (!userId || id === currentRef.current) return;
+      if (villageId) void supabase().rpc("go_away", { p_village: villageId });
+      currentRef.current = id;
+      try {
+        localStorage.setItem(lastKey(userId), id);
+      } catch {}
+      setRaw(null);
+      setStatuses({});
+      setLoading(true);
+      await load();
+    },
+    [userId, villageId, load],
+  );
+
   const setStatus = useCallback((status: ResearchState) => updateMyStatus({ status }), [updateMyStatus]);
 
-  return { loading, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus };
+  return { loading, villages, switchVillage, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus };
 }

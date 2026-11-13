@@ -8,9 +8,9 @@ import { Window } from "./ui";
 
 /** 다른 주민의 연구실 방문. 주민이 연구실 안에서 집중하고 있어도 들어가 볼 수 있다. */
 export default function RoomVisit({
-  owner, myId, villageId, residents, tab, onTab, onBack, onProfile,
-}: { owner: Resident; myId: string; villageId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void }) {
-  const room = useRoom(owner.user_id, villageId);
+  owner, myId, residents, tab, onTab, onBack, onProfile,
+}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void }) {
+  const room = useRoom(owner.user_id);
   const meta = STATUS_META[owner.shown];
   const name = owner.profile.display_name;
   const inRoom = owner.shown === "focus";
@@ -28,7 +28,7 @@ export default function RoomVisit({
           />
         </Window>
         <Window title="구경하고 남기기" tone="sky">
-          <RoomBoards owner={owner} myId={myId} villageId={villageId} residents={residents} room={room} tab={tab} onTab={onTab} />
+          <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} />
         </Window>
       </div>
     </div>

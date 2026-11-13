@@ -17,9 +17,9 @@ const TABS: { id: BoardTab; label: string }[] = [
 
 /** 화이트보드(고민과 댓글) · 포스트잇 · 책장(연구 성과) 패널. 주인이면 쓰고 지울 수 있고, 방문자는 댓글과 포스트잇을 남길 수 있다. */
 export default function RoomBoards({
-  owner, myId, villageId, residents, room, tab, onTab,
+  owner, myId, residents, room, tab, onTab,
 }: {
-  owner: Resident; myId: string; villageId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void;
+  owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void;
 }) {
   const isOwner = owner.user_id === myId;
   const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
@@ -37,7 +37,7 @@ export default function RoomBoards({
   const [color, setColor] = useState(POSTIT_COLORS[0]);
   const postitsBlock = (
     <div className="space-y-3">
-      <form className="space-y-2" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("postits").insert({ village_id: villageId, owner_id: owner.user_id, author_id: myId, body: pi.trim(), color }))) setPi(""); }}>
+      <form className="space-y-2" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("postits").insert({ owner_id: owner.user_id, author_id: myId, body: pi.trim(), color }))) setPi(""); }}>
         <label className="label" htmlFor="pi-new">{isOwner ? "화이트보드에 붙이는 메모" : `${owner.profile.display_name}님의 화이트보드에 포스트잇 붙이기`}</label>
         <textarea id="pi-new" className="input" rows={2} maxLength={140} value={pi} onChange={(e) => setPi(e.target.value)} placeholder="응원, 질문, 읽어 볼 만한 자료…" />
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="포스트잇 색">
@@ -78,7 +78,7 @@ export default function RoomBoards({
       {!isOwner && <h3 className="label dotted pt-3">고민하는 문제</h3>}
       {isOwner && <div className="dotted" />}
       {isOwner ? (
-        <form className="space-y-1" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("whiteboard_items").insert({ village_id: villageId, owner_id: myId, body: wb.trim() }))) setWb(""); }}>
+        <form className="space-y-1" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("whiteboard_items").insert({ owner_id: myId, body: wb.trim() }))) setWb(""); }}>
           <label className="label" htmlFor="wb-new">요즘 고민하는 문제를 적어 보세요</label>
           <textarea id="wb-new" className="input" rows={3} maxLength={500} value={wb} onChange={(e) => setWb(e.target.value)} placeholder="예: 방각본의 간행 연대를 어떻게 추정할 수 있을까?" />
           <button type="submit" className="btn btn-primary btn-sm" disabled={!wb.trim()}>화이트보드에 쓰기</button>
@@ -114,7 +114,7 @@ export default function RoomBoards({
             <form className="mt-1 flex items-start gap-1" onSubmit={async (e: FormEvent) => {
               e.preventDefault();
               const text = (cm[it.id] ?? "").trim();
-              if (text && (await run(sb.from("whiteboard_comments").insert({ item_id: it.id, village_id: villageId, author_id: myId, body: text })))) setCm((m) => ({ ...m, [it.id]: "" }));
+              if (text && (await run(sb.from("whiteboard_comments").insert({ item_id: it.id, author_id: myId, body: text })))) setCm((m) => ({ ...m, [it.id]: "" }));
             }}>
               <label className="sr-only" htmlFor={`cm-${it.id}`}>댓글</label>
               <input id={`cm-${it.id}`} className="input" maxLength={500} value={cm[it.id] ?? ""} onChange={(e) => setCm((m) => ({ ...m, [it.id]: e.target.value }))} placeholder="댓글 달기" />
@@ -135,7 +135,7 @@ export default function RoomBoards({
     if (link && !/^https?:\/\//i.test(link)) return setShelfErr("링크는 http:// 또는 https:// 로 시작해야 해요.");
     setShelfErr("");
     const year = form.year ? Number(form.year) : null;
-    if (await run(sb.from("achievements").insert({ village_id: villageId, owner_id: myId, title: form.title.trim(), kind: form.kind, year, link_url: link }))) setForm({ title: "", kind: "article", year: "", link: "" });
+    if (await run(sb.from("achievements").insert({ owner_id: myId, title: form.title.trim(), kind: form.kind, year, link_url: link }))) setForm({ title: "", kind: "article", year: "", link: "" });
   };
   const kindLabel = (a: Achievement) => ACHIEVEMENT_KINDS.find((k) => k.id === a.kind);
   const shelf = (

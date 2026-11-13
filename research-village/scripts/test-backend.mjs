@@ -153,11 +153,11 @@ await t("집 꾸미기: 자기 집만, 소유자는 못 바꾼다", async () => 
 });
 
 await t("다이어리는 본인만 볼 수 있다 (공개 범위 없음)", async () => {
-  const mk = async (extra = {}) => ok(await m1.c.from("diary_entries").insert({ village_id: village, body: "내 기록", ...extra }).select().single());
+  const mk = async (extra = {}) => ok(await m1.c.from("diary_entries").insert({ body: "내 기록", ...extra }).select().single());
   const mine = await mk();
   assert.equal(mine.visibility, "private");
   // 마을 공개로 쓰려 해도 막힌다
-  assert.ok((await m1.c.from("diary_entries").insert({ village_id: village, body: "공개 시도", visibility: "village" })).error);
+  assert.ok((await m1.c.from("diary_entries").insert({ body: "공개 시도", visibility: "village" })).error);
   assert.ok((await m1.c.from("diary_entries").update({ visibility: "village" }).eq("id", mine.id)).error);
   const ids = async (x) => ok(await x.c.from("diary_entries").select("id")).map((e) => e.id);
   assert.deepEqual(await ids(m1), [mine.id]);
@@ -167,8 +167,9 @@ await t("다이어리는 본인만 볼 수 있다 (공개 범위 없음)", async
   // 남의 글 수정·삭제·대리 작성 불가
   assert.equal((await m2.c.from("diary_entries").update({ body: "hack" }).eq("id", mine.id).select()).data.length, 0);
   assert.equal((await m2.c.from("diary_entries").delete().eq("id", mine.id).select()).data.length, 0);
-  assert.ok((await m2.c.from("diary_entries").insert({ village_id: village, body: "x", author_id: m1.id })).error);
-  assert.ok((await outside[0].c.from("diary_entries").insert({ village_id: village, body: "x" })).error);
+  assert.ok((await m2.c.from("diary_entries").insert({ body: "x", author_id: m1.id })).error);
+  ok(await outside[0].c.from("diary_entries").insert({ body: "마을이 없어도 내 기록은 쓸 수 있다" })); // 마을과 무관한 개인 기록
+  assert.deepEqual(await ids(m1), [mine.id]);
 });
 
 await t("광장 외침: 광장에 있는 주민만 외치고, 마을 주민은 모두 읽는다", async () => {
@@ -192,36 +193,36 @@ await t("광장 외침: 광장에 있는 주민만 외치고, 마을 주민은 �
 
 await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {
   const notifs = async (x) => ok(await x.c.from("notifications").select("*").order("created_at"));
-  const item = ok(await m1.c.from("whiteboard_items").insert({ village_id: village, owner_id: m1.id, body: "방각본 간행 연대를 어떻게 추정할까?" }).select().single());
+  const item = ok(await m1.c.from("whiteboard_items").insert({ owner_id: m1.id, body: "방각본 간행 연대를 어떻게 추정할까?" }).select().single());
   // 주민은 보고, 마을 밖 사람은 못 본다 / 남의 이름으로 쓰기 불가
   assert.equal(ok(await m2.c.from("whiteboard_items").select("*")).length, 1);
   assert.equal(ok(await outside[0].c.from("whiteboard_items").select("*")).length, 0);
-  assert.ok((await m2.c.from("whiteboard_items").insert({ village_id: village, owner_id: m1.id, body: "대신 씀" })).error);
+  assert.ok((await m2.c.from("whiteboard_items").insert({ owner_id: m1.id, body: "대신 씀" })).error);
   assert.equal((await m2.c.from("whiteboard_items").update({ resolved: true }).eq("id", item.id).select()).data.length, 0);
   // 댓글 → 주인에게 알림, 자기 댓글은 알림 없음
-  ok(await m2.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "판식과 지질을 보세요" }));
+  ok(await m2.c.from("whiteboard_comments").insert({ item_id: item.id, body: "판식과 지질을 보세요" }));
   let n1 = await notifs(m1);
   assert.equal(n1.length, 1); assert.equal(n1[0].kind, "comment"); assert.equal(n1[0].actor_id, m2.id); assert.equal(n1[0].room_owner_id, m1.id);
   assert.equal((await notifs(m2)).length, 0);
-  ok(await m1.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "고맙습니다" }));
+  ok(await m1.c.from("whiteboard_comments").insert({ item_id: item.id, body: "고맙습니다" }));
   assert.equal((await notifs(m2)).length, 1); // 먼저 댓글 단 사람에게도 알림
-  ok(await m3.c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "저도 궁금해요" }));
+  ok(await m3.c.from("whiteboard_comments").insert({ item_id: item.id, body: "저도 궁금해요" }));
   assert.equal((await notifs(m1)).length, 2); assert.equal((await notifs(m2)).length, 2);
-  assert.ok((await outside[0].c.from("whiteboard_comments").insert({ item_id: item.id, village_id: village, body: "침입" })).error);
+  assert.ok((await outside[0].c.from("whiteboard_comments").insert({ item_id: item.id, body: "침입" })).error);
   // 댓글 삭제: 작성자나 화이트보드 주인만
   const cs = ok(await m1.c.from("whiteboard_comments").select("*").eq("item_id", item.id));
   const c3 = cs.find((c) => c.author_id === m3.id);
   assert.equal((await m2.c.from("whiteboard_comments").delete().eq("id", c3.id).select()).data.length, 0);
   assert.equal((await m1.c.from("whiteboard_comments").delete().eq("id", c3.id).select()).data.length, 1);
   // 포스트잇
-  ok(await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "응원합니다", color: "#ffb3c8" }));
+  ok(await m2.c.from("postits").insert({ owner_id: m1.id, body: "응원합니다", color: "#ffb3c8" }));
   assert.equal((await notifs(m1)).filter((n) => n.kind === "postit").length, 1);
-  ok(await m1.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "나에게 메모" })); // 내 벽: 알림 없음
+  ok(await m1.c.from("postits").insert({ owner_id: m1.id, body: "나에게 메모" })); // 내 벽: 알림 없음
   assert.equal((await notifs(m1)).filter((n) => n.kind === "postit").length, 1);
-  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: outside[0].id, body: "x" })).error); // 마을 밖 사람의 방에는 못 붙인다
-  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "x", author_id: m3.id })).error);
-  assert.ok((await m2.c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "x", color: "#000000" })).error);
-  assert.ok((await outside[0].c.from("postits").insert({ village_id: village, owner_id: m1.id, body: "침입" })).error);
+  assert.ok((await m2.c.from("postits").insert({ owner_id: outside[0].id, body: "x" })).error); // 마을 밖 사람의 방에는 못 붙인다
+  assert.ok((await m2.c.from("postits").insert({ owner_id: m1.id, body: "x", author_id: m3.id })).error);
+  assert.ok((await m2.c.from("postits").insert({ owner_id: m1.id, body: "x", color: "#000000" })).error);
+  assert.ok((await outside[0].c.from("postits").insert({ owner_id: m1.id, body: "침입" })).error);
   assert.equal(ok(await outside[0].c.from("postits").select("*")).length, 0);
   const posts = ok(await m1.c.from("postits").select("*").eq("owner_id", m1.id));
   const fromM2 = posts.find((p) => p.author_id === m2.id);
@@ -236,11 +237,11 @@ await t("연구실: 화이트보드 댓글·포스트잇·알림", async () => {
   assert.ok((await m1.c.from("notifications").insert({ user_id: m1.id, village_id: village, actor_id: m2.id, kind: "postit", room_owner_id: m1.id })).error); // 알림은 서버만 만든다
   // 책장(연구 성과)
   const riss = "https://www.riss.kr/link?id=A100000000";
-  ok(await m1.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "조선 후기 방각본 연구", kind: "article", year: 2025, link_url: riss }));
+  ok(await m1.c.from("achievements").insert({ owner_id: m1.id, title: "조선 후기 방각본 연구", kind: "article", year: 2025, link_url: riss }));
   assert.equal(ok(await m2.c.from("achievements").select("*")).length, 1);
   assert.equal(ok(await outside[0].c.from("achievements").select("*")).length, 0);
-  assert.ok((await m1.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "x", link_url: "javascript:alert(1)" })).error);
-  assert.ok((await m2.c.from("achievements").insert({ village_id: village, owner_id: m1.id, title: "대신" })).error);
+  assert.ok((await m1.c.from("achievements").insert({ owner_id: m1.id, title: "x", link_url: "javascript:alert(1)" })).error);
+  assert.ok((await m2.c.from("achievements").insert({ owner_id: m1.id, title: "대신" })).error);
   assert.equal((await m2.c.from("achievements").delete().eq("owner_id", m1.id).select()).data.length, 0);
 });
 
@@ -335,6 +336,45 @@ await t("도서관: 공동 집필 책에 이어 쓰기, 회의 등록", async ()
   ok(await m1.c.from("meetings").delete().eq("id", meet.id));
   // 집필자가 떠나도 글은 남는다 (작성자만 비워진다)
   ok(await m3.c.from("book_entries").insert({ book_id: ok(await m1.c.from("books").insert({ village_id: village, title: "둘째 책" }).select().single()).id, village_id: village, body: "m3의 글" }));
+});
+
+await t("여러 마을: 마을마다 따로인 것과 하나로 공유되는 것", async () => {
+  const o = outside[1];
+  // 이미 마을이 있어도 새 마을을 만들 수 있다 (집·연구 상태는 마을마다 따로)
+  const v2 = ok(await m1.c.rpc("create_village", { p_name: "두 번째 마을" }));
+  assert.equal(ok(await m1.c.from("village_members").select("*").eq("user_id", m1.id)).length, 2);
+  ok(await m1.c.from("research_status").update({ status: "focus", topic: "둘째 마을 주제" }).eq("village_id", v2).eq("user_id", m1.id));
+  const rows = ok(await m1.c.from("research_status").select("*").eq("user_id", m1.id));
+  assert.equal(rows.length, 2);
+  assert.notEqual(rows.find((r) => r.village_id === v2).topic, rows.find((r) => r.village_id === village).topic);
+  assert.equal(ok(await m1.c.from("houses").select("*").eq("village_id", v2).eq("owner_id", m1.id)).length, 1);
+  // 새 마을에 초대한 사람은 m1 의 연구실(첫 마을에서 쓴 화이트보드·책장)을 그대로 본다
+  const code2 = ok(await m1.c.rpc("create_invite", { p_village: v2 }));
+  assert.equal(ok(await o.c.from("whiteboard_items").select("*")).length, 0); // 같은 마을이 되기 전에는 안 보인다
+  ok(await o.c.rpc("join_village", { p_code: code2 }));
+  assert.ok(ok(await o.c.from("whiteboard_items").select("*").eq("owner_id", m1.id)).length >= 1);
+  assert.ok(ok(await o.c.from("achievements").select("*").eq("owner_id", m1.id)).length >= 1);
+  assert.equal(ok(await o.c.from("whiteboard_items").select("*").eq("owner_id", m2.id)).length, 0); // 함께 사는 마을이 없는 주민의 연구실은 안 보인다
+  assert.equal(ok(await o.c.from("research_status").select("*").eq("village_id", village)).length, 0);  // 마을 상태도 마을별
+  // o 가 붙인 포스트잇은 m1 의 방에 있으므로 첫 마을 주민도 볼 수 있고, 알림은 둘이 함께 사는 마을(v2)에서 열린다
+  ok(await o.c.from("postits").insert({ owner_id: m1.id, body: "둘째 마을에서 왔어요" }));
+  assert.equal(ok(await m2.c.from("postits").select("*").eq("body", "둘째 마을에서 왔어요")).length, 1);
+  const n = ok(await m1.c.from("notifications").select("*").eq("actor_id", o.id));
+  assert.equal(n.length, 1); assert.equal(n[0].village_id, v2);
+  assert.ok((await o.c.from("postits").insert({ owner_id: m2.id, body: "남의 마을" })).error); // 함께 사는 마을이 없으면 붙일 수 없다
+  // 다이어리·연구실은 마을을 떠나도 남는다
+  const diary = ok(await m1.c.from("diary_entries").insert({ body: "마을과 상관없는 기록" }).select().single());
+  ok(await m1.c.rpc("leave_village", { p_village: v2 }));
+  assert.equal(ok(await m1.c.from("diary_entries").select("id").eq("id", diary.id)).length, 1);
+  assert.ok(ok(await m1.c.from("whiteboard_items").select("*").eq("owner_id", m1.id)).length >= 1);
+  assert.equal(ok(await o.c.from("whiteboard_items").select("*").eq("owner_id", m1.id)).length, 0); // 이제 함께 사는 마을이 없다
+  assert.equal(ok(await m1.c.from("postits").select("*").eq("body", "둘째 마을에서 왔어요")).length, 1); // 내 연구실의 포스트잇은 그대로
+  // 한 계정은 마을을 최대 5개까지
+  for (let i = 0; i < 3; i++) ok(await m2.c.rpc("create_village", { p_name: `마을 ${i}` }));
+  assert.equal(ok(await m2.c.from("village_members").select("*").eq("user_id", m2.id)).length, 4);
+  ok(await m2.c.rpc("create_village", { p_name: "다섯째" }));
+  assert.match((await m2.c.rpc("create_village", { p_name: "여섯째" })).error.message, /too_many_villages/);
+  assert.match((await m2.c.rpc("join_village", { p_code: code2 })).error.message, /too_many_villages|invalid_invite/);
 });
 
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {

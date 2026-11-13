@@ -16,18 +16,17 @@ import RoomCanvas from "./RoomCanvas";
 import { Window, type Tone } from "./ui";
 
 export default function StudyRoom({
-  me, villageId, residents, tab, onTab,
+  me, residents, tab, onTab,
 }: {
   me: Resident;
-  villageId: string;
   residents: Resident[];
   tab: BoardTab;
   onTab: (t: BoardTab) => void;
 }) {
-  const room = useRoom(me.user_id, villageId);
+  const room = useRoom(me.user_id);
   const journal = useJournal(me.user_id);
   const notes = useResearchNotes(me.user_id);
-  const diary = useDiary(villageId);
+  const diary = useDiary();
   const planner = usePlanner(me.user_id);
   const layout = useLabLayout(me.user_id);
   const inside = me.status.status === "focus" || me.status.status === "offline";
@@ -39,7 +38,7 @@ export default function StudyRoom({
     todos: { title: "할 일", tone: "lilac", body: <TodoPanel planner={planner} userId={me.user_id} /> },
     journal: { title: "오늘의 일지", tone: "mint", body: <JournalCard journal={journal} /> },
     notes: { title: "연구노트", tone: "rose", body: <ResearchNotes data={notes} userId={me.user_id} /> },
-    diary: { title: "다이어리", tone: "sky", body: <DiaryPanel villageId={villageId} myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} /> },
+    diary: { title: "다이어리", tone: "sky", body: <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} /> },
   };
 
   return (
@@ -51,7 +50,7 @@ export default function StudyRoom({
         </Window>
 
         <Window title="내 화이트보드 · 책장" tone="lilac" controls={ctl("boards")}>
-          <RoomBoards owner={me} myId={me.user_id} villageId={villageId} residents={residents} room={room} tab={tab} onTab={onTab} />
+          <RoomBoards owner={me} myId={me.user_id} residents={residents} room={room} tab={tab} onTab={onTab} />
         </Window>
       </div>
 
