@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import {
-  LAB_ACCENTS, LAB_EXTRAS, LAB_FLOORS, LAB_PATTERNS, LAB_PETS, LAB_RUGS, LAB_VIEWS, LAB_WALLS, normalizeLabStyle,
+  LAB_ACCENTS, LAB_DESK_ITEMS, LAB_DESKS, LAB_EXTRAS, LAB_FLOORS, LAB_PATTERNS, LAB_PETS, LAB_RUGS, LAB_VIEWS, LAB_WALLS, normalizeLabStyle,
 } from "@/lib/labStyle";
 import type { LabStyle, Resident } from "@/lib/types";
 import RoomCanvas from "./RoomCanvas";
@@ -32,6 +32,11 @@ export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: (
       <Swatches label="벽지 색" options={LAB_WALLS} value={style.wall} onChange={(wall) => void change({ wall })} />
       <Choices label="벽지 무늬" options={[...LAB_PATTERNS]} value={style.pattern} onChange={(pattern) => void change({ pattern })} />
       <Choices label="바닥" options={[...LAB_FLOORS]} value={style.floor} onChange={(floor) => void change({ floor })} />
+      <Choices label="책상" options={[...LAB_DESKS]} value={style.desk} onChange={(desk) => void change({ desk })} />
+      <Toggles
+        label="책상 위" options={[...LAB_DESK_ITEMS]} values={style.deskItems}
+        onToggle={(id) => void change({ deskItems: style.deskItems.includes(id) ? style.deskItems.filter((x) => x !== id) : [...style.deskItems, id] })}
+      />
       <Swatches label="커튼·러그 색" options={LAB_ACCENTS} value={style.accent} onChange={(accent) => void change({ accent })} />
       <Choices label="러그" options={[...LAB_RUGS]} value={style.rug} onChange={(rug) => void change({ rug })} />
       <Choices label="창밖 풍경" options={[...LAB_VIEWS]} value={style.view} onChange={(view) => void change({ view })} />

@@ -35,6 +35,8 @@ export interface LabStyle {
   wall: string;
   pattern: string;
   floor: string;
+  desk: string;
+  deskItems: string[];
   accent: string;
   rug: string;
   view: string;
