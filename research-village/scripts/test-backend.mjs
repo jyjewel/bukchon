@@ -386,6 +386,57 @@ await t("여러 마을: 마을마다 따로인 것과 하나로 공유되는 것
   assert.match((await m2.c.rpc("join_village", { p_code: code2 })).error.message, /too_many_villages|invalid_invite/);
 });
 
+await t("기록 보호: 수정 번호·이력·삭제 복구, 일지 마을 공개", async () => {
+  const day = "2026-11-20";
+  // 수정 번호(rev): 쓸 때마다 늘고, 낡은 번호로는 덮어쓸 수 없다
+  const j = ok(await m1.c.from("daily_logs").insert({ user_id: m1.id, log_date: day, body: "가".repeat(100) }).select("rev, shared_villages").single());
+  assert.equal(j.rev, 1); assert.deepEqual(j.shared_villages, []);
+  const j2 = ok(await m1.c.from("daily_logs").update({ body: "가".repeat(100) + "나" }).eq("user_id", m1.id).eq("log_date", day).eq("rev", 1).select("rev"));
+  assert.equal(j2[0].rev, 2);
+  const stale = ok(await m1.c.from("daily_logs").update({ body: "낡은 탭의 글" }).eq("user_id", m1.id).eq("log_date", day).eq("rev", 1).select("rev"));
+  assert.equal(stale.length, 0);                                                                   // 다른 곳에서 먼저 고쳤으면 조용히 덮어쓰지 않는다
+  assert.ok((await m1.c.from("daily_logs").update({ rev: 99 }).eq("user_id", m1.id)).error);       // rev 는 서버만 올린다
+  assert.ok((await m1.c.from("revisions").insert({ user_id: m1.id, kind: "journal", item_key: day, body: "x" })).error); // 이력은 서버만 쓴다
+  // 이력: 처음엔 남고(마지막 이력 없음), 5분 안에 조금 고치면 안 남고, 글이 크게 줄면 남는다
+  let revs = ok(await m1.c.from("revisions").select("*").eq("kind", "journal").eq("item_key", day).order("created_at"));
+  assert.equal(revs.length, 1); assert.equal(revs[0].body, "가".repeat(100));
+  ok(await m1.c.from("daily_logs").update({ body: "짧게" }).eq("user_id", m1.id).eq("log_date", day));  // 크게 줄어듦
+  revs = ok(await m1.c.from("revisions").select("*").eq("kind", "journal").eq("item_key", day).order("created_at"));
+  assert.equal(revs.length, 2); assert.equal(revs[1].body, "가".repeat(100) + "나");
+  assert.equal(ok(await m2.c.from("revisions").select("*").eq("user_id", m1.id)).length, 0);       // 남의 이력은 못 본다
+  assert.equal(ok(await outside[0].c.from("revisions").select("*")).length, 0);
+  assert.equal((await m1.c.from("revisions").delete().eq("user_id", m1.id).select()).data?.length ?? 0, 0); // 이력은 지울 수 없다
+  // 노트: 지워도 이력에 남아 복구할 수 있다
+  const n = ok(await m1.c.from("research_notes").insert({ category: "방각본", title: "소중한 노트", body: "되돌릴 수 있어야 하는 글" }).select("id, rev").single());
+  ok(await m1.c.from("research_notes").delete().eq("id", n.id));
+  const del = ok(await m1.c.from("revisions").select("*").eq("kind", "note").eq("item_key", n.id));
+  assert.equal(del.length, 1); assert.equal(del[0].reason, "delete"); assert.equal(del[0].body, "되돌릴 수 있어야 하는 글"); assert.equal(del[0].category, "방각본");
+  // 다이어리도 마찬가지
+  const dd = ok(await m1.c.from("diary_entries").insert({ body: "지운 다이어리", title: "t" }).select("id").single());
+  ok(await m1.c.from("diary_entries").delete().eq("id", dd.id));
+  assert.equal(ok(await m1.c.from("revisions").select("*").eq("kind", "diary").eq("item_key", dd.id)).length, 1);
+  // 일지 공개: 기본은 나만, 내 마을을 골라 공개하면 그 마을 주민만 읽는다
+  assert.equal(ok(await m2.c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 0);
+  ok(await m1.c.from("daily_logs").update({ shared_villages: [village] }).eq("user_id", m1.id).eq("log_date", day));
+  const seen = ok(await m2.c.from("daily_logs").select("log_date, body").eq("user_id", m1.id));
+  assert.equal(seen.length, 1); assert.equal(seen[0].body, "짧게");
+  assert.equal(ok(await outside[0].c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 0);   // 마을 밖 사람은 못 읽는다
+  assert.equal((await m2.c.from("daily_logs").update({ body: "남이 고침" }).eq("user_id", m1.id).select()).data.length, 0);  // 읽기만 된다
+  ok(await m1.c.from("daily_logs").insert({ user_id: m1.id, log_date: "2026-11-21", body: "공개 안 한 일지" }));
+  assert.equal(ok(await m2.c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 1);           // 비공개 일지는 여전히 안 보인다
+  assert.ok((await m1.c.from("daily_logs").update({ shared_villages: [outside[0].id] }).eq("user_id", m1.id).eq("log_date", day)).error); // 내가 살지 않는 마을은 못 고른다
+  ok(await m1.c.from("daily_logs").update({ shared_villages: [] }).eq("user_id", m1.id).eq("log_date", day));
+  assert.equal(ok(await m2.c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 0);           // 공개를 끄면 바로 사라진다
+  // 충돌을 풀 때 쓰는 이력 저장 함수: 내 글만 남길 수 있고, 남의 글은 건드릴 수 없다
+  ok(await m1.c.rpc("snapshot_item", { p_kind: "journal", p_key: day }));
+  ok(await m1.c.rpc("snapshot_text", { p_kind: "journal", p_key: day, p_title: "", p_category: "", p_body: "내 쪽 글 보관" }));
+  const kept = ok(await m1.c.from("revisions").select("body").eq("kind", "journal").eq("item_key", day));
+  assert.ok(kept.some((r) => r.body === "내 쪽 글 보관"));
+  ok(await m2.c.rpc("snapshot_item", { p_kind: "journal", p_key: day }));                                  // 남의 일지는 이력이 생기지 않는다
+  assert.equal(ok(await m2.c.from("revisions").select("*")).filter((r) => r.item_key === day).length, 0);
+  assert.ok((await m1.c.rpc("snapshot_text", { p_kind: "x", p_key: "k", p_title: "", p_category: "", p_body: "" })).error);
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));
