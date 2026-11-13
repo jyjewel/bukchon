@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   output: "export",
   basePath,
   images: { unoptimized: true },
+  devIndicators: false, // 개발 중에만 보이는 동그란 표시가 화면 아래 메뉴를 가리지 않게
   turbopack: {
     rules: {
       "*.css": {
