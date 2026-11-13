@@ -92,7 +92,7 @@ dialog.window { border: none; overflow: visible; margin: auto; }
   gap: 0.5rem;
   padding: 2.5px 10px;
   border-bottom: 1px solid var(--color-ink);
-  background: #f0e9d6;   /* 모든 창 제목줄은 같은 연한 베이지. 종류는 왼쪽 네모 점 색으로만 구분 */
+  background: color-mix(in srgb, var(--tb, #ff9fb6) 42%, #fffcf3);   /* 창 종류별 색을 아주 연하게 푼 파스텔 */
   box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 0 rgb(58 42 51 / 0.12);
 }
 .titlebar h2 { letter-spacing: 0.5px; }
