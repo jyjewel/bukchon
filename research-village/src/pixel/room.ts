@@ -129,7 +129,6 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
       rect(g, x, y0 + 6, w, 1, "#fff8e4");
       x += w; n++;
     }
-    if (sIdx === 3) { rect(g, 124, y0 + 2, 7, 7, "#e08a5c"); disc(g, 127, y0 + 1, 3, 3, "#62b866"); }
     if (sIdx === 0 && opts.shelf.length === 0) { rect(g, 108, y0 + 3, 6, 6, "#fdfdfb"); rect(g, 109, y0 + 5, 4, 1, "#c9ced6"); }
   }
   rect(g, 103, 7, 32, 2, WOOD);
