@@ -5,6 +5,9 @@ import type { AppNotification, Resident, VillageInfo } from "@/lib/types";
 import { gestureOf, giftOf, reactionOf } from "@/lib/social";
 import { Window } from "./ui";
 
+/** 알림 문구 아래에 따로 보여 줄 글(포스트잇·댓글 내용 등). 코드값이 들어 있는 종류는 보여 주지 않는다. */
+export const showsSummary = (n: AppNotification) => ["postit", "comment", "journal_comment", "meeting"].includes(n.kind) && Boolean(n.summary);
+
 export function notifText(n: AppNotification, residents: Resident[], myId: string, names: Record<string, string> = {}): string {
   const nameOf = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? names[id];
   const actor = nameOf(n.actor_id) ?? "누군가";
@@ -36,7 +39,7 @@ export default function NotificationsView({
               <span className="mt-1 inline-block h-3 w-3 shrink-0" style={{ background: n.read_at ? "transparent" : "#d9547a" }} aria-hidden />
               <span className="min-w-0 flex-1">
                 <span className="block">{notifText(n, residents, myId, names)}{n.read_at ? "" : <span className="sr-only"> (새 알림)</span>}</span>
-                {n.summary && <span className="block truncate text-xs text-ink-soft">“{n.summary}”</span>}
+                {showsSummary(n) && <span className="block truncate text-xs text-ink-soft">“{n.summary}”</span>}
                 <span className="text-xs text-ink-soft">{relativeTime(n.created_at)}{n.village_id !== villageId && villages.length > 1 ? ` · ${villages.find((x) => x.id === n.village_id)?.name ?? "다른 마을"}` : ""}</span>
               </span>
             </button>

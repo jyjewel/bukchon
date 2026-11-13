@@ -331,3 +331,16 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 .lab-main textarea.big-write { min-height: 44vh; font-size: 1.0625rem; line-height: 1.85; padding: 14px 16px; }
 .lab-main { padding-bottom: 8px; }
 .lab-focus textarea.big-write { min-height: calc(100vh - 230px); font-size: 1.125rem; padding: 20px 26px; }
+
+/* ── 폰에서 쓰기 편하게 ── */
+@media (max-width: 1023px) {
+  /* 아이폰은 16px 보다 작은 입력칸을 누르면 화면이 저절로 확대된다 */
+  .input, select, textarea, input { font-size: 16px; }
+  .lab-main textarea.big-write { min-height: 52vh; }
+}
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; padding-left: 12px; padding-right: 12px; }
+  input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; }
+  .scene-char { min-width: 40px; min-height: 52px; }
+}

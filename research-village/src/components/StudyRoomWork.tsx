@@ -64,14 +64,14 @@ export default function StudyRoomWork({
         </Modal>
       )}
       {!focus && (
-        <div className="space-y-4">
+        <div className="order-2 space-y-4 lg:order-1">
           <Window title={`${me.profile.display_name}의 연구실`} tone="butter">
             <button type="button" onClick={() => setRoomView("view")} aria-label="연구실 크게 보기" className="block w-full cursor-pointer">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} />
             </button>
             <p className="px-2 pt-1 text-center text-xs text-ink-soft">그림을 누르면 크게 보고 꾸밀 수 있어요</p>
-            <nav aria-label="연구실 항목" className="space-y-1 p-2">
+            <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {SECTIONS.map((s) => (
                 <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
                   className={`card block w-[calc(100%-6px)] px-3 py-2 text-left font-display ${section === s.id ? "card-on" : "hover:bg-[#fff3c4]"}`}>
@@ -83,7 +83,15 @@ export default function StudyRoomWork({
         </div>
       )}
 
-      <div className="min-w-0">
+      <div className="order-1 min-w-0 lg:order-2">
+        {!focus && (
+          <nav aria-label="연구실 항목 (폰)" className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:hidden">
+            {SECTIONS.map((s) => (
+              <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
+                className={`btn shrink-0 whitespace-nowrap ${section === s.id ? "btn-primary" : ""}`}>{s.label}</button>
+            ))}
+          </nav>
+        )}
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
@@ -96,7 +104,7 @@ export default function StudyRoomWork({
       </div>
 
       {!focus && (
-        <div className="space-y-4">
+        <div className="order-3 space-y-4">
           <Window title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} /></Window>
           <Window title="할 일" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </div>

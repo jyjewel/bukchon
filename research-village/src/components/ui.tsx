@@ -56,7 +56,7 @@ export function Modal({
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
-      className={`window m-auto w-[calc(100%-1.5rem)] p-0 text-ink backdrop:bg-ink/40 ${wide ? "max-w-3xl" : "max-w-md"}`}
+      className={`window m-auto w-[calc(100%-1.5rem)] p-0 text-ink backdrop:bg-ink/40 max-sm:mb-0 max-sm:mt-auto max-sm:w-full max-sm:max-w-none ${wide ? "sm:max-w-3xl" : "sm:max-w-md"}`}
     >
       <div className="titlebar" style={{ "--tb": TONES[tone] } as React.CSSProperties}>
         <h2 id={id} className="flex-1 truncate">{title}</h2>

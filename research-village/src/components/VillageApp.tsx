@@ -8,7 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { STATUS_META, STATUS_ORDER, VILLAGE_CAPACITY } from "@/lib/constants";
 import { errorMessage, supabase } from "@/lib/supabase";
 import type { AppNotification, BoardTab, Conversation, ResearchState, Resident } from "@/lib/types";
-import NotificationsView, { notifText } from "./NotificationsView";
+import NotificationsView, { notifText, showsSummary } from "./NotificationsView";
 import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
@@ -163,7 +163,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
   const others = v.residents.filter((r) => r.user_id !== me.user_id);
 
   return (
-    <div className="mx-auto max-w-[1500px] space-y-5 p-3 sm:p-4">
+    <div className="mx-auto max-w-[1500px] space-y-4 p-3 pb-24 sm:p-4 sm:pb-24 lg:space-y-5 lg:pb-4">
       <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff3c4" }}>
         <div className="flex items-baseline gap-2">
           <h1 className="font-display text-xl">연구자 마을</h1>
@@ -179,7 +179,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
             <span aria-hidden className="pointer-events-none absolute right-0 flex flex-col text-[8px] leading-[8px] text-rose-deep"><span>▲</span><span>▼</span></span>
           </span>
         </div>
-        <nav aria-label="주 메뉴" className="flex basis-full flex-wrap gap-2 sm:flex-1 sm:basis-auto">
+        <nav aria-label="주 메뉴" className="flex basis-full flex-wrap gap-2 max-lg:hidden sm:flex-1 sm:basis-auto">
           {NAV.map((n) => (
             <button key={n.id} type="button" aria-current={view === n.id ? "page" : undefined} className={`btn ${view === n.id ? "btn-primary" : ""}`} onClick={() => go(n.id)}>
               {n.label}
@@ -194,12 +194,28 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
           <button type="button" aria-current={view === "settings" ? "page" : undefined} className={`btn ${view === "settings" ? "btn-primary" : ""}`} onClick={() => setView("settings")}>설정</button>
         </nav>
       </header>
+      <nav aria-label="하단 메뉴" className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink bg-[#fff3c4] lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)", boxShadow: "0 -2px 0 0 rgb(58 42 51 / 0.12)" }}>
+        {([
+          ["home", "홈", () => go("home"), 0],
+          ["room", "연구실", () => go("room"), 0],
+          ["library", "도서관", () => go("library"), 0],
+          ["chat", "대화", () => openChat(chatId), chat.badge],
+          ["alerts", "알림", () => setView("alerts"), notifs.unread],
+          ["settings", "설정", () => setView("settings"), 0],
+        ] as [View, string, () => void, number][]).map(([id, label, onClick, badge]) => (
+          <button key={id} type="button" aria-current={view === id || (id === "room" && view === "visit") ? "page" : undefined} onClick={onClick}
+            className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center font-display text-[13px] ${view === id || (id === "room" && view === "visit") ? "bg-[#ff9fb6]" : ""}`}>
+            {label}
+            {badge > 0 && <span className="chip absolute right-1.5 top-1" style={{ background: "#d9547a", color: "#fff", ["--bd" as string]: "#3a2a33", padding: "0 4px" }} aria-label={`새 ${label} ${badge}개`}>{badge}</span>}
+          </button>
+        ))}
+      </nav>
       {notice && <Notice kind="error">{notice}</Notice>}
 
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
       {view === "home" && (
         <main className="grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)_276px]">
-          <div className="order-2 space-y-4 lg:order-1">
+          <div className="order-3 space-y-4 lg:order-1">
             <Window title="내 프로필" icon="" tone="lilac" as="aside">
               <div className="flex items-center gap-3 p-3">
                 <button type="button" onClick={() => setSelected(me.user_id)} aria-label="내 프로필 보기" className="card px-2 pt-1">
@@ -258,8 +274,8 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
 
           <div className="order-1 min-w-0 space-y-4 lg:order-2">
             <Window title={village.name} icon="" tone="sky">
-              <div className="overflow-x-auto">
-                <div className="min-w-[648px]">
+              <div>
+                <div>
                   <VillageScene
                     houses={v.houses}
                     residents={v.residents}
@@ -285,7 +301,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
             <ShoutBoard villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
           </div>
 
-          <div className="order-3 space-y-4">
+          <div className="order-2 space-y-4 lg:order-3">
             <Window title="마을 주민" icon="" tone="rose" as="aside">
               <ul className="space-y-1 p-2">
                 {others.map((r) => (
@@ -338,7 +354,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
               <>
                 <p className="font-display">새 알림</p>
                 <p>{notifText(toast.n, v.residents, me.user_id, notifs.names)}</p>
-                {toast.n.summary && <p className="text-xs text-ink-soft">“{toast.n.summary}”</p>}
+                {showsSummary(toast.n) && <p className="text-xs text-ink-soft">“{toast.n.summary}”</p>}
               </>
             ) : (
               <>
