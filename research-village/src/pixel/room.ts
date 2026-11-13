@@ -37,11 +37,12 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     for (let y = 54; y < ROOM_H; y += 7) for (let x = 0; x < ROOM_W; x += 14) if (((x / 14) + ((y - 54) / 7)) % 2 === 0) rect(g, x, y, 14, 7, "#e2ddcf");
     for (let y = 54; y < ROOM_H; y += 7) rect(g, 0, y, ROOM_W, 1, "#cfc9b8");
     for (let x = 0; x < ROOM_W; x += 14) rect(g, x, 54, 1, 30, "#cfc9b8");
-  } else if (st.floor === "tatami") {
-    rect(g, 0, 54, ROOM_W, 30, "#cdd596");
-    for (let y = 56; y < ROOM_H; y += 3) rect(g, 0, y, ROOM_W, 1, "#c0c986");
-    for (let x = 0; x < ROOM_W; x += 36) { rect(g, x, 54, 1, 30, "#8d9657"); rect(g, x + 1, 54, 1, 30, "#e3e9b8"); }
-    rect(g, 0, 69, ROOM_W, 1, "#8d9657");
+  } else if (st.floor === "jangpan") {
+    // 온돌 장판: 누르스름한 장판지, 긴 이음선과 은은한 윤기
+    rect(g, 0, 54, ROOM_W, 30, "#dcae55");
+    for (let x = 0; x < ROOM_W; x += 24) { rect(g, x, 54, 1, 30, "#b98a36"); rect(g, x + 1, 54, 1, 30, "#e9c680"); }
+    for (let y = 58; y < ROOM_H; y += 9) for (let x = (y % 18 ? 6 : 14); x < ROOM_W; x += 24) { rect(g, x, y, 5, 1, "#e9c680"); }
+    for (let i = 0; i < 30; i++) px(g, Math.floor(r() * ROOM_W), 55 + Math.floor(r() * 28), "#cf9f48");
   } else {
     const dark = st.floor === "dark";
     const base = dark ? "#a87850" : "#dfb57f", line = dark ? "#8a5f3c" : "#c79a63", speck = dark ? "#b98a5e" : "#ecc892";
@@ -179,15 +180,49 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     stamp(g, av, 60, 26 + (opts.studying && opts.frame % 2 ? 1 : 0));
   }
 
-  // 책상
-  rect(g, 50, 46, 44, 3, WOOD_L); rect(g, 50, 48, 44, 1, WOOD);
-  rect(g, 52, 49, 40, 4, WOOD_D); rect(g, 78, 50, 10, 2, WOOD); px(g, 83, 51, "#ffd65c");
-  rect(g, 53, 53, 3, 14, WOOD); rect(g, 88, 53, 3, 14, WOOD); rect(g, 55, 53, 1, 14, WOOD_D); rect(g, 90, 53, 1, 14, WOOD_D);
-  // 책상 위: 책, 머그, 스탠드
-  rect(g, 66, 44, 6, 2, "#ffffff"); rect(g, 72, 44, 6, 2, "#f1ead8"); px(g, 71, 43, "#ffffff"); px(g, 72, 43, "#f1ead8");
-  for (const lx of [67, 69, 74, 76]) px(g, lx, 45, "#b9c2d4");
-  rect(g, 54, 42, 4, 4, "#ffffff"); px(g, 58, 43, "#ffffff"); px(g, 58, 44, "#ffffff"); rect(g, 54, 42, 4, 1, "#8a5a3a");
-  if (opts.studying && opts.frame % 2 === 0) { px(g, 55, 39, "#ffffff"); px(g, 56, 37, "#ffffff"); }
+  // 책상 (원목 / 시스템 책상(흰색))
+  const system = st.desk === "system";
+  const top = system ? "#fbfbf9" : WOOD_L, edge = system ? "#cfd2d8" : WOOD, apron = system ? "#eceef2" : WOOD_D, leg = system ? "#e2e4e9" : WOOD, legD = system ? "#b8bcc6" : WOOD_D;
+  rect(g, 50, 46, 44, 3, top); rect(g, 50, 48, 44, 1, edge);
+  rect(g, 52, 49, 40, 4, apron);
+  if (system) { rect(g, 78, 50, 10, 2, "#cfd2d8"); px(g, 82, 50, "#ffffff"); } else { rect(g, 78, 50, 10, 2, WOOD); px(g, 83, 51, "#ffd65c"); }
+  rect(g, 53, 53, 3, 14, leg); rect(g, 88, 53, 3, 14, leg); rect(g, 55, 53, 1, 14, legD); rect(g, 90, 53, 1, 14, legD);
+  if (system) { rect(g, 53, 66, 3, 1, "#8a8f9a"); rect(g, 88, 66, 3, 1, "#8a8f9a"); }
+  // 자개 명패: 검은 옻칠 바탕에 자개 조각을 박은 명패 (책상 앞판)
+  if (st.extras.includes("nameplate")) {
+    rect(g, 62, 49, 15, 4, "#2a2030"); rect(g, 62, 49, 15, 1, "#caa24e"); rect(g, 62, 52, 15, 1, "#caa24e");
+    const pearl = ["#f6c7e0", "#bfe9e3", "#fff6c9", "#c9d6f6"];
+    for (let i = 0; i < 6; i++) { px(g, 64 + i * 2, 50 + (i % 2), pearl[i % 4]); px(g, 65 + i * 2, 51 - (i % 2), pearl[(i + 2) % 4]); }
+  }
+  // 책상 위: 고른 물건을 왼쪽부터 놓는다 (스탠드는 늘 있다)
+  const W: Record<string, number> = { mug: 5, notebook: 8, books: 11, laptop: 14, paper: 9, munbang: 10 };
+  const order = ["mug", "notebook", "laptop", "books", "paper", "munbang"].filter((k) => st.deskItems.includes(k));
+  let cx = 54;
+  for (const k of order) {
+    const w = W[k], x = Math.min(cx, 81 - w);
+    if (k === "mug") {
+      rect(g, x, 42, 4, 4, "#ffffff"); px(g, x + 4, 43, "#ffffff"); px(g, x + 4, 44, "#ffffff"); rect(g, x, 42, 4, 1, "#8a5a3a");
+      if (opts.studying && opts.frame % 2 === 0) { px(g, x + 1, 39, "#ffffff"); px(g, x + 2, 37, "#ffffff"); }
+    } else if (k === "books") {
+      rect(g, x, 44, 6, 2, "#ffffff"); rect(g, x + 6, 44, 5, 2, "#f1ead8"); px(g, x + 5, 43, "#ffffff"); px(g, x + 6, 43, "#f1ead8");
+      for (const lx of [1, 3, 8, 10]) px(g, x + lx, 45, "#b9c2d4");
+    } else if (k === "notebook") {
+      rect(g, x, 43, 8, 3, "#c5504c"); rect(g, x, 43, 8, 1, "#e07a74"); rect(g, x + 1, 45, 6, 1, "#fff8e4"); rect(g, x, 43, 1, 3, "#8e302e");
+    } else if (k === "laptop") {
+      // 사용자 쪽에서 보이는 노트북 뒷면(뚜껑)
+      rect(g, x + 1, 38, 12, 7, "#b9bdc7"); rect(g, x + 1, 38, 12, 1, "#d6d9e0"); rect(g, x + 1, 44, 12, 1, "#8e93a0");
+      rect(g, x + 6, 40, 3, 3, "#dfe2e8"); px(g, x + 7, 41, "#b9bdc7");
+      rect(g, x, 45, 14, 1, "#9aa0ad");
+    } else if (k === "paper") {
+      rect(g, x + 1, 44, 8, 2, "#ffffff"); rect(g, x, 45, 8, 1, "#e6e6e6"); rect(g, x + 2, 44, 3, 1, "#c9ced6"); rect(g, x + 6, 45, 2, 1, "#c9ced6");
+    } else if (k === "munbang") {
+      // 문방사우: 벼루·먹·붓
+      rect(g, x, 44, 6, 2, "#2a2a31"); rect(g, x + 1, 44, 3, 1, "#4a4a55"); px(g, x + 2, 44, "#15151a");
+      rect(g, x + 6, 45, 3, 1, "#15151a"); px(g, x + 8, 45, "#caa24e");
+      rect(g, x + 1, 41, 1, 3, "#8a5a3a"); px(g, x + 1, 40, "#3a2a33"); px(g, x + 1, 44, "#3a2a33");
+    }
+    cx += w + 1;
+  }
   rect(g, 87, 44, 5, 2, "#5a5568"); rect(g, 89, 36, 1, 8, "#5a5568"); rect(g, 85, 35, 5, 1, "#5a5568");
   rect(g, 82, 36, 6, 3, opts.studying ? "#ffe07a" : "#e9e2c8"); rect(g, 81, 39, 8, 1, "#5a5568");
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
