@@ -130,7 +130,7 @@ export default function SettingsView({
     URL.revokeObjectURL(a.href);
   };
   const leave = async () => {
-    if (!window.confirm("정말 이 마을을 떠날까요? 이 마을에 남긴 다이어리가 지워지고 집이 비게 돼요.")) return;
+    if (!window.confirm("정말 이 마을을 떠날까요? 이 마을의 집이 비고 대화 기록이 지워져요. 내 연구실·다이어리·일지는 그대로 남아요.")) return;
     const { error } = await supabase().rpc("leave_village", { p_village: village.id });
     if (error) return setError(errorMessage(error));
     await reloadVillage();
@@ -160,7 +160,7 @@ export default function SettingsView({
         </Window>
       </div>
       <div className="space-y-4">
-        <Window title="집 꾸미기" icon="" tone="mint">
+        <Window title={`집 꾸미기 · ${village.name}`} icon="" tone="mint">
           <div className="space-y-3 p-3">
             <HousePicker value={houseTypeOf(me.house.style)} onChange={(t) => void setHouseType(t)} />
           </div>

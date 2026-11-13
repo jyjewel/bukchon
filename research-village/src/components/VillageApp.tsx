@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
 import { useChat } from "@/hooks/useChat";
@@ -35,7 +35,17 @@ function StatusChip({ r }: { r: Resident }) {
   return <span className="chip" style={{ background: `${meta.color}33` }}><StatusIcon state={r.shown} scale={1} className="!h-[10px] !w-[10px]" /> {meta.label}</span>;
 }
 
-export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAuth>; v: ReturnType<typeof useVillage> }) {
+interface Props {
+  auth: ReturnType<typeof useAuth>;
+  v: ReturnType<typeof useVillage>;
+  onAddVillage: () => void;
+  /** 다른 마을에서 온 알림을 열려고 마을을 옮겨 온 경우, 옮긴 뒤 이어서 열 알림 */
+  pendingOpen: AppNotification | null;
+  onPendingHandled: () => void;
+  onOpenInOtherVillage: (n: AppNotification) => void;
+}
+
+export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendingHandled, onOpenInOtherVillage }: Props) {
   const me = v.me!;
   const village = v.village!;
   const profile = auth.profile!;
@@ -87,6 +97,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
   const openNotification = (n: AppNotification) => {
     void notifs.markRead([n.id]);
     setToast(null);
+    if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
     if (n.kind === "meeting") return setView("library");
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
     visit(n.room_owner_id, "whiteboard");
@@ -108,6 +119,14 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
     void v.setStatus(p === "library" ? "library" : "rest");
     if (p === "library") setView("library");
   };
+  const pendingDone = useRef(false);
+  useEffect(() => {
+    if (pendingDone.current || !pendingOpen || pendingOpen.village_id !== village.id) return;
+    pendingDone.current = true;
+    onPendingHandled();
+    openNotification(pendingOpen);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 마을을 옮겨 온 직후 한 번만 연다
+  }, []);
   const go = (id: View) => (id === "room" ? enterRoom(false) : setView(id));
   const emptyHouses = VILLAGE_CAPACITY - v.residents.length;
   const others = v.residents.filter((r) => r.user_id !== me.user_id);
@@ -117,7 +136,13 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
       <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff3c4" }}>
         <div className="flex items-baseline gap-2">
           <h1 className="font-display text-xl">연구자 마을</h1>
-          <p className="font-display text-sm text-rose-deep">{village.name}</p>
+          <select
+            aria-label="마을 바꾸기" value={village.id} className="input font-display !w-auto !py-0 text-sm text-rose-deep"
+            onChange={(e) => (e.target.value === "__add" ? onAddVillage() : void v.switchVillage(e.target.value))}
+          >
+            {v.villages.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            <option value="__add">＋ 다른 마을 추가</option>
+          </select>
         </div>
         <nav aria-label="주 메뉴" className="flex basis-full flex-wrap gap-2 sm:flex-1 sm:basis-auto">
           {NAV.map((n) => (
@@ -252,16 +277,16 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} tab={tab} onTab={setTab} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
-          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} villageId={village.id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} /></main>
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
       {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
-      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
+      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
       {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} /></main>}
 
       {selectedResident && (
@@ -274,7 +299,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
             {toast.kind === "notif" ? (
               <>
                 <p className="font-display">새 알림</p>
-                <p>{notifText(toast.n, v.residents, me.user_id)}</p>
+                <p>{notifText(toast.n, v.residents, me.user_id, notifs.names)}</p>
                 {toast.n.summary && <p className="text-xs text-ink-soft">“{toast.n.summary}”</p>}
               </>
             ) : (

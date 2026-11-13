@@ -7,6 +7,7 @@ import AuthScreen from "./AuthScreen";
 import ProfileForm from "./ProfileForm";
 import VillageGate from "./VillageGate";
 import VillageApp from "./VillageApp";
+import type { AppNotification } from "@/lib/types";
 import { Window } from "./ui";
 
 const INVITE_KEY = "rv.invite";
@@ -77,6 +78,8 @@ function Configured() {
   const auth = useAuth();
   const invite = useInviteCode();
   const village = useVillage(auth.userId, auth.session?.access_token ?? null);
+  const [adding, setAdding] = useState(false); // 다른 마을 추가(입주·만들기) 화면
+  const [pendingOpen, setPendingOpen] = useState<AppNotification | null>(null); // 다른 마을의 알림을 열려고 마을을 옮기는 중
 
   if (!auth.ready) return <Loading />;
   if (!auth.session || !auth.userId) return <Splash><AuthScreen hasInvite={Boolean(invite.code)} /></Splash>;
@@ -93,12 +96,29 @@ function Configured() {
     );
   }
   if (village.loading) return <Loading />;
-  if (!village.village || !village.me) {
+  const inVillage = Boolean(village.village && village.me);
+  // 초대 링크로 들어오면(이미 마을이 있어도) 입주 화면을 먼저 보여 준다.
+  if (!inVillage || adding || invite.code) {
+    const back = () => { invite.clear(); setAdding(false); };
     return (
       <Splash>
-        <VillageGate inviteCode={invite.code} onClearInvite={invite.clear} onDone={() => { invite.clear(); void village.reload(); }} />
+        <VillageGate
+          inviteCode={invite.code}
+          onClearInvite={invite.clear}
+          onCancel={inVillage ? back : undefined}
+          onDone={(id) => { back(); void village.switchVillage(id); }}
+        />
       </Splash>
     );
   }
-  return <VillageApp auth={auth} v={village} />;
+  return (
+    <VillageApp
+      auth={auth}
+      v={village}
+      onAddVillage={() => setAdding(true)}
+      pendingOpen={pendingOpen}
+      onPendingHandled={() => setPendingOpen(null)}
+      onOpenInOtherVillage={(n) => { setPendingOpen(n); void village.switchVillage(n.village_id); }}
+    />
+  );
 }

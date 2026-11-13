@@ -40,6 +40,12 @@ export interface Profile {
   onboarded: boolean;
 }
 
+export interface VillageInfo {
+  id: string;
+  name: string;
+  role: "admin" | "member";
+}
+
 export interface Village {
   id: string;
   name: string;
@@ -83,7 +89,6 @@ export interface Resident {
 
 export interface DiaryEntry {
   id: string;
-  village_id: string;
   author_id: string;
   kind: DiaryKind;
   title: string;
@@ -98,7 +103,6 @@ export type AchievementKind = "article" | "book" | "thesis" | "presentation" | "
 
 export interface WhiteboardItem {
   id: string;
-  village_id: string;
   owner_id: string;
   body: string;
   resolved: boolean;
@@ -107,14 +111,12 @@ export interface WhiteboardItem {
 export interface WhiteboardComment {
   id: string;
   item_id: string;
-  village_id: string;
   author_id: string;
   body: string;
   created_at: string;
 }
 export interface Postit {
   id: string;
-  village_id: string;
   owner_id: string;
   author_id: string;
   body: string;
@@ -123,7 +125,6 @@ export interface Postit {
 }
 export interface Achievement {
   id: string;
-  village_id: string;
   owner_id: string;
   title: string;
   kind: AchievementKind;

@@ -4,8 +4,8 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { VILLAGE_CAPACITY } from "@/lib/constants";
 import { Notice, Window } from "./ui";
 
-/** 아직 마을이 없는 사용자: 초대장으로 입주하거나 새 마을을 만든다. */
-export default function VillageGate({ inviteCode, onClearInvite, onDone }: { inviteCode: string; onClearInvite: () => void; onDone: () => void }) {
+/** 초대장으로 입주하거나 새 마을을 만든다. (이미 마을이 있는 사람은 onCancel 로 돌아갈 수 있다. 마을은 최대 5개.) */
+export default function VillageGate({ inviteCode, onClearInvite, onDone, onCancel }: { inviteCode: string; onClearInvite: () => void; onDone: (villageId: string) => void; onCancel?: () => void }) {
   const [code, setCode] = useState(inviteCode);
   const [preview, setPreview] = useState<{ village_name: string; member_count: number; valid: boolean } | null | "none">(null);
   const [name, setName] = useState("");
@@ -24,10 +24,10 @@ export default function VillageGate({ inviteCode, onClearInvite, onDone }: { inv
   const run = async (fn: "join_village" | "create_village", args: Record<string, string>) => {
     setBusy(true);
     setError("");
-    const { error } = await supabase().rpc(fn, args);
+    const { data, error } = await supabase().rpc(fn, args);
     setBusy(false);
     if (error) setError(errorMessage(error));
-    else onDone();
+    else onDone(data as string);
   };
   const join = (e: FormEvent) => {
     e.preventDefault();
@@ -72,7 +72,9 @@ export default function VillageGate({ inviteCode, onClearInvite, onDone }: { inv
         </form>
       </Window>
       <p className="text-center">
-        <button type="button" className="text-sm text-ink-soft underline" onClick={() => supabase().auth.signOut()}>로그아웃</button>
+        {onCancel
+          ? <button type="button" className="btn" onClick={onCancel}>◀ 돌아가기</button>
+          : <button type="button" className="text-sm text-ink-soft underline" onClick={() => supabase().auth.signOut()}>로그아웃</button>}
       </p>
     </>
   );

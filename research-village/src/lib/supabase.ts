@@ -19,7 +19,8 @@ export function supabase(): SupabaseClient {
 const ERRORS: Record<string, string> = {
   village_full: "이 마을은 이미 6명이 모두 살고 있어요.",
   invalid_invite: "초대 링크가 올바르지 않거나 만료되었어요. 마을 관리자에게 새 링크를 부탁해 보세요.",
-  already_in_village: "이미 다른 마을에 살고 있어요. 지금은 한 마을에만 살 수 있어요.",
+  already_in_village: "이미 다른 마을에 살고 있어요.",
+  too_many_villages: "한 계정은 마을을 최대 5개까지 만들거나 들어갈 수 있어요.",
   not_admin: "마을 관리자만 할 수 있는 일이에요.",
   not_member: "이 마을의 주민이 아니에요.",
   not_available: "지금은 대화를 받을 수 있는 상태가 아니에요. 집 앞 책상에 나와 있는 주민에게만 신청할 수 있어요.",

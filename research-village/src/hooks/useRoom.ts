@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { Achievement, Postit, WhiteboardComment, WhiteboardItem } from "@/lib/types";
 
 /** 한 연구실(ownerId)의 화이트보드·포스트잇·책장을 불러오고 실시간으로 갱신한다. */
-export function useRoom(ownerId: string, villageId: string, enabled = true) {
+export function useRoom(ownerId: string, enabled = true) {
   const [items, setItems] = useState<WhiteboardItem[]>([]);
   const [comments, setComments] = useState<WhiteboardComment[]>([]);
   const [postits, setPostits] = useState<Postit[]>([]);
@@ -15,9 +15,9 @@ export function useRoom(ownerId: string, villageId: string, enabled = true) {
     if (!enabled) return;
     const sb = supabase();
     const [i, p, a] = await Promise.all([
-      sb.from("whiteboard_items").select("*").eq("village_id", villageId).eq("owner_id", ownerId).order("created_at", { ascending: false }),
-      sb.from("postits").select("*").eq("village_id", villageId).eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(60),
-      sb.from("achievements").select("*").eq("village_id", villageId).eq("owner_id", ownerId).order("created_at", { ascending: false }),
+      sb.from("whiteboard_items").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }),
+      sb.from("postits").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(60),
+      sb.from("achievements").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }),
     ]);
     if (i.error || p.error || a.error) return;
     const ids = (i.data ?? []).map((x) => x.id as string);
@@ -28,7 +28,7 @@ export function useRoom(ownerId: string, villageId: string, enabled = true) {
     setAchievements(a.data as Achievement[]);
     setComments(c.data as WhiteboardComment[]);
     setLoaded(true);
-  }, [ownerId, villageId, enabled]);
+  }, [ownerId, enabled]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -41,7 +41,7 @@ export function useRoom(ownerId: string, villageId: string, enabled = true) {
       timer = setTimeout(() => void load(), 200);
     };
     const channel = sb
-      .channel(`room:${villageId}:${ownerId}:${Math.random().toString(36).slice(2, 8)}`)
+      .channel(`room:${ownerId}:${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_items" }, again)
       .on("postgres_changes", { event: "*", schema: "public", table: "whiteboard_comments" }, again)
       .on("postgres_changes", { event: "*", schema: "public", table: "postits" }, again)
@@ -53,7 +53,7 @@ export function useRoom(ownerId: string, villageId: string, enabled = true) {
       clearInterval(poll);
       void sb.removeChannel(channel);
     };
-  }, [load, ownerId, villageId, enabled]);
+  }, [load, ownerId, enabled]);
 
   return { items, comments, postits, achievements, loaded, reload: load };
 }
