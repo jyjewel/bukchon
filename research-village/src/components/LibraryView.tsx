@@ -61,7 +61,7 @@ export default function LibraryView({
                   const n = lib.entries.filter((e) => e.book_id === b.id).length;
                   return (
                     <button key={b.id} type="button" aria-pressed={bookId === b.id} aria-label={`${b.title} — ${n}편${b.status === "finished" ? ", 완결" : ""}`} onClick={() => setBookId(b.id)}
-                      className="px-box mb-2 flex w-9 items-center justify-center whitespace-nowrap py-2 text-[12px] leading-none" style={{ height: 116 + Math.min(n, 12) * 5, background: spineColor(b.id), color: "#3a2a33", writingMode: "vertical-rl", ["--px" as string]: "2px", ["--bd" as string]: bookId === b.id ? "#fff8e4" : "#3a2a33" }}>
+                      className="px-box mb-2 flex w-9 items-center justify-center whitespace-nowrap py-2 text-[12px] leading-none" style={{ height: 116 + Math.min(n, 12) * 5, background: spineColor(b.id), color: "#3a2a33", writingMode: "vertical-rl", ["--px" as string]: "1px", ["--bd" as string]: bookId === b.id ? "#fff8e4" : "#3a2a33" }}>
                       <span className="max-h-full overflow-hidden">{b.title}</span>
                     </button>
                   );

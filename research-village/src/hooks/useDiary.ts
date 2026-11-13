@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { DiaryEntry } from "@/lib/types";
 
-/** 내가 볼 수 있는 다이어리(공개 범위는 DB의 RLS가 걸러 준다)를 최신순으로 불러온다. */
+/** 내가 볼 수 있는 다이어리(본인 글만 RLS 로 돌려받는다)를 최신순으로 불러온다. */
 export function useDiary(villageId: string | null) {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loaded, setLoaded] = useState(false);

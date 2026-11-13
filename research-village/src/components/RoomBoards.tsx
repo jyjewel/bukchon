@@ -41,7 +41,7 @@ export default function RoomBoards({
         <textarea id="pi-new" className="input" rows={2} maxLength={140} value={pi} onChange={(e) => setPi(e.target.value)} placeholder="응원, 질문, 읽어 볼 만한 자료…" />
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="포스트잇 색">
           {POSTIT_COLORS.map((c) => (
-            <button key={c} type="button" aria-label={`색 ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} className="px-box m-[3px] h-6 w-6" style={{ background: c, ["--bd" as string]: color === c ? "#3a2a33" : "#d9c39a" }} />
+            <button key={c} type="button" aria-label={`색 ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} className="px-box m-[1px] h-6 w-6" style={{ background: c, ["--bd" as string]: color === c ? "#3a2a33" : "#d9c39a" }} />
           ))}
           <span className="flex-1" />
           <span className="text-xs text-ink-soft">{pi.length}/140</span>
@@ -51,7 +51,7 @@ export default function RoomBoards({
       <>
           {room.postits.length > 0 && <ul className="px-box grid gap-3 p-3 sm:grid-cols-2" style={{ background: "#fdfdfb", ["--bd" as string]: "#8a8fa3" }}>
             {room.postits.map((p, i) => (
-              <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "2px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
+              <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "1px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
                 <p className="whitespace-pre-wrap break-words">{p.body}</p>
                 <p className="mt-1 text-xs">— {who(p.author_id)} · {relativeTime(p.created_at)}</p>
                 {(p.author_id === myId || isOwner) && (
@@ -188,7 +188,7 @@ export default function RoomBoards({
   const count = { whiteboard: room.items.length + room.postits.length, shelf: room.achievements.length };
   return (
     <div>
-      <div role="tablist" aria-label="연구실 게시판" className="flex flex-wrap border-b-[3px] border-ink bg-[#fff3c4] px-1 pt-1">
+      <div role="tablist" aria-label="연구실 게시판" className="flex flex-wrap border-b border-ink bg-[#fff3c4] px-1 pt-1">
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => onTab(t.id)} className={`btn btn-sm ${tab === t.id ? "btn-primary" : ""}`}>
             {t.label}{room.loaded ? ` ${count[t.id]}` : ""}

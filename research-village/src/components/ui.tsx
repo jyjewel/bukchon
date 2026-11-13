@@ -74,7 +74,7 @@ export function Swatches({
             aria-label={`${label} ${c}`}
             aria-pressed={value === c}
             onClick={() => onChange(c)}
-            className={`px-box m-[3px] h-6 w-6 ${value === c ? "outline-[3px] outline-offset-[-6px] outline-white outline-solid" : "[--bd:#d9c39a]"}`}
+            className={`px-box m-[1px] h-6 w-6 ${value === c ? "outline-[3px] outline-offset-[-6px] outline-white outline-solid" : "[--bd:#d9c39a]"}`}
             style={{ background: c }}
           />
         ))}

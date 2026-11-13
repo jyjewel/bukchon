@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
-import { useDiary } from "@/hooks/useDiary";
 import { useChat } from "@/hooks/useChat";
 import { useLibrary } from "@/hooks/useLibrary";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -18,17 +17,16 @@ import SayBox from "./SayBox";
 import PlazaNews from "./PlazaNews";
 import ChatView from "./ChatView";
 import LibraryView from "./LibraryView";
-import DiaryView, { EntryCard } from "./DiaryView";
+import ShoutBoard from "./ShoutBoard";
 import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
 import { Notice, Window } from "./ui";
 
-type View = "home" | "room" | "visit" | "library" | "chat" | "diary" | "alerts" | "settings";
+type View = "home" | "room" | "visit" | "library" | "chat" | "alerts" | "settings";
 type Toast = { kind: "notif"; n: AppNotification } | { kind: "chat"; conv: Conversation };
 const NAV: { id: View; label: string }[] = [
   { id: "home", label: "마을 홈" },
   { id: "room", label: "내 연구실" },
-  { id: "diary", label: "다이어리" },
   { id: "library", label: "도서관" },
 ];
 
@@ -59,7 +57,6 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
     const t = setTimeout(() => setToast(null), 7000);
     return () => clearTimeout(t);
   }, [toast]);
-  const diary = useDiary(village.id);
   const selectedResident = v.residents.find((r) => r.user_id === selected) ?? null;
   const byId = new Map(v.residents.map((r) => [r.user_id, r]));
 
@@ -223,12 +220,7 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
                 </div>
               </div>
             </Window>
-            <Window title="다이어리 업데이트" icon="" tone="butter" actions={<button type="button" className="btn btn-sm" onClick={() => setView("diary")}>모두 보기</button>}>
-              <div className="grid gap-2 p-3 sm:grid-cols-2">
-                {diary.entries.slice(0, 4).map((e) => <EntryCard key={e.id} entry={e} author={byId.get(e.author_id)} mine={e.author_id === me.user_id} compact />)}
-                {diary.loaded && diary.entries.length === 0 && <p className="text-sm text-ink-soft sm:col-span-2">아직 마을에 올라온 기록이 없어요.</p>}
-              </div>
-            </Window>
+            <ShoutBoard villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
           </div>
 
           <div className="order-3 space-y-4">
@@ -270,11 +262,10 @@ export default function VillageApp({ auth, v }: { auth: ReturnType<typeof useAut
       {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
       {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} onOpen={openNotification} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
-      {view === "diary" && <main><DiaryView villageId={village.id} myId={me.user_id} residents={v.residents} entries={diary.entries} reload={diary.reload} /></main>}
       {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} /></main>}
 
       {selectedResident && (
-        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} entries={diary.entries} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} />
+        <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} />
       )}
       {newsOpen && <PlazaNews villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} onClose={() => setNewsOpen(false)} />}
       {toast && !(toast.kind === "notif" && view === "alerts") && !(toast.kind === "chat" && view === "chat" && chatId === toast.conv.id) && (

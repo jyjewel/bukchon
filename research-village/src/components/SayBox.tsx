@@ -11,7 +11,7 @@ export default function SayBox({ current, onSay }: { current: string; onSay: (te
     if (t && t !== current) await onSay(t);
   };
   return (
-    <form onSubmit={submit} className="border-t-[3px] border-dotted border-line p-3">
+    <form onSubmit={submit} className="border-t border-dotted border-line p-3">
       <label className="label" htmlFor="say-input">오늘의 말풍선</label>
       <input id="say-input" className="input" maxLength={SAY_MAX} value={text} onChange={(e) => setText(e.target.value)} placeholder="점심 먹고 올게요!" autoComplete="off" />
       <div className="flex gap-1">

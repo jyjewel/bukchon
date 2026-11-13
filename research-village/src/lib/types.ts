@@ -216,3 +216,11 @@ export interface NewsPost {
   deadline: string | null;
   created_at: string;
 }
+
+export interface Shout {
+  id: string;
+  village_id: string;
+  author_id: string | null;
+  body: string;
+  created_at: string;
+}
