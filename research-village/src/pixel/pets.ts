@@ -16,25 +16,27 @@ const INK = "#3a2a33";
 
 export function petSprite(kind: string): Grid | null {
   if (kind === "baby") {
+    // 기저귀 입은 아기: 큰 둥근 머리에 뾰족한 머리 한 가닥(분홍 방울), 점 눈, 발그레한 볼, 앉아서 두 손을 모은 모습
     return sprite([
-      ".......t",
-      "......tt",
-      "..sssstt",
+      ".......r",
+      "......ss",
+      "....ssss",
+      "..ssssss",
       ".sssssss",
       "ssssssss",
-      "sskkssss",
-      "sshkssss",
-      "sppsssss",
-      "sssssmmm",
+      "ssssssss",
+      "ssskssss",
+      "ssssssss",
+      "spsssssm",
       ".sssssss",
-      ".ssssss.",
-      "ssswwwww",
-      "sswwwwww",
-      "swwgwwww",
-      ".wwwwwyw",
-      ".ssswwww",
-      ".ss.....",
-    ], { s: "#f8d3b0", k: INK, h: "#ffffff", p: "#f4a3a3", t: "#5a3a22", m: "#c0504d", w: "#ffffff", g: "#d8dee9", y: "#f2c64e" });
+      "..ssssss",
+      "..sssdds",
+      "..ssssss",
+      ".wwwwwww",
+      ".wwwgwwy",
+      ".wwwwwww",
+      "..ss....",
+    ], { s: "#f6cba6", k: INK, p: "#f4a3a3", r: "#f06a7a", m: "#c0504d", d: "#e3a982", w: "#ffffff", g: "#d8dee9", y: "#f2c64e" });
   }
   return null;
 }
