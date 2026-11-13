@@ -30,6 +30,18 @@ export interface HouseStyle {
   type?: HouseType;
 }
 
+/** 연구실 안쪽 꾸미기 (선택지는 lib/labStyle.ts) */
+export interface LabStyle {
+  wall: string;
+  pattern: string;
+  floor: string;
+  accent: string;
+  rug: string;
+  view: string;
+  pet: string;
+  extras: string[];
+}
+
 export interface Profile {
   id: string;
   display_name: string;
@@ -38,6 +50,8 @@ export interface Profile {
   keywords: string[];
   avatar: Avatar;
   onboarded: boolean;
+  /** 저장된 연구실 꾸미기(없으면 기본). normalizeLabStyle 로 읽는다 */
+  lab_style?: unknown;
 }
 
 export interface VillageInfo {

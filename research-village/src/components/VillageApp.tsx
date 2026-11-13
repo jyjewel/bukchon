@@ -281,7 +281,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} tab={tab} onTab={setTab} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} tab={tab} onTab={setTab} onDecorate={() => setView("settings")} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (

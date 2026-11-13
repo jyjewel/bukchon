@@ -1,6 +1,7 @@
 import type { DayPhase } from "@/lib/time";
-import type { Avatar } from "@/lib/types";
+import type { Avatar, LabStyle } from "@/lib/types";
 import { ACHIEVEMENT_KINDS } from "@/lib/constants";
+import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { avatarGrid } from "./avatar";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
@@ -8,38 +9,69 @@ export const ROOM_W = 144;
 export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 
-/** 내 연구실 내부. 집 꾸미기 색(벽·지붕)이 벽지와 커튼·러그에 쓰인다. */
-export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[] }): Grid {
-  const wall = "#fff5e1";
-  const accent = "#e0605a"; // 빨간 지붕과 어울리는 커튼·러그 색
+/** 연구실 내부. 꾸미기 설정(style)이 벽지·바닥·커튼·러그·창밖 풍경·반려동물·소품에 쓰인다. */
+export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[]; style?: LabStyle }): Grid {
+  const st = opts.style ?? DEFAULT_LAB_STYLE;
+  const wall = st.wall;
+  const accent = st.accent; // 커튼·러그 색
   const g = grid(ROOM_W, ROOM_H);
   const r = rng(opts.slot + 3);
 
   // 벽지
   rect(g, 0, 0, ROOM_W, 54, wall);
-  for (let x = 4; x < ROOM_W; x += 8) rect(g, x, 0, 2, 44, shade(wall, 10));
-  for (let x = 0; x < ROOM_W; x += 8) for (let y = 5; y < 42; y += 10) px(g, x + (y % 20 ? 0 : 4), y, shade(wall, -22));
+  if (st.pattern === "stripe") {
+    for (let x = 4; x < ROOM_W; x += 8) rect(g, x, 0, 2, 44, shade(wall, 10));
+    for (let x = 0; x < ROOM_W; x += 8) for (let y = 5; y < 42; y += 10) px(g, x + (y % 20 ? 0 : 4), y, shade(wall, -22));
+  } else if (st.pattern === "dots") {
+    for (let y = 4; y < 42; y += 8) for (let x = (y % 16 ? 0 : 4); x < ROOM_W; x += 8) { px(g, x, y, shade(wall, -26)); px(g, x + 1, y, shade(wall, -26)); px(g, x, y + 1, shade(wall, -26)); px(g, x + 1, y + 1, shade(wall, -26)); }
+  } else if (st.pattern === "check") {
+    for (let y = 0; y < 43; y += 6) for (let x = 0; x < ROOM_W; x += 6) if (((x / 6) + (y / 6)) % 2 === 0) rect(g, x, y, 6, Math.min(6, 43 - y), shade(wall, -9));
+  }
   rect(g, 0, 43, ROOM_W, 1, shade(wall, -40));
   rect(g, 0, 44, ROOM_W, 10, WOOD_L);
   for (let x = 0; x < ROOM_W; x += 9) rect(g, x, 45, 1, 8, WOOD);
   rect(g, 0, 52, ROOM_W, 2, WOOD_D);
-  // 마루
-  rect(g, 0, 54, ROOM_W, 30, "#dfb57f");
-  for (let y = 54; y < ROOM_H; y += 6) {
-    rect(g, 0, y, ROOM_W, 1, "#c79a63");
-    for (let x = (y % 12 ? 10 : 0); x < ROOM_W; x += 22) rect(g, x, y, 1, 6, "#c79a63");
+  // 바닥
+  if (st.floor === "tile") {
+    rect(g, 0, 54, ROOM_W, 30, "#f0ece2");
+    for (let y = 54; y < ROOM_H; y += 7) for (let x = 0; x < ROOM_W; x += 14) if (((x / 14) + ((y - 54) / 7)) % 2 === 0) rect(g, x, y, 14, 7, "#e2ddcf");
+    for (let y = 54; y < ROOM_H; y += 7) rect(g, 0, y, ROOM_W, 1, "#cfc9b8");
+    for (let x = 0; x < ROOM_W; x += 14) rect(g, x, 54, 1, 30, "#cfc9b8");
+  } else if (st.floor === "tatami") {
+    rect(g, 0, 54, ROOM_W, 30, "#cdd596");
+    for (let y = 56; y < ROOM_H; y += 3) rect(g, 0, y, ROOM_W, 1, "#c0c986");
+    for (let x = 0; x < ROOM_W; x += 36) { rect(g, x, 54, 1, 30, "#8d9657"); rect(g, x + 1, 54, 1, 30, "#e3e9b8"); }
+    rect(g, 0, 69, ROOM_W, 1, "#8d9657");
+  } else {
+    const dark = st.floor === "dark";
+    const base = dark ? "#a87850" : "#dfb57f", line = dark ? "#8a5f3c" : "#c79a63", speck = dark ? "#b98a5e" : "#ecc892";
+    rect(g, 0, 54, ROOM_W, 30, base);
+    for (let y = 54; y < ROOM_H; y += 6) {
+      rect(g, 0, y, ROOM_W, 1, line);
+      for (let x = (y % 12 ? 10 : 0); x < ROOM_W; x += 22) rect(g, x, y, 1, 6, line);
+    }
+    for (let i = 0; i < 40; i++) px(g, Math.floor(r() * ROOM_W), 55 + Math.floor(r() * 28), speck);
   }
-  for (let i = 0; i < 40; i++) px(g, Math.floor(r() * ROOM_W), 55 + Math.floor(r() * 28), "#ecc892");
 
-  // 창문
-  const sky = { day: "#a6dcf7", dawn: "#f9cdb8", dusk: "#f6a97c", night: "#2f3b73" }[opts.phase];
+  // 창문 (창밖 풍경: 시간 따라 / 맑은 낮 / 별 밤 / 비 / 눈 / 벚꽃)
+  const view = st.view === "auto" ? opts.phase : st.view;
+  const sky = { day: "#a6dcf7", dawn: "#f9cdb8", dusk: "#f6a97c", night: "#2f3b73", rain: "#8fa0b4", snow: "#c3d6ea", sakura: "#bfe6f7" }[view] ?? "#a6dcf7";
   rect(g, 11, 9, 34, 30, WOOD_D);
   rect(g, 13, 11, 30, 26, sky);
-  if (opts.phase === "night") {
+  if (view === "night") {
     disc(g, 35, 17, 3, 3, "#fff3b0"); px(g, 36, 16, sky); px(g, 37, 16, sky);
     for (const [sx, sy] of [[17, 14], [24, 20], [20, 29], [30, 26], [39, 30]]) px(g, sx, sy, "#fff8d6");
+  } else if (view === "rain") {
+    rect(g, 14, 13, 12, 3, "#6f7e92"); rect(g, 17, 11, 8, 2, "#6f7e92"); rect(g, 30, 14, 12, 3, "#6f7e92"); rect(g, 33, 12, 7, 2, "#6f7e92");
+    for (let y = 19; y < 36; y += 4) for (let x = 15 + ((y / 4) % 2) * 2; x < 42; x += 5) { px(g, x, y, "#d6e6f5"); px(g, x - 1, y + 1, "#d6e6f5"); }
+  } else if (view === "snow") {
+    rect(g, 13, 33, 30, 4, "#ffffff");
+    for (let y = 13; y < 33; y += 4) for (let x = 15 + ((y / 4) % 2) * 3; x < 42; x += 6) px(g, x, y, "#ffffff");
+  } else if (view === "sakura") {
+    rect(g, 13, 16, 14, 2, "#7a4a3a"); rect(g, 22, 14, 2, 4, "#7a4a3a"); rect(g, 13, 20, 8, 1, "#7a4a3a");
+    for (const [bx, by] of [[15, 14], [19, 13], [24, 12], [17, 18], [14, 22], [21, 17], [28, 22], [34, 28], [38, 20], [30, 33], [22, 30]]) { px(g, bx, by, "#ffb7c9"); px(g, bx + 1, by, "#ffd6e0"); px(g, bx, by + 1, "#ffd6e0"); }
   } else {
-    disc(g, 34, 17, 3, 3, opts.phase === "day" ? "#fff3b0" : "#ffd98a");
+    disc(g, 34, 17, 3, 3, view === "day" ? "#fff3b0" : "#ffd98a");
     rect(g, 16, 24, 9, 2, "#ffffff"); rect(g, 18, 22, 5, 2, "#ffffff"); rect(g, 30, 29, 8, 2, "#ffffff");
   }
   rect(g, 27, 11, 2, 26, WOOD_D); rect(g, 13, 23, 30, 2, WOOD_D);
@@ -101,15 +133,42 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   rect(g, 103, 7, 32, 2, WOOD);
 
   // 러그
-  disc(g, 72, 72, 36, 8, shade(accent, 26));
-  disc(g, 72, 72, 32, 6, accent);
-  disc(g, 72, 72, 26, 4, shade(accent, 26));
-  for (let x = 40; x < 105; x += 4) { px(g, x, 72, shade(accent, -30)); }
+  if (st.rug === "square") {
+    rect(g, 38, 62, 68, 20, shade(accent, 26));
+    rect(g, 40, 64, 64, 16, accent);
+    rect(g, 44, 67, 56, 10, shade(accent, 26));
+    for (let x = 48; x < 98; x += 4) { px(g, x, 72, shade(accent, -30)); px(g, x + 2, 70, shade(accent, -30)); px(g, x + 2, 74, shade(accent, -30)); }
+    for (let y = 63; y < 81; y += 3) { px(g, 37, y, shade(accent, -20)); px(g, 106, y, shade(accent, -20)); }
+  } else {
+    disc(g, 72, 72, 36, 8, shade(accent, 26));
+    disc(g, 72, 72, 32, 6, accent);
+    disc(g, 72, 72, 26, 4, shade(accent, 26));
+    for (let x = 40; x < 105; x += 4) { px(g, x, 72, shade(accent, -30)); }
+  }
 
-  // 화분
-  rect(g, 93, 60, 9, 8, "#e08a5c"); rect(g, 92, 59, 11, 2, "#c96f45"); rect(g, 100, 61, 2, 7, "#c96f45");
-  disc(g, 97, 52, 5, 5, "#62b866"); disc(g, 93, 55, 3, 3, "#4f9a54"); disc(g, 101, 56, 3, 3, "#7fcf74");
-  px(g, 96, 50, "#a3e08f"); px(g, 99, 53, "#a3e08f"); px(g, 97, 58, "#3f8a4e");
+  // 소품 (꾸미기에서 고른 것)
+  if (st.extras.includes("plant")) {
+    rect(g, 93, 60, 9, 8, "#e08a5c"); rect(g, 92, 59, 11, 2, "#c96f45"); rect(g, 100, 61, 2, 7, "#c96f45");
+    disc(g, 97, 52, 5, 5, "#62b866"); disc(g, 93, 55, 3, 3, "#4f9a54"); disc(g, 101, 56, 3, 3, "#7fcf74");
+    px(g, 96, 50, "#a3e08f"); px(g, 99, 53, "#a3e08f"); px(g, 97, 58, "#3f8a4e");
+  }
+  if (st.extras.includes("bigplant")) {
+    rect(g, 3, 64, 10, 9, "#e08a5c"); rect(g, 2, 63, 12, 2, "#c96f45"); rect(g, 11, 65, 2, 8, "#c96f45");
+    rect(g, 7, 52, 2, 12, "#3f8a4e");
+    disc(g, 8, 50, 6, 7, "#4f9a54"); disc(g, 4, 54, 4, 5, "#62b866"); disc(g, 12, 55, 4, 5, "#7fcf74"); disc(g, 8, 45, 4, 4, "#62b866");
+    px(g, 6, 47, "#a3e08f"); px(g, 10, 52, "#a3e08f"); px(g, 4, 54, "#a3e08f");
+  }
+  if (st.extras.includes("beanbag")) {
+    disc(g, 23, 77, 10, 5, shade(accent, -30));
+    disc(g, 23, 75, 9, 5, shade(accent, 10)); disc(g, 22, 73, 6, 3, shade(accent, 38));
+    px(g, 19, 72, "#ffffff"); px(g, 20, 72, "#ffffff");
+  }
+  if (st.extras.includes("globe")) {
+    rect(g, 40, 76, 8, 1, WOOD_D); rect(g, 43, 71, 2, 5, WOOD_D);
+    disc(g, 44, 66, 5, 5, "#5f8fd6"); px(g, 42, 64, "#62b866"); px(g, 43, 64, "#62b866"); px(g, 43, 65, "#62b866");
+    px(g, 46, 67, "#62b866"); px(g, 47, 67, "#62b866"); px(g, 46, 68, "#62b866"); px(g, 42, 63, "#a9d8f5");
+    rect(g, 39, 61, 1, 10, WOOD_D); px(g, 40, 61, WOOD_D);
+  }
 
   // 의자
   rect(g, 65, 33, 14, 15, WOOD); rect(g, 67, 35, 10, 5, WOOD_L); rect(g, 65, 46, 14, 2, WOOD_D);
@@ -133,11 +192,20 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   rect(g, 82, 36, 6, 3, opts.studying ? "#ffe07a" : "#e9e2c8"); rect(g, 81, 39, 8, 1, "#5a5568");
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
 
-  // 러그 위 고양이
-  const cat = grid(13, 8);
-  rect(cat, 2, 3, 9, 4, "#f2c98a"); rect(cat, 1, 2, 4, 4, "#f2c98a"); px(cat, 1, 1, "#f2c98a"); px(cat, 4, 1, "#f2c98a");
-  rect(cat, 6, 3, 2, 4, "#e0a45c"); rect(cat, 9, 3, 1, 4, "#e0a45c"); px(cat, 11, 5, "#f2c98a"); px(cat, 11, 4, "#e0a45c");
-  px(cat, 2, 4, "#3a2a33"); px(cat, 4, 4, "#3a2a33"); px(cat, 3, 5, "#f29aa8");
-  stamp(g, outline(cat), 104, 70);
+  // 러그 위 반려동물
+  if (st.pet === "cat") {
+    const cat = grid(13, 8);
+    rect(cat, 2, 3, 9, 4, "#f2c98a"); rect(cat, 1, 2, 4, 4, "#f2c98a"); px(cat, 1, 1, "#f2c98a"); px(cat, 4, 1, "#f2c98a");
+    rect(cat, 6, 3, 2, 4, "#e0a45c"); rect(cat, 9, 3, 1, 4, "#e0a45c"); px(cat, 11, 5, "#f2c98a"); px(cat, 11, 4, "#e0a45c");
+    px(cat, 2, 4, "#3a2a33"); px(cat, 4, 4, "#3a2a33"); px(cat, 3, 5, "#f29aa8");
+    stamp(g, outline(cat), 104, 70);
+  } else if (st.pet === "dog") {
+    const dog = grid(15, 9);
+    rect(dog, 3, 3, 9, 4, "#d9a066"); rect(dog, 1, 2, 5, 5, "#d9a066"); rect(dog, 1, 1, 2, 3, "#8a5a3a"); rect(dog, 5, 1, 1, 2, "#8a5a3a");
+    rect(dog, 7, 3, 3, 3, "#f3dcb4"); rect(dog, 3, 6, 2, 2, "#c58c52"); rect(dog, 9, 6, 2, 2, "#c58c52");
+    rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
+    px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
+    stamp(g, outline(dog), 103, 69);
+  }
   return g;
 }

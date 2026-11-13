@@ -4,7 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/types";
 
-export const PROFILE_COLUMNS = "id, display_name, field, bio, keywords, avatar, share_study_time, onboarded";
+export const PROFILE_COLUMNS = "id, display_name, field, bio, keywords, avatar, share_study_time, onboarded, lab_style";
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
