@@ -23,9 +23,11 @@ export interface Avatar {
   accessory?: string;
 }
 
+export type HouseType = "hut" | "office" | "classic" | "hanok";
+
 export interface HouseStyle {
-  roof?: string;
-  wall?: string;
+  /** 연구실 건물 종류. 없으면 기본 집 */
+  type?: HouseType;
 }
 
 export interface Profile {

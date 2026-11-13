@@ -1,6 +1,5 @@
-import { DEFAULT_ROOFS, WALLS } from "@/lib/constants";
 import type { Season } from "@/lib/time";
-import type { HouseStyle, ResearchState } from "@/lib/types";
+import type { HouseStyle, HouseType, ResearchState } from "@/lib/types";
 import { INK, disc, fade, fromRows, grid, hash, outline, px, rect, rng, shade, type Grid } from "./core";
 
 /** 마을 지도의 논리 해상도 (도트 단위) */
@@ -163,27 +162,51 @@ export function groundGrid(season: Season): Grid {
 // ───────────────────────── 건물·소품 ─────────────────────────
 export const HOUSE_W = 54;
 export const HOUSE_H = 64;
-/** 집. 바닥 가운데가 (27, 62). 창문 안쪽은 (11..20, 37..46) */
-export function houseGrid(slot: number, style: HouseStyle, opts: { lit: boolean; empty: boolean; mine: boolean }): Grid {
-  let roof = style.roof ?? DEFAULT_ROOFS[slot];
-  let wall = style.wall ?? WALLS[0];
-  let door = "#b0703f";
-  if (opts.empty) { roof = fade(roof); wall = fade(wall); door = "#a59a8c"; }
+
+export function houseTypeOf(style: HouseStyle): HouseType {
+  return style.type === "hut" || style.type === "office" || style.type === "hanok" ? style.type : "classic";
+}
+
+/** 건물 종류마다 다른 위치 정보 (그림 좌표 기준, 바닥 가운데가 (27, 62)) */
+export const HOUSE_META: Record<HouseType, { window: { x: number; y: number }; smoke: { x: number; y: number } | null; bubble: { x: number; y: number } }> = {
+  classic: { window: { x: 11, y: 37 }, smoke: { x: 40, y: 3 }, bubble: { x: 9, y: 20 } },
+  hut: { window: { x: 14, y: 41 }, smoke: { x: 27, y: 15 }, bubble: { x: 8, y: 30 } },
+  office: { window: { x: 11, y: 37 }, smoke: null, bubble: { x: 9, y: 22 } },
+  hanok: { window: { x: 12, y: 37 }, smoke: { x: 45, y: 5 }, bubble: { x: 9, y: 21 } },
+};
+
+type HouseOpts = { lit: boolean; empty: boolean; mine: boolean };
+const RED = "#e0605a";
+
+/** 건물을 모두 그린 뒤, 빈 집이면 색을 바랜 회색으로 바꾼다 */
+function finish(g: Grid, opts: HouseOpts, flag: { x: number; top: number; height: number }): Grid {
+  if (opts.empty) for (let i = 0; i < g.d.length; i++) if (g.d[i]) g.d[i] = fade(g.d[i]!);
+  if (opts.mine) {
+    rect(g, flag.x, flag.top, 1, flag.height, WOOD_D);
+    rect(g, flag.x + 1, flag.top, 6, 4, "#ff8fab"); px(g, flag.x + 6, flag.top, null); px(g, flag.x + 6, flag.top + 3, null);
+    px(g, flag.x + 7, flag.top + 1, "#ff8fab"); px(g, flag.x + 7, flag.top + 2, "#ff8fab");
+    rect(g, flag.x + 1, flag.top + 3, 5, 1, "#e0607f");
+  }
+  return outline(g);
+}
+function glow(lit: boolean) { return lit ? { glass: "#ffe07a", hi: "#fff4bf", lo: "#ffcf5c" } : { glass: "#66769c", hi: "#8191b6", lo: "#66769c" }; }
+
+/** 기본 집: 빨간 지붕에 크림색 벽. 창문 안쪽은 (11..20, 37..46) */
+function classicGrid(opts: HouseOpts): Grid {
+  const roof = RED, wall = "#fff5e1", door = "#b0703f";
   const roofD = shade(roof, -38), roofL = shade(roof, 34), wallD = shade(wall, -30), wallL = shade(wall, 14);
   const g = grid(HOUSE_W, HOUSE_H);
   const top = 9;
-  // 굴뚝
+  const w = glow(opts.lit);
   rect(g, 37, top - 3, 7, 14, "#c98a6b");
   rect(g, 36, top - 4, 9, 2, "#a86a52");
   for (let y = top; y < top + 10; y += 3) rect(g, 37, y, 7, 1, "#b5775c");
-  // 벽
   rect(g, 6, top + 21, 42, 30, wall);
   rect(g, 6, top + 21, 42, 3, wallD);
   for (let y = top + 28; y < top + 48; y += 6) for (let x = 7; x < 47; x++) if (hash(x >> 3, y) > 0.55) px(g, x, y, wallL);
   rect(g, 45, top + 24, 3, 27, wallD);
   rect(g, 6, top + 49, 42, 3, STONE_D);
   for (let x = 8; x < 48; x += 6) px(g, x, top + 50, STONE);
-  // 지붕
   for (let y = 0; y <= 21; y++) {
     const inset = Math.round(((21 - y) * 10) / 21);
     for (let x = 2 + inset; x <= 51 - inset; x++) {
@@ -197,18 +220,15 @@ export function houseGrid(slot: number, style: HouseStyle, opts: { lit: boolean;
     }
   }
   rect(g, 2, top + 20, 50, 2, shade(roof, -60));
-  // 창문
   rect(g, 10, top + 27, 12, 12, WOOD_D);
-  rect(g, 11, top + 28, 10, 10, opts.lit ? "#ffe07a" : "#66769c");
-  if (opts.lit) { rect(g, 11, top + 28, 4, 4, "#fff4bf"); rect(g, 17, top + 34, 4, 4, "#ffcf5c"); }
-  else { rect(g, 11, top + 28, 4, 2, "#8191b6"); }
+  rect(g, 11, top + 28, 10, 10, w.glass);
+  if (opts.lit) { rect(g, 11, top + 28, 4, 4, w.hi); rect(g, 17, top + 34, 4, 4, w.lo); } else rect(g, 11, top + 28, 4, 2, w.hi);
   rect(g, 9, top + 39, 14, 2, WOOD_L);
   rect(g, 10, top + 41, 12, 2, WOOD);
   if (!opts.empty) {
     for (let i = 0; i < 6; i++) px(g, 10 + i * 2 + (i % 2), top + 39 - (i % 2), ["#ff9ab5", "#ffd65c", "#ffffff"][i % 3]);
     for (let i = 0; i < 6; i++) px(g, 11 + i * 2, top + 40, "#62b866");
   }
-  // 문
   rect(g, 30, top + 32, 12, 20, WOOD_D);
   rect(g, 31, top + 33, 10, 19, door);
   px(g, 30, top + 32, null); px(g, 41, top + 32, null); px(g, 31, top + 33, WOOD_D); px(g, 40, top + 33, WOOD_D);
@@ -216,12 +236,146 @@ export function houseGrid(slot: number, style: HouseStyle, opts: { lit: boolean;
   rect(g, 33, top + 44, 6, 6, shade(door, -18));
   px(g, 39, top + 43, "#ffd65c"); px(g, 39, top + 44, "#d9a23a");
   rect(g, 28, top + 52, 16, 1, STONE_L);
-  if (opts.mine) {
-    rect(g, 9, 1, 1, top + 3, WOOD_D);
-    rect(g, 10, 1, 6, 4, "#ff8fab"); px(g, 15, 1, null); px(g, 15, 4, null); px(g, 16, 2, "#ff8fab"); px(g, 16, 3, "#ff8fab");
-    rect(g, 10, 4, 5, 1, "#e0607f");
+  return finish(g, opts, { x: 9, top: 1, height: top + 3 });
+}
+
+/** 움집: 짚으로 두껍게 이은 둥근 초가지붕에 붉은 새끼줄. 창은 (14..23, 41..50) */
+function hutGrid(opts: HouseOpts): Grid {
+  const g = grid(HOUSE_W, HOUSE_H);
+  const straw = "#dcb868", strawL = "#efd48e", strawD = "#b8944a", rope = "#c0504d";
+  const w = glow(opts.lit);
+  // 초가지붕(원뿔)
+  for (let y = 22; y <= 58; y++) {
+    const hw = 3 + Math.round(((y - 22) * 23) / 36);
+    for (let x = 27 - hw; x <= 27 + hw; x++) {
+      let c = straw;
+      if ((x + y * 2) % 7 === 0) c = strawD;
+      else if ((x * 3 + y) % 11 === 0) c = strawL;
+      if (x === 27 - hw || x === 27 - hw + 1) c = strawL;
+      if (x === 27 + hw || x === 27 + hw - 1) c = strawD;
+      px(g, x, y, c);
+    }
   }
-  return outline(g);
+  for (const y of [30, 40, 50]) { const hw = 3 + Math.round(((y - 22) * 23) / 36); rect(g, 27 - hw, y, hw * 2 + 1, 2, rope); }
+  // 꼭대기 서까래와 연기 구멍
+  rect(g, 26, 17, 3, 6, WOOD_D); rect(g, 24, 19, 7, 1, WOOD); px(g, 25, 18, WOOD); px(g, 29, 18, WOOD);
+  // 바닥 돌
+  for (let x = 2; x < 52; x += 5) rect(g, x, 57, 4, 3, hash(x, 5) > 0.5 ? STONE : STONE_D);
+  rect(g, 2, 59, 50, 2, STONE_D);
+  // 창
+  rect(g, 13, 40, 12, 12, WOOD_D);
+  for (const [x, y] of [[13, 40], [24, 40], [13, 51], [24, 51]]) px(g, x, y, null);
+  rect(g, 14, 41, 10, 10, w.glass);
+  for (const [x, y] of [[14, 41], [23, 41], [14, 50], [23, 50]]) px(g, x, y, WOOD_D);
+  if (opts.lit) { rect(g, 15, 42, 3, 3, w.hi); rect(g, 19, 46, 4, 4, w.lo); } else rect(g, 15, 42, 3, 2, w.hi);
+  px(g, 18, 41, WOOD_D); rect(g, 18, 41, 1, 10, WOOD_D); rect(g, 14, 45, 10, 1, WOOD_D);
+  // 문(출입구)
+  rect(g, 29, 43, 14, 2, WOOD); rect(g, 30, 45, 12, 14, WOOD_D);
+  rect(g, 31, 46, 10, 13, opts.lit ? "#6a4a2a" : "#2f2420");
+  if (opts.lit) { rect(g, 33, 49, 6, 8, "#ffcf5c"); rect(g, 34, 50, 4, 5, "#fff4bf"); }
+  rect(g, 28, 59, 16, 1, STONE_L);
+  return finish(g, opts, { x: 27, top: 9, height: 9 });
+}
+
+/** 현대식 사무실 건물: 유리창이 줄지어 있고 빨간 띠와 차양이 있다. 큰 창은 (11..20, 37..46) */
+function officeGrid(opts: HouseOpts): Grid {
+  const g = grid(HOUSE_W, HOUSE_H);
+  const wall = "#cfd6de", wallD = "#b3bcc8", steel = "#4a5a6a";
+  rect(g, 6, 10, 42, 50, wall);
+  rect(g, 44, 10, 4, 50, wallD);
+  for (let y = 12; y < 58; y += 5) for (let x = 7; x < 44; x++) if (hash(x >> 2, y) > 0.8) px(g, x, y, "#dde3ea");
+  // 옥상 난간·실외기·안테나
+  rect(g, 5, 6, 44, 4, "#aab4c0"); rect(g, 5, 6, 44, 1, "#e6ebf0");
+  rect(g, 34, 1, 9, 5, "#8a93a0"); rect(g, 36, 2, 5, 3, "#6a7380"); px(g, 38, 3, "#c9ced6");
+  rect(g, 12, 0, 1, 6, "#6a7380");
+  rect(g, 6, 10, 42, 2, RED);                     // 빨간 띠
+  // 위층 창
+  const lightPane = (x: number, y: number, w: number, h: number, i: number) => {
+    const on = opts.lit && hash(x, y + i) > 0.35;
+    rect(g, x - 1, y - 1, w + 2, h + 2, steel);
+    rect(g, x, y, w, h, on ? "#ffe9a3" : "#a8d6ee");
+    rect(g, x, y, 2, h, on ? "#fff4cf" : "#d6effa");
+    rect(g, x + w - 3, y + h - 2, 3, 2, on ? "#ffd45c" : "#7fb6d4");
+  };
+  let i = 0;
+  for (const y of [16, 27]) for (const x of [9, 20, 31]) lightPane(x, y, 8, 8, i++);
+  rect(g, 41, 16, 4, 19, "#a8d6ee"); rect(g, 40, 15, 6, 1, steel); rect(g, 40, 35, 6, 1, steel);
+  // 1층 큰 창 (집 안 모습이 비치는 창)
+  const w = glow(opts.lit);
+  rect(g, 10, 36, 12, 12, steel);
+  rect(g, 11, 37, 10, 10, opts.lit ? w.glass : "#a8d6ee");
+  if (opts.lit) { rect(g, 11, 37, 4, 4, w.hi); rect(g, 17, 43, 4, 4, w.lo); } else { rect(g, 11, 37, 2, 10, "#d6effa"); rect(g, 13, 37, 1, 4, "#d6effa"); }
+  rect(g, 16, 37, 1, 10, steel);
+  // 유리문과 차양
+  rect(g, 28, 38, 16, 3, RED);
+  for (let x = 28; x < 44; x += 4) rect(g, x, 38, 2, 3, shade(RED, 40));
+  rect(g, 29, 41, 14, 18, steel);
+  rect(g, 30, 42, 6, 17, opts.lit ? "#ffe9a3" : "#a8d6ee"); rect(g, 37, 42, 5, 17, opts.lit ? "#ffe9a3" : "#a8d6ee");
+  rect(g, 30, 42, 2, 17, opts.lit ? "#fff4cf" : "#d6effa");
+  px(g, 35, 49, "#e8e8f0"); px(g, 37, 49, "#e8e8f0");
+  rect(g, 6, 58, 42, 3, "#8a93a0"); rect(g, 28, 59, 16, 1, STONE_L);
+  return finish(g, opts, { x: 21, top: 0, height: 6 });
+}
+
+/** 한옥: 처마가 들린 기와지붕, 흰 벽과 나무 기둥, 창호 격자. 창 안쪽은 (12..21, 37..46) */
+function hanokGrid(opts: HouseOpts): Grid {
+  const g = grid(HOUSE_W, HOUSE_H);
+  const tile = "#4d4a58", tileL = "#6a6678", tileD = "#35323f", plaster = "#f6efe2", plasterD = "#ddd2bc";
+  const w = glow(opts.lit);
+  // 굴뚝(지붕 뒤)
+  rect(g, 43, 12, 6, 20, "#9a8f85"); rect(g, 42, 10, 8, 3, "#7a6f65");
+  for (let y = 14; y < 30; y += 3) rect(g, 43, y, 6, 1, "#8a7f75");
+  // 벽
+  rect(g, 7, 31, 40, 28, plaster);
+  rect(g, 7, 31, 40, 3, plasterD);
+  for (const x of [6, 45]) rect(g, x, 31, 3, 28, WOOD_D);
+  rect(g, 26, 34, 2, 25, WOOD_D);
+  rect(g, 6, 31, 42, 3, "#8e5f3b");                   // 도리
+  rect(g, 6, 33, 42, 1, RED);                         // 붉은 단청 띠
+  for (let x = 8; x < 46; x += 4) px(g, x, 32, "#c98f5f");
+  rect(g, 5, 58, 44, 3, "#b4a999"); for (let x = 7; x < 48; x += 6) px(g, x, 59, STONE);
+  // 기와지붕
+  for (let y = 12; y <= 29; y++) {
+    const hw = 13 + Math.round(((y - 12) * 12) / 17);
+    for (let x = 27 - hw; x <= 27 + hw; x++) {
+      let c = tile;
+      if (x % 4 === 0) c = tileD;
+      else if ((x + 2) % 4 === 0) c = tileL;
+      if ((y - 12) % 4 === 3) c = tileD;
+      px(g, x, y, c);
+    }
+  }
+  rect(g, 14, 10, 26, 2, tileD); rect(g, 14, 10, 26, 1, tileL);      // 용마루
+  rect(g, 13, 8, 2, 3, tileD); rect(g, 39, 8, 2, 3, tileD);           // 치미
+  rect(g, 3, 28, 48, 3, tileD);                                         // 처마
+  for (let x = 4; x < 51; x += 3) px(g, x, 29, "#d9d2c4");            // 막새기와
+  for (const [x, y] of [[2, 27], [1, 26], [0, 25], [51, 27], [52, 26], [53, 25]]) px(g, x, y, tileD);
+  px(g, 3, 27, tileD); px(g, 50, 27, tileD);
+  // 창호
+  rect(g, 10, 35, 14, 13, WOOD_D);
+  rect(g, 12, 37, 10, 10, opts.lit ? w.glass : "#e9e3d2");
+  if (opts.lit) { rect(g, 12, 37, 4, 4, w.hi); rect(g, 18, 43, 4, 4, w.lo); }
+  for (let x = 14; x <= 20; x += 3) rect(g, x, 37, 1, 10, "#8e5f3b");
+  for (let y = 40; y <= 44; y += 3) rect(g, 12, y, 10, 1, "#8e5f3b");
+  rect(g, 10, 48, 14, 2, WOOD);
+  // 문 (격자 쌍여닫이)
+  rect(g, 30, 41, 12, 18, WOOD_D);
+  rect(g, 31, 42, 5, 16, opts.lit ? "#ffe9a8" : "#e8d8b0"); rect(g, 37, 42, 4, 16, opts.lit ? "#ffe9a8" : "#e8d8b0");
+  for (let y = 45; y < 58; y += 4) rect(g, 31, y, 10, 1, "#8e5f3b");
+  rect(g, 36, 42, 1, 16, WOOD_D);
+  px(g, 35, 50, RED); px(g, 37, 50, RED);
+  rect(g, 28, 59, 16, 1, STONE_L);
+  return finish(g, opts, { x: 14, top: 2, height: 9 });
+}
+
+/** 연구실 건물. 바닥 가운데가 (27, 62) */
+export function houseGrid(style: HouseStyle, opts: HouseOpts): Grid {
+  switch (houseTypeOf(style)) {
+    case "hut": return hutGrid(opts);
+    case "office": return officeGrid(opts);
+    case "hanok": return hanokGrid(opts);
+    default: return classicGrid(opts);
+  }
 }
 
 export const LIB_W = 104;

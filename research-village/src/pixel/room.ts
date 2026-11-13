@@ -1,6 +1,5 @@
-import { DEFAULT_ROOFS, WALLS } from "@/lib/constants";
 import type { DayPhase } from "@/lib/time";
-import type { Avatar, HouseStyle } from "@/lib/types";
+import type { Avatar } from "@/lib/types";
 import { ACHIEVEMENT_KINDS } from "@/lib/constants";
 import { avatarGrid } from "./avatar";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
@@ -10,9 +9,9 @@ export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 
 /** 내 연구실 내부. 집 꾸미기 색(벽·지붕)이 벽지와 커튼·러그에 쓰인다. */
-export function roomGrid(opts: { slot: number; style: HouseStyle; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[] }): Grid {
-  const wall = opts.style.wall ?? WALLS[0];
-  const accent = opts.style.roof ?? DEFAULT_ROOFS[opts.slot];
+export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[] }): Grid {
+  const wall = "#fff5e1";
+  const accent = "#e0605a"; // 빨간 지붕과 어울리는 커튼·러그 색
   const g = grid(ROOM_W, ROOM_H);
   const r = rng(opts.slot + 3);
 

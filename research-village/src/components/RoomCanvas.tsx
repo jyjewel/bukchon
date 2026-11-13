@@ -16,7 +16,7 @@ export default function RoomCanvas({
   owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; note?: string; onPick?: (t: BoardTab) => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const styleKey = JSON.stringify(owner.house.style), avatarKey = JSON.stringify(owner.profile.avatar);
+  const avatarKey = JSON.stringify(owner.profile.avatar);
   const pcKey = postitColors.join(","), shelfKey = shelf.join(",");
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
@@ -24,7 +24,7 @@ export default function RoomCanvas({
     let frame = 0;
     const draw = () => {
       paint(ctx, roomGrid({
-        slot: owner.slot, style: JSON.parse(styleKey), avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame,
+        slot: owner.slot, avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame,
         boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [],
       }), 0, 0);
       frame++;
@@ -33,7 +33,7 @@ export default function RoomCanvas({
     draw();
     const t = setInterval(draw, 700);
     return () => clearInterval(t);
-  }, [owner.slot, styleKey, avatarKey, inside, studying, boardCount, pcKey, shelfKey]);
+  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey]);
   return (
     <div className="relative">
       <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={`${owner.profile.display_name}의 연구실`} />
