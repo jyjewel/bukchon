@@ -39,3 +39,19 @@ export function petSprite(kind: string): Grid | null {
   }
   return null;
 }
+
+/** 위츄: 민트색 별 모양 캐릭터와 양옆의 푸른 별 박힌 구름 날개 (키링 속 그 모습). 책장 칸에 놓는 소품 */
+export function wichuSprite(): Grid {
+  return sprite([
+    ".........m",
+    "........mm",
+    "..cc....mm",
+    ".ccccmmmmm",
+    "cscccmmwkm",
+    "ccccCmpkkm",
+    ".CCCCmmmmm",
+    "..CC..ddd.",
+    "......dd..",
+  ], { m: "#98e6b4", d: "#6fc896", c: "#e4e9fb", C: "#b9c6ee", s: "#6a9be0", k: "#2b3a6b", w: "#ffffff", p: "#f7a8b8" },
+  (put) => { put(6, 3, "#c9f6d8"); put(13, 3, "#c9f6d8"); put(15, 3, "#6a9be0"); put(16, 2, "#e4e9fb"); put(17, 2, "#e4e9fb"); put(15, 4, "#e4e9fb"); }, 2);
+}

@@ -3,7 +3,7 @@ import type { Avatar, LabStyle } from "@/lib/types";
 import { ACHIEVEMENT_KINDS } from "@/lib/constants";
 import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { avatarGrid } from "./avatar";
-import { petSprite } from "./pets";
+import { petSprite, wichuSprite } from "./pets";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const ROOM_W = 144;
@@ -201,6 +201,11 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(g, X + 28, T + 6, 2, 3, "#d9232d"); px(g, X + 29, T + 7, GOLD);         // 앞쪽 배장기
     for (const cx of [X + 2, X + 6, X + 19, X + 23, X + 27]) { disc(g, cx, T + 8, 2.3, 2.3, GOLD); disc(g, cx, T + 8, 1.5, 1.5, "#d9232d"); px(g, cx, T + 8, "#f6d27a"); }
     rect(g, X + 19, T + 8, 9, 1, "#d9dde6");                                     // 은색 연결봉
+  }
+  if (st.extras.includes("wichu")) {
+    // 위츄: 책장 가운데 칸에 놓인 민트색 별 캐릭터
+    const wc = wichuSprite();
+    stamp(g, wc, 108, 31 - wc.h);
   }
   if (st.extras.includes("yunhoemae")) {
     // 윤회매: 붉은 매화(뜨개 꽃) 가지를 갈색 뜨개 화분에 꽂은 것. 책장 맨 위 칸에 놓인다.
