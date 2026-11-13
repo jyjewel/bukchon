@@ -4,7 +4,6 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { VILLAGE_CAPACITY } from "@/lib/constants";
 import type { HouseType, Profile, Resident, Village } from "@/lib/types";
 import { houseTypeOf } from "@/pixel/village";
-import LabDecorator from "./LabDecorator";
 import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
 import { Notice, Window } from "./ui";
@@ -165,9 +164,6 @@ export default function SettingsView({
           <div className="space-y-3 p-3">
             <HousePicker value={houseTypeOf(me.house.style)} onChange={(t) => void setHouseType(t)} />
           </div>
-        </Window>
-        <Window title="내 연구실 꾸미기" icon="" tone="butter">
-          <LabDecorator me={me} onSaved={async () => { await reloadProfile(); await reloadVillage(); }} />
         </Window>
         {me.role === "admin" && <AdminPanel village={village} residents={residents} myId={me.user_id} reload={reloadVillage} />}
         <Window title="내 데이터와 계정" icon="" tone="rose">
