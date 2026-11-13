@@ -12,7 +12,7 @@ import { Window } from "./ui";
 export default function RoomVisit({
   owner, myId, residents, tab, onTab, onBack, onProfile, give,
 }: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: Omit<React.ComponentProps<typeof GiveBox>, "name" | "nudgeDays"> }) {
-  const room = useRoom(owner.user_id);
+  const room = useRoom(owner.user_id, false);
   const meta = STATUS_META[owner.shown];
   const name = owner.profile.display_name;
   const inRoom = owner.shown === "focus";

@@ -449,7 +449,12 @@ await t("상호작용: 장난·선물·책 추천·일지 반응과 댓글·마�
   assert.ok((await outside[0].c.rpc("send_gesture", { p_village: village, p_target: m1.id, p_kind: "thesis" })).error);
   // 선물: 책상에 올라가는 커피
   ok(await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "coffee", p_note: "힘내요!" }));
-  assert.equal(ok(await m3.c.from("gifts").select("*").eq("to_user", m2.id)).length, 1);                           // 이웃은 책상 위 선물을 본다
+  assert.equal(ok(await m3.c.from("gifts").select("*").eq("to_user", m2.id)).length, 0);                           // 이웃은 보낸 사람·한마디를 못 본다
+  const desk = ok(await m3.c.rpc("desk_gifts", { p_owner: m2.id }));                                               // 책상 위 선물은 종류만 보인다
+  assert.equal(desk.length, 1); assert.deepEqual(Object.keys(desk[0]).sort(), ["created_at", "kind"]); assert.equal(desk[0].kind, "coffee");
+  assert.equal(ok(await outside[0].c.rpc("desk_gifts", { p_owner: m2.id })).length, 0);
+  assert.equal(ok(await m2.c.from("gifts").select("*").eq("to_user", m2.id)).length, 1);                           // 받은 사람은 전부 본다
+  assert.equal(ok(await m2.c.from("gifts").select("note, from_user").eq("to_user", m2.id))[0].note, "힘내요!");
   assert.equal(ok(await outside[0].c.from("gifts").select("*")).length, 0);
   assert.ok((await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "pizza", p_note: "" })).error);
   assert.ok((await m1.c.from("gifts").insert({ from_user: m1.id, to_user: m2.id, kind: "coffee" })).error);         // 직접 쓰기 불가

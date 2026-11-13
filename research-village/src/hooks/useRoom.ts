@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { Achievement, BookTip, Gift, Postit, WhiteboardComment, WhiteboardItem } from "@/lib/types";
 
 /** 한 연구실(ownerId)의 화이트보드·포스트잇·책장을 불러오고 실시간으로 갱신한다. */
-export function useRoom(ownerId: string, enabled = true) {
+export function useRoom(ownerId: string, isOwner: boolean, enabled = true) {
   const [items, setItems] = useState<WhiteboardItem[]>([]);
   const [comments, setComments] = useState<WhiteboardComment[]>([]);
   const [postits, setPostits] = useState<Postit[]>([]);
@@ -21,7 +21,9 @@ export function useRoom(ownerId: string, enabled = true) {
       sb.from("whiteboard_items").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }),
       sb.from("postits").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(60),
       sb.from("achievements").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }),
-      sb.from("gifts").select("*").eq("to_user", ownerId).gt("created_at", since).order("created_at", { ascending: false }).limit(12),
+      isOwner
+        ? sb.from("gifts").select("*").eq("to_user", ownerId).gt("created_at", since).order("created_at", { ascending: false }).limit(12)
+        : sb.rpc("desk_gifts", { p_owner: ownerId }),
       sb.from("book_tips").select("*").eq("to_user", ownerId).order("created_at", { ascending: false }).limit(60),
     ]);
     if (i.error || p.error || a.error || gf.error || bt.error) return;
@@ -31,11 +33,11 @@ export function useRoom(ownerId: string, enabled = true) {
     setItems(i.data as WhiteboardItem[]);
     setPostits(p.data as Postit[]);
     setAchievements(a.data as Achievement[]);
-    setGifts(gf.data as Gift[]);
+    setGifts(((gf.data ?? []) as Gift[]).map((g, n) => ({ ...g, id: g.id ?? `${g.kind}-${g.created_at}-${n}` })));
     setTips(bt.data as BookTip[]);
     setComments(c.data as WhiteboardComment[]);
     setLoaded(true);
-  }, [ownerId, enabled]);
+  }, [ownerId, isOwner, enabled]);
 
   useEffect(() => {
     if (!enabled) return;

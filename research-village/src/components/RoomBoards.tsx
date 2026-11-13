@@ -79,10 +79,10 @@ export default function RoomBoards({
     <div className="space-y-3">
       {room.gifts.length > 0 && (
         <section aria-label="받은 선물" className="space-y-1">
-          <h3 className="label">{isOwner ? "받은 선물 (하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
+          <h3 className="label">{isOwner ? "받은 선물 (보낸 사람은 나에게만 보여요 · 하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
           <ul className="flex flex-wrap gap-1.5">
             {room.gifts.map((g) => (
-              <li key={g.id} className="chip" style={{ background: "#fff3c4" }}>{giftOf(g.kind)?.label ?? "선물"} · {who(g.from_user)}{g.note ? ` “${g.note}”` : ""} · {relativeTime(g.created_at)}</li>
+              <li key={g.id} className="chip" style={{ background: "#fff3c4" }}>{giftOf(g.kind)?.label ?? "선물"}{isOwner && g.from_user ? ` · ${who(g.from_user)}` : ""}{isOwner && g.note ? ` “${g.note}”` : ""} · {relativeTime(g.created_at)}</li>
             ))}
           </ul>
         </section>
