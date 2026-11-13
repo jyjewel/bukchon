@@ -3,6 +3,7 @@ import type { Avatar, LabStyle } from "@/lib/types";
 import { ACHIEVEMENT_KINDS } from "@/lib/constants";
 import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { avatarGrid } from "./avatar";
+import { petSprite } from "./pets";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const ROOM_W = 144;
@@ -183,15 +184,34 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     px(g, 59, 76, "#3a2a33"); px(g, 63, 76, "#3a2a33"); px(g, 61, 78, "#3a2a33");
   }
   if (st.extras.includes("train")) {
-    // 바닥에 두는 장난감 빨간 기차 (기관차 + 객차 두 칸)와 작은 선로
-    rect(g, 70, 83, 30, 1, "#6b5a48"); for (let x = 71; x < 100; x += 4) rect(g, x, 82, 2, 1, "#8a7358");
-    rect(g, 72, 77, 10, 4, "#d9302a"); rect(g, 72, 77, 10, 1, "#f06a62"); rect(g, 72, 74, 5, 4, "#b32520"); rect(g, 73, 75, 3, 2, "#ffe9a8");
-    rect(g, 79, 74, 2, 3, "#2a2a31"); px(g, 80, 72, "#ffffff"); px(g, 81, 71, "#e6e6ee"); rect(g, 82, 78, 1, 2, "#ffd65c");
-    for (const cx of [73, 77, 81]) { rect(g, cx, 81, 2, 2, "#2a2a31"); px(g, cx, 81, "#8a8fa3"); }
-    for (const x0 of [84, 92]) {
-      rect(g, x0, 77, 7, 4, "#e8453d"); rect(g, x0, 77, 7, 1, "#f48a83"); rect(g, x0 + 1, 78, 2, 2, "#ffe9a8"); rect(g, x0 + 4, 78, 2, 2, "#ffe9a8");
-      rect(g, x0, 81, 2, 2, "#2a2a31"); rect(g, x0 + 5, 81, 2, 2, "#2a2a31"); rect(g, x0 - 1, 80, 1, 1, "#8a8fa3");
-    }
+    // 유리 장식 같은 증기기관차: 빨간 탄수차(금테)와 운전실, 금띠 두른 검은 보일러, 금테 두른 빨간 바퀴와 은색 연결봉
+    const X = 68, T = 72, GOLD = "#e8c24a", RED = "#c41e2a", REDD = "#8e1520", BLK = "#1d1d23";
+    rect(g, X, T + 3, 9, 5, RED); rect(g, X, T + 3, 9, 1, GOLD); rect(g, X, T + 7, 9, 1, GOLD); rect(g, X, T + 3, 1, 5, GOLD); rect(g, X + 8, T + 3, 1, 5, GOLD);
+    for (const [dx, dy] of [[3, T + 5], [5, T + 4], [6, T + 6], [2, T + 6]]) px(g, X + dx, dy, "#f6d27a");
+    rect(g, X + 1, T + 2, 7, 1, "#2f2f37");                                      // 석탄
+    rect(g, X, T + 8, 31, 1, BLK);                                               // 차대
+    rect(g, X + 9, T + 6, 2, 1, "#6a5a3a");                                      // 연결고리
+    rect(g, X + 10, T, 7, 9, RED); rect(g, X + 9, T - 1, 9, 1, REDD); rect(g, X + 10, T, 7, 1, GOLD); rect(g, X + 10, T + 7, 7, 1, GOLD);
+    rect(g, X + 11, T + 2, 2, 3, "#4aa3d6"); rect(g, X + 14, T + 2, 2, 3, "#4aa3d6"); px(g, X + 11, T + 2, "#bfe6fa"); px(g, X + 14, T + 2, "#bfe6fa"); // 파란 창
+    rect(g, X + 17, T + 3, 11, 6, BLK);                                          // 보일러
+    for (let i = 0; i < 4; i++) { px(g, X + 18 + i * 2, T + 3, GOLD); px(g, X + 18 + i * 2, T + 4, GOLD); }
+    rect(g, X + 22, T + 3, 1, 6, GOLD); rect(g, X + 18, T + 7, 9, 1, GOLD);
+    rect(g, X + 19, T + 1, 3, 2, GOLD); px(g, X + 20, T, GOLD);                  // 금빛 증기돔
+    rect(g, X + 25, T, 3, 3, RED); rect(g, X + 24, T - 1, 5, 1, REDD); px(g, X + 27, T - 2, "#ffffff"); px(g, X + 28, T - 3, "#e6e6ee"); // 빨간 굴뚝과 김
+    rect(g, X + 28, T + 6, 2, 3, "#d9232d"); px(g, X + 29, T + 7, GOLD);         // 앞쪽 배장기
+    for (const cx of [X + 2, X + 6, X + 19, X + 23, X + 27]) { disc(g, cx, T + 8, 2.3, 2.3, GOLD); disc(g, cx, T + 8, 1.5, 1.5, "#d9232d"); px(g, cx, T + 8, "#f6d27a"); }
+    rect(g, X + 19, T + 8, 9, 1, "#d9dde6");                                     // 은색 연결봉
+  }
+  if (st.extras.includes("yunhoemae")) {
+    // 윤회매: 붉은 매화(뜨개 꽃) 가지를 갈색 뜨개 화분에 꽂은 것. 책장 맨 위 칸에 놓인다.
+    const x0 = 119, y0 = 8, BR = "#4a3426", R = "#d9232d", RD = "#a8161f", Y = "#ffe14a";
+    rect(g, x0 + 2, y0 + 6, 7, 3, "#c98a3a"); rect(g, x0 + 1, y0 + 5, 9, 2, "#e0a85a"); rect(g, x0 + 2, y0 + 5, 7, 1, "#8a5a2a");
+    for (const [dx, dy] of [[3, 7], [5, 8], [7, 7], [4, 8]]) px(g, x0 + dx, y0 + dy, "#a8702a");
+    px(g, x0 + 5, y0 + 4, BR); px(g, x0 + 5, y0 + 3, BR); px(g, x0 + 4, y0 + 2, BR); px(g, x0 + 3, y0 + 1, BR); px(g, x0 + 6, y0 + 2, BR); px(g, x0 + 7, y0 + 1, BR); px(g, x0 + 8, y0 + 3, BR); px(g, x0 + 7, y0 + 4, BR);
+    const bloom = (x: number, y: number) => { px(g, x, y - 1, R); px(g, x - 1, y, R); px(g, x + 1, y, R); px(g, x, y + 1, RD); px(g, x, y, Y); };
+    bloom(x0 + 2, y0 + 2); bloom(x0 + 8, y0 + 2); bloom(x0 + 4, y0 + 0 + 1 - 0);
+    rect(g, x0 + 7, y0, 2, 2, RD); px(g, x0 + 7, y0, R);                         // 꽃봉오리
+    rect(g, x0 + 1, y0 + 4, 2, 1, R); px(g, x0 + 9, y0 + 5, R);
   }
   if (st.extras.includes("xmastree")) {
     // 꾸민 크리스마스 트리: 세 단 초록 가지, 꼭대기 별, 전구·오너먼트·반짝이 줄, 아래에 선물
@@ -276,19 +296,9 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
 
   // 러그 위 반려동물
-  if (st.pet === "cat") {
-    const cat = grid(13, 8);
-    rect(cat, 2, 3, 9, 4, "#f2c98a"); rect(cat, 1, 2, 4, 4, "#f2c98a"); px(cat, 1, 1, "#f2c98a"); px(cat, 4, 1, "#f2c98a");
-    rect(cat, 6, 3, 2, 4, "#e0a45c"); rect(cat, 9, 3, 1, 4, "#e0a45c"); px(cat, 11, 5, "#f2c98a"); px(cat, 11, 4, "#e0a45c");
-    px(cat, 2, 4, "#3a2a33"); px(cat, 4, 4, "#3a2a33"); px(cat, 3, 5, "#f29aa8");
-    stamp(g, outline(cat), 104, 70);
-  } else if (st.pet === "dog") {
-    const dog = grid(15, 9);
-    rect(dog, 3, 3, 9, 4, "#d9a066"); rect(dog, 1, 2, 5, 5, "#d9a066"); rect(dog, 1, 1, 2, 3, "#8a5a3a"); rect(dog, 5, 1, 1, 2, "#8a5a3a");
-    rect(dog, 7, 3, 3, 3, "#f3dcb4"); rect(dog, 3, 6, 2, 2, "#c58c52"); rect(dog, 9, 6, 2, 2, "#c58c52");
-    rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
-    px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
-    stamp(g, outline(dog), 103, 69);
+  const art = petSprite(st.pet);
+  if (art) {
+    stamp(g, art, 100, 83 - art.h);
   } else if (st.pet === "haetae") {
     // 해태: 궁궐 앞에 앉아 있는 돌 해태 상 (뿔, 불꽃 갈기, 부리부리한 눈)
     const h = grid(14, 14);
@@ -300,39 +310,6 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(h, 4, 8, 4, 1, "#3a2a33"); px(h, 5, 8, "#e0605a"); px(h, 6, 8, "#e0605a");              // 벌린 입
     rect(h, 10, 9, 3, 2, "#6f9a86"); px(h, 12, 8, "#4f7a68");                                // 꼬리
     stamp(g, outline(h), 103, 65);
-  } else if (st.pet === "squirrel") {
-    // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
-    const q = grid(13, 12);
-    disc(q, 10, 6, 2.5, 5, "#c98a4e"); disc(q, 10, 4, 2, 3, "#d9a066"); px(q, 9, 1, "#c98a4e");              // 꼬리
-    disc(q, 5, 8, 4, 3.5, "#b8743a"); rect(q, 3, 6, 5, 1, "#3a2a33"); rect(q, 3, 8, 6, 1, "#3a2a33");            // 몸 + 등 줄무늬
-    disc(q, 5, 9, 2, 2, "#f3dcb4");                                                                            // 배
-    disc(q, 3, 5, 3, 2.7, "#c98a4e"); px(q, 1, 2, "#8a5a3a"); px(q, 4, 2, "#8a5a3a");                          // 머리와 귀
-    px(q, 2, 5, "#3a2a33"); px(q, 4, 5, "#3a2a33"); px(q, 1, 6, "#3a2a33"); px(q, 3, 7, "#f29aa8");
-    rect(q, 2, 8, 3, 2, "#8a5a3a"); rect(q, 2, 8, 3, 1, "#c98a4e"); px(q, 3, 10, "#8a5a3a");                    // 도토리
-    rect(q, 3, 11, 2, 1, "#8a5a3a"); rect(q, 6, 11, 2, 1, "#8a5a3a");
-    stamp(g, outline(q), 104, 69);
-  } else if (st.pet === "hedwig") {
-    // 눈처럼 흰 부엉이(해리포터의 편지 배달 부엉이 풍): 흰 깃털에 회색 점, 노란 눈
-    const o = grid(12, 14);
-    disc(o, 6, 8, 5, 5.5, "#f7f7f2"); disc(o, 6, 4, 4.5, 4, "#ffffff");
-    rect(o, 1, 6, 2, 6, "#e3e3de"); rect(o, 9, 6, 2, 6, "#e3e3de");
-    for (const [x, y] of [[3, 8], [5, 9], [8, 8], [4, 11], [7, 11], [6, 7], [9, 10], [2, 9]]) px(o, x, y, "#8e8e98");
-    for (const [x, y] of [[4, 2], [8, 2], [3, 5], [9, 5]]) px(o, x, y, "#b9b9c2");
-    rect(o, 3, 4, 2, 2, "#f2c230"); rect(o, 7, 4, 2, 2, "#f2c230"); px(o, 4, 5, "#3a2a33"); px(o, 7, 5, "#3a2a33");
-    px(o, 5, 6, "#3a2a33"); px(o, 6, 6, "#3a2a33"); px(o, 5, 7, "#e0a45c");
-    rect(o, 3, 13, 2, 1, "#caa24e"); rect(o, 7, 13, 2, 1, "#caa24e");
-    stamp(g, outline(o), 104, 65);
-  } else if (st.pet === "duo") {
-    // 초록 부엉이(언어 학습 앱 마스코트 풍): 큰 흰 눈, 주황 부리와 발
-    const o = grid(13, 14);
-    disc(o, 6.5, 8.5, 5.5, 5, "#58cc02"); disc(o, 6.5, 10, 3, 3.5, "#89e219");
-    rect(o, 0, 7, 2, 5, "#46a302"); rect(o, 11, 7, 2, 5, "#46a302");
-    disc(o, 6.5, 4, 5.5, 3.5, "#58cc02"); rect(o, 1, 0, 2, 3, "#58cc02"); rect(o, 10, 0, 2, 3, "#58cc02");
-    disc(o, 4, 4, 2.4, 2.4, "#ffffff"); disc(o, 9, 4, 2.4, 2.4, "#ffffff");
-    px(o, 4, 4, "#3a2a33"); px(o, 5, 4, "#3a2a33"); px(o, 8, 4, "#3a2a33"); px(o, 9, 4, "#3a2a33"); px(o, 4, 5, "#3a2a33"); px(o, 9, 5, "#3a2a33");
-    rect(o, 5, 6, 3, 2, "#ff9600"); px(o, 6, 8, "#ff9600");
-    rect(o, 4, 13, 2, 1, "#ff9600"); rect(o, 8, 13, 2, 1, "#ff9600");
-    stamp(g, outline(o), 104, 65);
   }
   return g;
 }
