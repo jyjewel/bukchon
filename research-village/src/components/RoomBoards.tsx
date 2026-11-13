@@ -5,6 +5,7 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
 import type { Achievement, AchievementKind, BoardTab, Resident } from "@/lib/types";
 import type { useRoom } from "@/hooks/useRoom";
+import { CharacterIcon } from "./Character";
 import { Notice } from "./ui";
 
 type Room = ReturnType<typeof useRoom>;
@@ -48,19 +49,23 @@ export default function RoomBoards({
           <button type="submit" className="btn btn-primary btn-sm" disabled={!pi.trim()}>붙이기</button>
         </div>
       </form>
-      <>
-          {room.postits.length > 0 && <ul className="px-box grid gap-3 p-3 sm:grid-cols-2" style={{ background: "#fdfdfb", ["--bd" as string]: "#8a8fa3" }}>
-            {room.postits.map((p, i) => (
-              <li key={p.id} className="px-box p-2 text-sm" style={{ background: p.color, ["--bd" as string]: "#3a2a33", ["--px" as string]: "1px", transform: `rotate(${((i * 37) % 5) - 2}deg)` }}>
-                <p className="whitespace-pre-wrap break-words">{p.body}</p>
-                <p className="mt-1 text-xs">— {who(p.author_id)} · {relativeTime(p.created_at)}</p>
+      {room.postits.length > 0 && (
+        <ul className="space-y-1" aria-label="붙은 포스트잇">
+          {room.postits.map((p) => {
+            const author = residents.find((r) => r.user_id === p.author_id);
+            return (
+              <li key={p.id} className="flex items-center gap-2 text-sm">
+                <span title={who(p.author_id)} className="shrink-0">{author ? <CharacterIcon avatar={author.profile.avatar} size={30} /> : <span className="inline-block w-[36px]" />}</span>
+                <span className="sr-only">{who(p.author_id)}:</span>
+                <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
                 {(p.author_id === myId || isOwner) && (
-                  <button type="button" className="text-xs underline" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
+                  <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
                 )}
               </li>
-            ))}
-          </ul>}
-        </>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 

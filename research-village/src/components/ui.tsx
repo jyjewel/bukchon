@@ -5,19 +5,35 @@ const TONES = { rose: "#ff9fb6", mint: "#a5e3a0", sky: "#a9d8f5", butter: "#ffdf
 export type Tone = keyof typeof TONES;
 
 /** 도트 창틀 */
+/** 창 제목줄의 위젯 조작: 접기/펴기와 위·아래로 옮기기 */
+export interface WindowControls {
+  collapsed: boolean;
+  onToggle: () => void;
+  onUp?: () => void;
+  onDown?: () => void;
+}
+
 export function Window({
-  title, tone = "rose", children, className = "", actions, as: Tag = "section",
+  title, tone = "rose", children, className = "", actions, controls, as: Tag = "section",
 }: {
-  title: string; icon?: string; tone?: Tone; children: ReactNode; className?: string; actions?: ReactNode; as?: "section" | "div" | "aside";
+  title: string; icon?: string; tone?: Tone; children: ReactNode; className?: string; actions?: ReactNode; controls?: WindowControls; as?: "section" | "div" | "aside";
 }) {
   const id = useId();
+  const c = controls;
   return (
     <Tag className={`window ${className}`} aria-labelledby={id}>
       <div className="titlebar" style={{ "--tb": TONES[tone] } as React.CSSProperties}>
         <h2 id={id} className="flex-1 truncate">{title}</h2>
         {actions}
+        {c && (
+          <span className="flex shrink-0 items-center gap-1">
+            {c.onUp && <button type="button" className="btn btn-sm" aria-label={`${title} 위로 올리기`} title="위로" onClick={c.onUp}>▲</button>}
+            {c.onDown && <button type="button" className="btn btn-sm" aria-label={`${title} 아래로 내리기`} title="아래로" onClick={c.onDown}>▼</button>}
+            <button type="button" className="btn btn-sm" aria-expanded={!c.collapsed} aria-label={`${title} ${c.collapsed ? "펴기" : "접기"}`} onClick={c.onToggle}>{c.collapsed ? "펴기" : "접기"}</button>
+          </span>
+        )}
       </div>
-      {children}
+      {!c?.collapsed && children}
     </Tag>
   );
 }
