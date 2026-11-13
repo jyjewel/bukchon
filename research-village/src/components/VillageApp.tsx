@@ -1,4 +1,5 @@
 "use client";
+import { useFold } from "@/hooks/useFold";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
@@ -48,7 +49,9 @@ interface Props {
 }
 
 export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendingHandled, onOpenInOtherVillage }: Props) {
-  const me = v.me!;
+    const foldProfile = useFold("home-profile");
+  const foldChat = useFold("home-chat");
+const me = v.me!;
   const village = v.village!;
   const profile = auth.profile!;
   const [view, setView] = useState<View>("home");
@@ -216,7 +219,7 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
       {view === "home" && (
         <main className="grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)_276px]">
           <div className="order-3 space-y-4 lg:order-1">
-            <Window title="내 프로필" icon="" tone="lilac" as="aside">
+            <Window title="내 프로필" icon="" tone="lilac" as="aside" controls={foldProfile}>
               <div className="flex items-center gap-3 p-3">
                 <button type="button" onClick={() => setSelected(me.user_id)} aria-label="내 프로필 보기" className="card px-2 pt-1">
                   <CharacterIcon avatar={profile.avatar} size={72} />
@@ -238,14 +241,14 @@ export default function VillageApp({ auth, v, onAddVillage, pendingOpen, onPendi
                     <button key={s} type="button" role="radio" aria-checked={on} onClick={() => changeStatus(s)}
                       className={`card flex w-[calc(100%-6px)] items-center gap-3 px-2 py-1.5 text-left text-sm ${on ? "card-on" : "hover:bg-[#fff3c4]"}`}>
                       <StatusIcon state={s} scale={3} />
-                      <span className="flex-1"><span className="font-display">{meta.label}</span><br /><span className="text-xs text-ink-soft">{s === "focus" ? "집 안 · 대화는 받지 않아요" : s === "open" ? "집 앞 책상 · 말 걸어도 좋아요" : s === "library" ? "도서관 · 함께 공부해요" : s === "rest" ? "광장 · 편하게 쉬어요" : "불을 끄고 자리를 비워요"}</span></span>
+                      <span className="flex-1"><span className="font-display">{meta.label}</span><br /><span className={`text-xs text-ink-soft ${on ? "" : "max-lg:hidden"}`}>{s === "focus" ? "집 안 · 대화는 받지 않아요" : s === "open" ? "집 앞 책상 · 말 걸어도 좋아요" : s === "library" ? "도서관 · 함께 공부해요" : s === "rest" ? "광장 · 편하게 쉬어요" : "불을 끄고 자리를 비워요"}</span></span>
                       {on && <span aria-hidden>◀</span>}
                     </button>
                   );
                 })}
               </div>
             </Window>
-            <Window title="대화" tone="rose" as="aside">
+            <Window title="대화" tone="rose" as="aside" controls={foldChat}>
               <ul className="space-y-1 p-2 text-sm">
                 {chat.pendingIncoming.map((c) => {
                   const other = byId.get(c.user_a);
