@@ -283,7 +283,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 9cqw;
+  max-width: max(9cqw, 60px);   /* 폰처럼 지도가 작을 때도 이름이 '아…' 로 잘리지 않게 */
   padding: 3px 6px 3px;
   --px: 1px;
   background:
@@ -311,7 +311,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: clamp(10px, 1cqw, 14px);
+  font-size: clamp(9px, 1cqw, 14px);
   line-height: 1.15;
 }
 .scene-sign-sub {
@@ -343,5 +343,12 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   .btn { min-height: 44px; }
   .btn-sm { min-height: 40px; padding-left: 12px; padding-right: 12px; }
   input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; }
-  .scene-char { min-width: 40px; min-height: 52px; }
+  /* 눌리는 범위만 넓힌다. 요소 크기를 키우면 이름표(요소 크기 기준 위치)가 캐릭터에서 멀리 떨어진다 */
+  .scene-char::after { content: ""; position: absolute; inset: -8px -10px; }
+}
+
+/* 폰: 지도가 작아지므로 캐릭터 이름표도 작게 */
+@media (max-width: 1023px) {
+  .scene-label { font-size: 10px; line-height: 13px; padding: 0 4px 1px; margin-top: 3px; }
+  .scene-label-name { font-size: 9px; line-height: 11px; margin-top: 1px; }
 }
