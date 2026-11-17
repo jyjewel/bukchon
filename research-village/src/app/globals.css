@@ -87,6 +87,7 @@ dialog.window { border: none; overflow: visible; margin: auto; }
 .space-y-4 > .window:not(:last-child), .space-y-5 > .window:not(:last-child), .space-y-4 > header.window, .space-y-5 > header.window { margin-bottom: 22px; }
 .space-y-4 > :where(div, main, form):not(:last-child) { margin-bottom: 22px; }
 .titlebar {
+  --dot: color-mix(in srgb, var(--tb, #ff9fb6), #3a2a33 28%);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -102,11 +103,38 @@ dialog.window { border: none; overflow: visible; margin: auto; }
   width: 6px;
   height: 6px;
   flex: none;
-  --dot: color-mix(in srgb, var(--tb, #ff9fb6), #3a2a33 28%);
   background: var(--dot);
   box-shadow: 9px 0 0 0 var(--dot), 18px 0 0 0 var(--dot);
   margin-right: 20px;
 }
+/* 접기/펴기: 땡땡땡과 같은 색의 채워진 세모 (펼침 ▼ / 접힘 ▶) */
+.fold {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: -6px 0 -6px -10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.fold::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-style: solid;
+  border-color: var(--dot) transparent transparent transparent;
+  border-width: 7px 5px 0 5px;
+  transform: translate(-50%, -30%);
+}
+.fold[data-open="false"]::after {
+  border-color: transparent transparent transparent var(--dot);
+  border-width: 5px 0 5px 7px;
+  transform: translate(-30%, -50%);
+}
+.fold:focus-visible { outline: 2px solid var(--dot); outline-offset: -2px; }
 
 .btn {
   display: inline-flex;

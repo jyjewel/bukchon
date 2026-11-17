@@ -27,13 +27,13 @@ export function Window({
   return (
     <Tag className={`window ${className}`} aria-labelledby={id}>
       <div className="titlebar" style={{ "--tb": TONES[tone] } as React.CSSProperties}>
+        {c && <button type="button" className="fold" data-open={!c.collapsed} aria-expanded={!c.collapsed} aria-label={`${title} ${c.collapsed ? "펴기" : "접기"}`} title={c.collapsed ? "펴기" : "접기"} onClick={c.onToggle} />}
         <h2 id={id} className="flex-1 truncate">{title}</h2>
         {actions}
         {c && (
           <span className="flex shrink-0 items-center gap-1">
             {c.onUp && <button type="button" className="btn btn-sm" aria-label={`${title} 위로 올리기`} title="위로" onClick={c.onUp}>▲</button>}
             {c.onDown && <button type="button" className="btn btn-sm" aria-label={`${title} 아래로 내리기`} title="아래로" onClick={c.onDown}>▼</button>}
-            <button type="button" className="btn btn-sm" aria-expanded={!c.collapsed} aria-label={`${title} ${c.collapsed ? "펴기" : "접기"}`} title={c.collapsed ? "펴기" : "접기"} onClick={c.onToggle}><span aria-hidden="true" className="inline-block min-w-[1.1em] text-center font-bold">{c.collapsed ? "∨" : "∧"}</span></button>
           </span>
         )}
       </div>
