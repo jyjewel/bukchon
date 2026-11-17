@@ -1,8 +1,8 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
-import { daysUntil, ddayLabel } from "@/lib/time";
-import { useToday, type usePlanner } from "@/hooks/usePlanner";
+import { dateKey, daysUntil, ddayLabel } from "@/lib/time";
+import { useToday, type Todo, type usePlanner } from "@/hooks/usePlanner";
 import { Notice } from "./ui";
 
 type Planner = ReturnType<typeof usePlanner>;
@@ -82,11 +82,10 @@ export function DeadlinePanel({ planner, userId, names = {} }: { planner: Planne
   );
 }
 
-/** 할 일: 여러 개를 적고 체크한다. 날짜를 넣으면 D-day 도 함께 뜬다. */
+/** 오늘의 체크리스트: 오늘 할 일을 적고 눌러서 바로 체크한다. 못 끝낸 일은 다음 날로 이어지고, 끝낸 일은 그날만 보인다. */
 export function TodoPanel({ planner, userId }: { planner: Planner; userId: string }) {
   const today = useToday();
   const [body, setBody] = useState("");
-  const [due, setDue] = useState("");
   const [error, setError] = useState("");
   const sb = supabase();
   const run = async (p: PromiseLike<{ error: unknown }>) => {
@@ -97,33 +96,38 @@ export function TodoPanel({ planner, userId }: { planner: Planner; userId: strin
   };
   const add = async (e: FormEvent) => {
     e.preventDefault();
-    if (await run(sb.from("todos").insert({ user_id: userId, body: body.trim(), due_date: due || null }))) { setBody(""); setDue(""); }
+    if (await run(sb.from("todos").insert({ user_id: userId, body: body.trim(), due_date: today }))) setBody("");
   };
-  const open = planner.todos.filter((t) => !t.done);
-  const done = planner.todos.filter((t) => t.done);
-  const row = (t: (typeof planner.todos)[number]) => (
-    <li key={t.id} className="card flex items-center gap-2 p-2 text-sm" style={t.done ? { opacity: 0.6 } : undefined}>
-      <input type="checkbox" aria-label={`${t.body} 완료`} checked={t.done} onChange={(e) => { const done = e.target.checked; planner.setTodos((all) => all.map((x) => (x.id === t.id ? { ...x, done } : x))); void run(sb.from("todos").update({ done }).eq("id", t.id)); }} />
-      <span className={`min-w-0 flex-1 break-words ${t.done ? "line-through" : ""}`}>{t.body}</span>
-      {t.due_date && <Dday days={daysUntil(t.due_date, today)} done={t.done} />}
-      <button type="button" className="btn btn-sm btn-danger shrink-0" aria-label={`${t.body} 삭제`} onClick={() => void run(sb.from("todos").delete().eq("id", t.id))}>삭제</button>
-    </li>
-  );
+  const listDay = (t: Todo) => t.due_date ?? dateKey(new Date(t.created_at));
+  const shown = planner.todos.filter((t) => !t.done || listDay(t) === today);
+  const open = shown.filter((t) => !t.done);
+  const done = shown.filter((t) => t.done);
+  const toggle = (t: Todo) => { const next = !t.done; planner.setTodos((all) => all.map((x) => (x.id === t.id ? { ...x, done: next } : x))); void run(sb.from("todos").update({ done: next }).eq("id", t.id)); };
+  const row = (t: Todo) => {
+    const late = !t.done && listDay(t) < today;
+    return (
+      <li key={t.id} className="card flex items-center gap-2 p-2 text-sm" style={t.done ? { opacity: 0.6 } : undefined}>
+        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+          <input type="checkbox" className="h-5 w-5 shrink-0" aria-label={`${t.body} 완료`} checked={t.done} onChange={() => toggle(t)} />
+          <span className={`min-w-0 flex-1 break-words ${t.done ? "line-through" : ""}`}>{t.body}</span>
+        </label>
+        {late && <span className="chip shrink-0 text-xs">어제부터</span>}
+        <button type="button" className="btn btn-sm btn-danger shrink-0" aria-label={`${t.body} 삭제`} onClick={() => void run(sb.from("todos").delete().eq("id", t.id))}>삭제</button>
+      </li>
+    );
+  };
   return (
     <div className="space-y-2 p-3">
-      <form onSubmit={add} className="flex flex-wrap items-start gap-1">
-        <div className="min-w-40 flex-[2]">
-          <label className="sr-only" htmlFor="td-body">할 일</label>
-          <input id="td-body" className="input" maxLength={120} value={body} onChange={(e) => setBody(e.target.value)} placeholder="할 일을 적고 Enter" />
-        </div>
-        <div className="min-w-[10.5rem] flex-1">
-          <label className="sr-only" htmlFor="td-date">할 일 날짜 (선택)</label>
-          <input id="td-date" type="date" className="input" value={due} onChange={(e) => setDue(e.target.value)} />
+      {shown.length > 0 && <p className="text-xs text-ink-soft" aria-live="polite">{done.length}/{shown.length} 완료{done.length === shown.length ? " 🎉" : ""}</p>}
+      <form onSubmit={add} className="flex items-start gap-1">
+        <div className="min-w-0 flex-1">
+          <label className="sr-only" htmlFor="td-body">오늘 할 일</label>
+          <input id="td-body" className="input" maxLength={120} value={body} onChange={(e) => setBody(e.target.value)} placeholder="오늘 할 일을 적고 Enter" />
         </div>
         <button type="submit" className="btn btn-primary btn-sm mt-[5px] shrink-0" disabled={!body.trim()}>추가</button>
       </form>
       {error && <Notice kind="error">{error}</Notice>}
-      {planner.loaded && planner.todos.length === 0 && <p className="py-2 text-center text-sm text-ink-soft">적어 둔 할 일이 없어요.</p>}
+      {planner.loaded && shown.length === 0 && <p className="py-2 text-center text-sm text-ink-soft">오늘 체크할 일을 적어 보세요.</p>}
       <ul className="space-y-1">{open.map(row)}{done.map(row)}</ul>
     </div>
   );

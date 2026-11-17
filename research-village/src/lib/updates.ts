@@ -9,6 +9,8 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-17-checklist", date: "11월 17일", title: "할 일이 오늘의 체크리스트로 바뀌었어요", body: "" },
+  { id: "2026-11-17-snackbox", date: "11월 17일", title: "내 연구실에 간식 상자가 생겼어요", body: "" },
   { id: "2026-11-17-fold", date: "11월 17일", title: "모든 창을 접었다 펼 수 있어요", body: "" },
   { id: "2026-11-17-study", date: "11월 17일", title: "도서관에 스터디 공지 알람이 생겼어요", body: "" },
   { id: "2026-11-17-lastseen", date: "11월 17일", title: "오프라인이어도 마지막 접속 시각이 보여요", body: "" },

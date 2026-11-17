@@ -119,7 +119,7 @@ export default function StudyRoomWork({
       {!focus && (
         <div className="order-3 space-y-4">
           <Window title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} /></Window>
-          <Window title="할 일" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
+          <Window title="오늘의 체크리스트" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </div>
       )}
       {letter && <WelcomeLetter onClose={() => setLetter(false)} />}
