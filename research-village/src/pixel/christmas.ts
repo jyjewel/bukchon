@@ -1,4 +1,4 @@
-import { grid, outline, px, rect, type Grid } from "./core";
+import { disc, grid, hash, outline, px, rect, type Grid } from "./core";
 
 /** 크리스마스 한 달 전(11월 25일)부터 크리스마스(12월 25일)까지 광장의 분수가 커다란 트리로 바뀐다 */
 export function isChristmasSeason(d = new Date()): boolean {
@@ -10,54 +10,80 @@ export const TREE_W = 70;
 export const TREE_H = 100;
 /** 트리 바닥 가운데는 (35, 98) */
 export const TREE_BASE = { x: 35, y: 98 };
-const CX = 35, K = 1.32;
 
-// 장식 공 (원래 52×76 도안 좌표를 키워서 놓는다)
-const ORNS: [number, number, string][] = [
-  [26, 22, "#ff5a5a"], [20, 31, "#ffd23f"], [33, 33, "#5ab0ff"], [26, 42, "#ff8ac2"], [15, 47, "#ff5a5a"], [37, 47, "#ffd23f"],
-  [22, 53, "#5ab0ff"], [31, 56, "#ff5a5a"], [12, 60, "#ffd23f"], [40, 61, "#ff8ac2"], [26, 63, "#5ab0ff"], [19, 66, "#ff8ac2"], [34, 67, "#ffd23f"],
-  [26, 30, "#5ab0ff"], [16, 56, "#ff5a5a"], [36, 40, "#ff5a5a"], [27, 49, "#ffd23f"],
-];
-const sx = (x: number) => Math.round(CX + (x - 26) * K), sy = (y: number) => Math.round(y * K);
+const CX2 = 35;
 
-/** 거대한 크리스마스 트리. frame 은 별과 장식이 반짝이는 장면(0~3) */
+/** 거대한 크리스마스 트리. frame 은 별·전구·장식이 반짝이는 장면(0~3) */
 export function christmasTreeGrid(frame: number): Grid {
   const g = grid(TREE_W, TREE_H);
-  const G1 = "#1f6b3a", G2 = "#2e8a4c", G3 = "#46a860";
-  const tier = (top: number, bottom: number, halfTop: number, halfBottom: number) => {
-    const t0 = sy(top), t1 = sy(bottom);
-    for (let y = t0; y <= t1; y++) {
-      const t = (y - t0) / Math.max(1, t1 - t0), half = Math.round((halfTop + (halfBottom - halfTop) * t) * K);
-      rect(g, CX - half, y, half * 2 + 1, 1, G2);
-      rect(g, CX - half, y, 2, 1, G1); rect(g, CX + half - 1, y, 2, 1, G1);
-      if ((y - t0) % 4 === 1) rect(g, CX - half + 2, y, half * 2 - 3, 1, G3);
+  const L0 = "#0f4a2a", L1 = "#17683a", L2 = "#22894a", L3 = "#37a85a", L4 = "#63cc7a";
+  // 잎이 풍성하게: 단마다 가장자리가 물결치고, 바늘잎 무늬와 늘어진 가지 끝이 보인다
+  const tier = (top: number, bottom: number, halfTop: number, halfBottom: number, seed: number) => {
+    for (let y = top; y <= bottom; y++) {
+      const t = (y - top) / Math.max(1, bottom - top);
+      const half = Math.round(halfTop + (halfBottom - halfTop) * t + Math.sin(y * 1.3 + seed) * 1.6);
+      for (let x = CX2 - half; x <= CX2 + half; x++) {
+        const h = hash(x + seed * 7, y);
+        const edge = Math.min(x - (CX2 - half), CX2 + half - x);
+        let c = L2;
+        if (edge < 2) c = L0;
+        else if (h % 7 === 0) c = L1;
+        else if (h % 5 === 0) c = L3;
+        else if (((x + y * 2) % 6 === 0) && edge > 2) c = L1;
+        // 왼쪽 위에서 빛이 비치는 느낌
+        if (c === L2 && x < CX2 - half * 0.25 && h % 3 === 0) c = L3;
+        if (c === L3 && x < CX2 - half * 0.5 && h % 4 === 0) c = L4;
+        px(g, x, y, c);
+      }
     }
-    const hb = Math.round(halfBottom * K);
-    for (let x = CX - hb; x <= CX + hb; x += 4) { px(g, x, t1 + 1, G1); px(g, x + 1, t1 + 1, G1); }
+    // 아래로 늘어진 가지 끝(둥글게 겹친 잎 뭉치)
+    const hb = Math.round(halfBottom + 1.5);
+    for (let x = CX2 - hb; x <= CX2 + hb; x += 5) {
+      disc(g, x + 1.5, bottom + 1, 3.4, 2.6, L1); disc(g, x + 1.5, bottom, 3, 2.3, L2); px(g, x, bottom - 1, L3); px(g, x + 1, bottom - 1, L4);
+      px(g, x + 3, bottom, L3);
+    }
   };
-  tier(10, 32, 2, 12);
-  tier(26, 50, 6, 17);
-  tier(44, 68, 9, 23);
+  tier(9, 33, 2, 13, 1);
+  tier(27, 52, 6, 19, 2);
+  tier(45, 70, 10, 26, 3);
   // 줄기
-  rect(g, CX - 4, sy(69), 9, 6, "#7a4a2a"); rect(g, CX - 4, sy(69), 2, 6, "#5a3420"); rect(g, CX - 5, sy(69) + 6, 11, 1, "#5a3420");
-  // 눈 쌓인 가지 끝
-  for (const [x, y] of [[12, 32], [41, 32], [8, 50], [45, 50], [3, 68], [49, 68]] as [number, number][]) rect(g, sx(x) - 2, sy(y), 4, 1, "#f4f9ff");
-  // 금빛 띠
-  const garland = (y: number, half: number) => { for (let x = CX - Math.round(half * K); x <= CX + Math.round(half * K); x++) px(g, x, sy(y) + Math.round(Math.sin((x - CX) * 0.8) * 1.8), "#ffe27a"); };
-  garland(36, 13); garland(55, 20);
-  // 별
+  rect(g, CX2 - 4, 72, 9, 6, "#7a4a2a"); rect(g, CX2 - 4, 72, 2, 6, "#5a3420"); rect(g, CX2 - 5, 78, 11, 1, "#5a3420");
+  // 눈 덮인 가지 끝
+  for (const [x, y] of [[27, 33], [43, 33], [21, 52], [49, 52], [12, 70], [58, 70], [35, 12], [30, 28], [40, 28]] as [number, number][]) { rect(g, x - 2, y, 5, 1, "#f4f9ff"); px(g, x - 1, y - 1, "#ffffff"); px(g, x + 1, y - 1, "#e6f1ff"); }
+  // 꼬마전구: 트리 안쪽에서 차례로 반짝인다
+  const LB = ["#ff5a5a", "#ffe34a", "#6af07a", "#5ab8ff", "#ff9ae0"];
+  for (let i = 0; i < 38; i++) {
+    const y = 12 + ((i * 53) % 62), maxHalf = y < 33 ? 2 + (y - 9) * 0.45 : y < 52 ? 6 + (y - 27) * 0.5 : 10 + (y - 45) * 0.62;
+    const x = Math.round(CX2 + (((i * 37) % 19) / 9 - 1) * (maxHalf * 0.85));
+    const on = (i + frame) % 4 !== 0;
+    px(g, x, y, on ? LB[i % LB.length] : L1); if (on) { px(g, x + 1, y, "#ffffffcc"); }
+  }
+  // 반짝이 띠(금색·빨강)
+  const garland = (y: number, half: number, c: string, ph: number) => { for (let x = CX2 - half; x <= CX2 + half; x++) px(g, x, y + Math.round(Math.sin((x - CX2) * 0.7 + ph) * 2.2), (x + ph) % 5 === 0 ? "#ffffff" : c); };
+  garland(33, 15, "#ffd860", 0); garland(52, 22, "#ff6b7a", 1); garland(66, 28, "#ffd860", 2); garland(42, 18, "#ff6b7a", 3);
+  // 별 (크고 빛남)
   const star = frame % 2 === 0 ? "#fff6a0" : "#ffe34a";
-  rect(g, CX - 1, 2, 3, 11, star); rect(g, CX - 5, 6, 11, 3, star); rect(g, CX - 3, 4, 7, 7, star); px(g, CX, 1, "#fffbe0"); px(g, CX, 0, "#fffbe0");
-  // 반짝이는 장식 공
-  ORNS.forEach(([x, y, c], i) => {
-    const lit = (i + frame) % 3 === 0, ox = sx(x), oy = sy(y);
-    rect(g, ox - 1, oy - 1, 3, 3, c); px(g, ox - 1, oy - 1, lit ? "#ffffff" : "#ffffffaa"); if (lit) { px(g, ox, oy - 2, "#ffffff"); px(g, ox + 2, oy, "#ffffff"); }
+  rect(g, CX2 - 1, 0, 3, 12, star); rect(g, CX2 - 6, 5, 13, 3, star); rect(g, CX2 - 3, 3, 7, 8, star); rect(g, CX2 - 4, 4, 9, 5, star);
+  px(g, CX2, 0, "#ffffff"); px(g, CX2 - 1, 5, "#ffffff"); px(g, CX2 + 1, 6, "#fff1b0");
+  // 장식 공 (3×3, 하이라이트)
+  const ORN: [number, number, string][] = [
+    [35, 20, "#ff5a5a"], [30, 31, "#ffd23f"], [41, 32, "#5ab0ff"], [34, 40, "#ff8ac2"], [26, 45, "#ff5a5a"], [44, 46, "#ffd23f"],
+    [35, 50, "#5ab0ff"], [24, 56, "#ffd23f"], [47, 57, "#ff8ac2"], [33, 60, "#ff5a5a"], [41, 63, "#5ab0ff"], [20, 66, "#ff8ac2"], [52, 67, "#ff5a5a"],
+    [29, 68, "#ffd23f"], [44, 69, "#ffd23f"], [14, 70, "#5ab0ff"], [57, 70, "#ffd23f"], [37, 28, "#ff8ac2"], [31, 52, "#ff8ac2"], [39, 54, "#ffd23f"],
+  ];
+  ORN.forEach(([x, y, c], i) => {
+    const lit = (i + frame) % 3 === 0;
+    rect(g, x - 1, y - 1, 3, 3, c); px(g, x, y - 2, "#e6c84a");
+    px(g, x - 1, y - 1, lit ? "#ffffff" : "#ffffffbb"); if (lit) { px(g, x, y - 3, "#ffffff"); px(g, x + 2, y, "#fff6c0"); px(g, x - 2, y + 1, "#fff6c0"); }
   });
+  // 지팡이 사탕
+  for (const [x, y] of [[23, 61], [49, 62], [33, 47]] as [number, number][]) { rect(g, x, y, 1, 4, "#ffffff"); px(g, x, y + 1, "#ff3a4a"); px(g, x, y + 3, "#ff3a4a"); px(g, x + 1, y - 1, "#ff3a4a"); px(g, x + 2, y - 1, "#ffffff"); px(g, x + 2, y, "#ff3a4a"); }
   // 선물 상자
-  rect(g, 6, 88, 11, 8, "#e0505a"); rect(g, 11, 88, 1, 8, "#ffe27a"); rect(g, 6, 91, 11, 1, "#ffe27a"); rect(g, 9, 85, 5, 3, "#ffe27a");
-  rect(g, 52, 91, 10, 5, "#5aa0e8"); rect(g, 56, 91, 1, 5, "#fff6d0"); rect(g, 52, 93, 10, 1, "#fff6d0"); rect(g, 54, 89, 4, 2, "#fff6d0");
-  rect(g, 56, 86, 8, 5, "#8ad06a"); rect(g, 59, 86, 1, 5, "#ffffff"); rect(g, 56, 88, 8, 1, "#ffffff");
-  return outline(g, "#12301f");
+  rect(g, 4, 86, 12, 9, "#e0505a"); rect(g, 9, 86, 2, 9, "#ffe27a"); rect(g, 4, 90, 12, 2, "#ffe27a"); rect(g, 6, 83, 3, 3, "#ffe27a"); rect(g, 11, 83, 3, 3, "#ffe27a");
+  rect(g, 53, 90, 12, 6, "#5aa0e8"); rect(g, 58, 90, 2, 6, "#fff6d0"); rect(g, 53, 92, 12, 1, "#fff6d0"); rect(g, 55, 87, 3, 3, "#fff6d0"); rect(g, 60, 87, 3, 3, "#fff6d0");
+  rect(g, 57, 84, 9, 6, "#8ad06a"); rect(g, 61, 84, 1, 6, "#ffffff"); rect(g, 57, 87, 9, 1, "#ffffff");
+  rect(g, 16, 92, 7, 4, "#c58af0"); rect(g, 19, 92, 1, 4, "#ffffff");
+  return outline(g, "#0c2e1b");
 }
 
 const BULBS = ["#ff5a5a", "#ffd23f", "#6adf7a", "#5ab0ff"];
