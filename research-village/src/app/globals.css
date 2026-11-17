@@ -380,3 +380,12 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   .scene-label { font-size: 10px; line-height: 13px; padding: 0 4px 1px; margin-top: 3px; }
   .scene-label-name { font-size: 9px; line-height: 11px; margin-top: 1px; }
 }
+
+/* 처음 접속: 편지를 물어다 주는 부엉이 */
+.owl-visit { position: fixed; z-index: 45; right: 16px; bottom: 70px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.owl-visit .owl-btn { pointer-events: auto; max-width: 15rem; }
+.owl-flying { animation: owl-fly 2.6s ease-out both; }
+.owl-bob { animation: owl-bob 2.4s ease-in-out infinite; }
+@keyframes owl-fly { from { transform: translate(-70vw, -40vh); } 60% { transform: translate(-20vw, -12vh); } to { transform: translate(0, 0); } }
+@keyframes owl-bob { 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .owl-flying, .owl-bob { animation: none; } }

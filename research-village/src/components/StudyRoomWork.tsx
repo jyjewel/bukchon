@@ -17,8 +17,9 @@ import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
 import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
+import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
-type Section = "journal" | "notes" | "diary" | "boards" | "shelf" | "archive";
+type Section = "journal" | "notes" | "diary" | "boards" | "shelf" | "archive" | "drawer";
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "journal", label: "오늘의 일지" },
   { id: "notes", label: "연구노트" },
@@ -26,6 +27,7 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "boards", label: "화이트보드 · 책장" },
   { id: "shelf", label: "좋아하는 책" },
   { id: "archive", label: "찾기 · 내보내기" },
+  { id: "drawer", label: "편지 서랍" },
 ];
 
 /** 내 연구실(작업 화면): 글쓰기 창이 가운데에 크게, 왼쪽엔 작은 연구실 그림과 항목 목록, 오른쪽엔 마감·할 일. 집중 모드는 가운데만 남긴다. */
@@ -35,6 +37,7 @@ export default function StudyRoomWork({
   const [roomView, setRoomView] = useState<"view" | "decorate" | null>(null);
   const [section, setSection] = useState<Section>("journal");
   const [focus, setFocus] = useState(false);
+  const [letter, setLetter] = useState(false);
   const room = useRoom(me.user_id, true);
   const fav = useFavBooks(me.user_id);
   const [target, setTarget] = useState<OpenTarget | null>(null);
@@ -98,6 +101,7 @@ export default function StudyRoomWork({
         )}
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
+            {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} />}
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
             {section === "notes" && <ResearchNotes data={notes} userId={me.user_id} openId={target?.kind === "note" ? target.key : undefined} />}
             {section === "diary" && <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} openId={target?.kind === "diary" ? target.key : undefined} />}
@@ -114,6 +118,7 @@ export default function StudyRoomWork({
           <Window title="할 일" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </div>
       )}
+      {letter && <WelcomeLetter onClose={() => setLetter(false)} />}
     </div>
   );
 }

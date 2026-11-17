@@ -30,6 +30,7 @@ import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
 import WelcomeBack from "./WelcomeBack";
 import UpdateNotice from "./UpdateNotice";
+import WelcomeOwl from "./WelcomeOwl";
 import StudyAlarmDialog from "./StudyAlarmDialog";
 import { awayDays, isGesture } from "@/lib/social";
 import { lastSeenLabel } from "@/lib/time";
@@ -249,6 +250,7 @@ const me = v.me!;
       {notice && <Notice kind="error">{notice}</Notice>}
 
       {view === "home" && <UpdateNotice userId={me.user_id} />}
+      {view === "home" && <WelcomeOwl userId={me.user_id} />}
       {alarm && <StudyAlarmDialog n={alarm} creator={byId.get(alarm.actor_id)?.profile.display_name ?? "마을 주민"} onClose={() => { void notifs.markRead([alarm.id]); setAlarm(null); }} />}
       {view === "home" && <MovingCakes villageId={village.id} myId={me.user_id} neighbors={v.residents.length - 1} />}
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
