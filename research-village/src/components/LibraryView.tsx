@@ -21,7 +21,7 @@ export default function LibraryView({
   const [bookId, setBookId] = useState<string | null>(null);
   const [nowMs] = useState(() => Date.now());
   const [error, setError] = useState("");
-  const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민" : "떠난 주민");
+  const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
   const book = lib.books.find((b) => b.id === bookId) ?? null;
   const run = async (p: PromiseLike<{ error: unknown }>) => {
     const { error } = await p;

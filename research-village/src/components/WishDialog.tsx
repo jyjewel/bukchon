@@ -20,7 +20,7 @@ export default function WishDialog({ villageId, myId, residents, onClose }: { vi
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const name = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
+  const name = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민";
 
   const [round, setRound] = useState(0);
   const load = () => setRound((n) => n + 1);

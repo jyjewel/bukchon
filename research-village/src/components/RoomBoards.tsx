@@ -5,7 +5,6 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
 import type { Achievement, AchievementKind, BoardTab, Resident } from "@/lib/types";
 import type { useRoom } from "@/hooks/useRoom";
-import { CharacterIcon } from "./Character";
 import PublicJournal from "./PublicJournal";
 import PublicDeadlines from "./PublicDeadlines";
 import { TipBox } from "./GiveBox";
@@ -29,7 +28,7 @@ export default function RoomBoards({
   owner: Resident; myId: string; residents: Resident[]; room: Room; tab: BoardTab; onTab: (t: BoardTab) => void; onTip?: (title: string, note: string) => Promise<string | null> | string | null;
 }) {
   const isOwner = owner.user_id === myId;
-  const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
+  const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민";
   const [error, setError] = useState("");
   const run = async (p: PromiseLike<{ error: unknown }>) => {
     const { error } = await p;
@@ -59,11 +58,9 @@ export default function RoomBoards({
       {room.postits.length > 0 && (
         <ul className="space-y-1" aria-label="붙은 포스트잇">
           {room.postits.map((p) => {
-            const author = residents.find((r) => r.user_id === p.author_id);
             return (
-              <li key={p.id} className="flex items-center gap-2 text-sm">
-                <span title={who(p.author_id)} className="shrink-0">{author ? <CharacterIcon avatar={author.profile.avatar} size={30} /> : <span className="inline-block w-[36px]" />}</span>
-                <span className="sr-only">{who(p.author_id)}:</span>
+              <li key={p.id} className="flex items-start gap-2 text-sm">
+                <span className="shrink-0 font-display font-bold text-[#a63d5c]">{who(p.author_id)}:</span>
                 <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
                 {(p.author_id === myId || isOwner) && (
                   <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
@@ -123,7 +120,7 @@ export default function RoomBoards({
             <ul className="dotted mt-2 space-y-1 pt-2">
               {cs.map((c) => (
                 <li key={c.id} className="text-sm">
-                  <span className="font-display">{who(c.author_id)}</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
+                  <span className="font-display font-bold text-[#a63d5c]">{who(c.author_id)}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
                   <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span>
                   {(c.author_id === myId || isOwner) && (
                     <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", c.id))}>삭제</button>

@@ -28,7 +28,7 @@ export default function StudySchedules({ villageId, me, residents, isAdmin }: { 
   const [form, setForm] = useState({ title: "", days: [1, 3, 5] as number[], time: "09:30", lead: 0, zoom: "", note: "", who: null as string[] | null });   // who: null = 마을 모두
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민";
+  const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민";
   const reload = () => setRound((n) => n + 1);
 
   useEffect(() => {

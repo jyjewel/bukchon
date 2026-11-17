@@ -24,7 +24,7 @@ export default function PlazaNews({
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "떠난 주민" : "떠난 주민");
+  const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
