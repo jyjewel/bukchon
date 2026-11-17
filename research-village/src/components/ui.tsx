@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 const TONES = { rose: "#ff9fb6", mint: "#a5e3a0", sky: "#a9d8f5", butter: "#ffdf7a", lilac: "#cdb8f2" } as const;
 export type Tone = keyof typeof TONES;
@@ -19,7 +19,11 @@ export function Window({
   title: string; icon?: string; tone?: Tone; children: ReactNode; className?: string; actions?: ReactNode; controls?: WindowControls; as?: "section" | "div" | "aside";
 }) {
   const id = useId();
-  const c = controls;
+  const [own, setOwn] = useState(() => { try { return localStorage.getItem(`win-fold:${title}`) === "1"; } catch { return false; } });
+  const c: WindowControls | undefined = controls ?? {
+    collapsed: own,
+    onToggle: () => setOwn((v) => { try { localStorage.setItem(`win-fold:${title}`, v ? "0" : "1"); } catch { /* 저장 못 해도 괜찮다 */ } return !v; }),
+  };
   return (
     <Tag className={`window ${className}`} aria-labelledby={id}>
       <div className="titlebar" style={{ "--tb": TONES[tone] } as React.CSSProperties}>
