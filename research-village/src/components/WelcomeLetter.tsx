@@ -31,8 +31,7 @@ export default function WelcomeLetter({ onClose, first = false }: { onClose: () 
 export function LetterDrawer({ onOpen }: { onOpen: () => void }) {
   const art = useMemo(() => letterGrid(), []);
   return (
-    <section className="window" aria-label="편지 서랍">
-      <div className="titlebar" style={{ "--tb": "#ffdf7a" } as React.CSSProperties}><h2 className="flex-1">편지 서랍</h2></div>
+    <section aria-label="편지 서랍">
       <div className="space-y-3 p-3">
         <p className="text-sm text-ink-soft">마을에서 받은 편지를 모아 두는 서랍이에요.</p>
         <button type="button" className="card flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fff3c4]" onClick={onOpen}>

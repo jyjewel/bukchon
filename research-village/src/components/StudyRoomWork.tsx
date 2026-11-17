@@ -17,9 +17,10 @@ import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
 import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
+import SnackBox from "./SnackBox";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
-type Section = "journal" | "notes" | "diary" | "boards" | "shelf" | "archive" | "drawer";
+type Section = "journal" | "notes" | "diary" | "boards" | "shelf" | "archive" | "drawer" | "snacks";
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "journal", label: "오늘의 일지" },
   { id: "notes", label: "연구노트" },
@@ -28,6 +29,7 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "shelf", label: "좋아하는 책" },
   { id: "archive", label: "찾기 · 내보내기" },
   { id: "drawer", label: "편지 서랍" },
+  { id: "snacks", label: "간식 상자" },
 ];
 
 /** 내 연구실(작업 화면): 글쓰기 창이 가운데에 크게, 왼쪽엔 작은 연구실 그림과 항목 목록, 오른쪽엔 마감·할 일. 집중 모드는 가운데만 남긴다. */
@@ -101,6 +103,7 @@ export default function StudyRoomWork({
         )}
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
+            {section === "snacks" && <SnackBox residents={residents} myId={me.user_id} />}
             {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} />}
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
             {section === "notes" && <ResearchNotes data={notes} userId={me.user_id} openId={target?.kind === "note" ? target.key : undefined} />}
