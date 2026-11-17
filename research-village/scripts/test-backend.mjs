@@ -710,6 +710,35 @@ await t("비석 이벤트: 정해진 한 사람만 부수고, 소원이 이뤄�
   assert.equal(w.status, "done"); assert.match(w.reply, /탈출/);
 });
 
+await t("스터디 공지: 만들기·검증·권한·정해진 시간에 마을 모두에게 알림", async () => {
+  const zoom = "https://us02web.zoom.us/j/123456789";
+  const base = { village_id: village, title: "새벽 독서", days: [1, 3, 5], at_time: "09:30", lead_min: 0, zoom_url: zoom };
+  assert.ok((await m1.c.from("study_schedules").insert({ ...base, zoom_url: "https://evil.example.com/j/1" })).error);   // zoom 주소만
+  assert.ok((await m1.c.from("study_schedules").insert({ ...base, days: [] })).error);
+  assert.ok((await m1.c.from("study_schedules").insert({ ...base, days: [9] })).error);
+  assert.ok((await outside[1].c.from("study_schedules").insert(base)).error);                                           // 마을 밖
+  const s1 = ok(await m1.c.from("study_schedules").insert(base).select("id").single());
+  assert.equal(ok(await m2.c.from("study_schedules").select("id").eq("id", s1.id)).length, 1);                            // 마을원은 본다
+  assert.equal(ok(await outside[1].c.from("study_schedules").select("id").eq("id", s1.id)).length, 0);
+  await m2.c.from("study_schedules").update({ title: "남의 것" }).eq("id", s1.id);
+  assert.equal(ok(await m1.c.from("study_schedules").select("title").eq("id", s1.id).single()).title, "새벽 독서");     // 남은 못 고친다
+  assert.ok((await m1.c.rpc("fire_study_alarms")).error);                                                                 // 일반 사용자는 실행 불가
+  const sv = createClient(url, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+  // 지금(한국 시각)에 맞춰 두면 한 번만 울린다
+  const kst = new Date(Date.now() + 9 * 3600e3);
+  await sv.from("study_schedules").update({ days: [kst.getUTCDay()], at_time: kst.toISOString().slice(11, 16) + ":00", last_fired_on: null }).eq("id", s1.id);
+  const n1 = ok(await sv.rpc("fire_study_alarms")); assert.ok(n1 >= 1);
+  const got = ok(await m2.c.from("notifications").select("summary,kind,actor_id").eq("kind", "study_alarm"));
+  assert.ok(got.some((g) => g.summary.startsWith(s1.id + "|")));
+  assert.ok(got.every((g) => g.actor_id === m1.id));
+  ok(await sv.rpc("fire_study_alarms"));
+  assert.equal(ok(await m2.c.from("notifications").select("id").eq("kind", "study_alarm")).length, got.length);           // 같은 날 두 번 울리지 않는다
+  assert.equal(ok(await m1.c.from("notifications").select("id").eq("kind", "study_alarm")).length >= 1, true);           // 만든 사람도 받는다
+  for (let i = 0; i < 9; i++) ok(await m1.c.from("study_schedules").insert({ ...base, title: `s${i}` }));
+  assert.match((await m1.c.from("study_schedules").insert(base)).error?.message ?? "", /too_many_schedules/);
+  ok(await a.c.from("study_schedules").delete().eq("id", s1.id));                                                         // 마을 관리자는 지울 수 있다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

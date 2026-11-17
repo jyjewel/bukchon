@@ -13,6 +13,7 @@ const TEXT: Record<string, string> = {
   nudge: "마감을 챙겨 보래요",
   message: "새 메시지를 보냈어요",
   moving_cake: "이사 떡을 돌렸어요",
+  study_alarm: "스터디 시간이에요",
   moving_thanks: "이사 떡을 잘 먹겠대요",
 };
 

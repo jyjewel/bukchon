@@ -7,6 +7,7 @@ import type { Book, Resident } from "@/lib/types";
 import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { SortableItem, useSortSensors } from "./Sortable";
+import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
 
 type Lib = ReturnType<typeof useLibrary>;
@@ -94,6 +95,8 @@ export default function LibraryView({
           </Window>
         </div>
 
+        <div className="space-y-5">
+        <StudySchedules villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
         <Window title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">
             <ul className="space-y-2">
@@ -125,6 +128,7 @@ export default function LibraryView({
             </form>
           </div>
         </Window>
+        </div>
       </div>
       {book && <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} />}
     </div>

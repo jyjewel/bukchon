@@ -14,6 +14,7 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
   if (n.kind === "chat_request") return `${actor}님이 대화를 신청했어요`;
   if (n.kind === "meeting") return `${actor}님이 Zoom 회의를 열었어요`;
   if (n.kind === "moving_cake") { const i = n.summary.indexOf(":"); const k = i < 0 ? n.summary : n.summary.slice(0, i); const note = i < 0 ? "" : n.summary.slice(i + 1); return `${actor}님이 이사 떡(${giftOf(k)?.label ?? "떡"})을 돌렸어요${note ? ` — “${note}”` : ""}`; }
+  if (n.kind === "study_alarm") return `📚 스터디 시간이에요: ${n.summary.split("|").slice(1).join("|")}`;
   if (n.kind === "moving_thanks") return `${actor}님이 이사 떡을 잘 먹겠대요 🍡`;
   if (n.kind === "gesture") return `${actor}님이 ${gestureOf(n.summary)?.hit ?? "던지기를 했어요!"}`;
   if (n.kind === "gift") { const i = n.summary.indexOf(":"); const k = i < 0 ? n.summary : n.summary.slice(0, i); const note = i < 0 ? "" : n.summary.slice(i + 1); return `${actor}님이 ${giftOf(k)?.label ?? "선물"}을(를) 건넸어요${note ? ` — “${note}”` : ""}`; }

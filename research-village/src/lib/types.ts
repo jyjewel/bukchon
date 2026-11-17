@@ -156,7 +156,7 @@ export interface AppNotification {
   user_id: string;
   village_id: string;
   actor_id: string;
-  kind: "postit" | "comment" | "chat_request" | "meeting" | "gesture" | "gift" | "book_tip" | "journal_reaction" | "journal_comment" | "cheer" | "nudge" | "moving_cake" | "moving_thanks";
+  kind: "postit" | "comment" | "chat_request" | "meeting" | "gesture" | "gift" | "book_tip" | "journal_reaction" | "journal_comment" | "cheer" | "nudge" | "moving_cake" | "moving_thanks" | "study_alarm";
   room_owner_id: string;
   summary: string;
   created_at: string;

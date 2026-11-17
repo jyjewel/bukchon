@@ -30,6 +30,7 @@ import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
 import WelcomeBack from "./WelcomeBack";
 import UpdateNotice from "./UpdateNotice";
+import StudyAlarmDialog from "./StudyAlarmDialog";
 import { awayDays, isGesture } from "@/lib/social";
 import { lastSeenLabel } from "@/lib/time";
 import { Notice, Window } from "./ui";
@@ -80,6 +81,8 @@ const me = v.me!;
   const [toast, setToast] = useState<Toast | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
   const [newsOpen, setNewsOpen] = useState(false);
+  const [alarm, setAlarm] = useState<AppNotification | null>(null);
+  const alarmSeen = useRef(new Set<string>());
   const newsBadge = useNewsBadge(village.id, me.user_id);
   const monument = useMonument(village.id);
   const [notice, setNotice] = useState("");
@@ -90,12 +93,20 @@ const me = v.me!;
   // 집중 연구 중에는 팝업을 띄우지 않고 알림함에만 조용히 쌓는다
   const onNew = useCallback((n: AppNotification) => {
     if (n.kind === "gesture" && viewRef.current === "home") setFx({ id: Date.now(), kind: n.summary, from: n.actor_id, to: n.user_id });
-    if (statusRef.current !== "focus") setToast({ kind: "notif", n });
+    if (n.kind !== "study_alarm" && statusRef.current !== "focus") setToast({ kind: "notif", n });
   }, []);
   const onIncoming = useCallback((conv: Conversation) => { if (statusRef.current !== "focus") setToast({ kind: "chat", conv }); }, []);
   const notifs = useNotifications(me.user_id, onNew);
   const chat = useChat(me.user_id, village.id, onIncoming);
   const lib = useLibrary(village.id);
+  // 스터디 알람: 집중 연구 중이면 건너뛰고, 끝난 뒤 30분 안이면 그때 띄운다
+  useEffect(() => {
+    if (me.status.status === "focus") return;
+    const n = notifs.list.find((x) => x.kind === "study_alarm" && !x.read_at && !alarmSeen.current.has(x.id) && Date.now() - new Date(x.created_at).getTime() < 30 * 60_000);
+    if (!n) return;
+    alarmSeen.current.add(n.id);
+    setAlarm(n);
+  }, [notifs.list, me.status.status]);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 7000);
@@ -133,6 +144,7 @@ const me = v.me!;
     setToast(null);
     if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
     if (n.kind === "meeting") return setView("library");
+    if (n.kind === "study_alarm") return setAlarm(n);
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
     if (n.kind === "gift") return visit(me.user_id, "whiteboard");
     if (n.kind === "journal_reaction" || n.kind === "journal_comment") return visit(n.room_owner_id, "whiteboard");
@@ -237,6 +249,7 @@ const me = v.me!;
       {notice && <Notice kind="error">{notice}</Notice>}
 
       {view === "home" && <UpdateNotice userId={me.user_id} />}
+      {alarm && <StudyAlarmDialog n={alarm} creator={byId.get(alarm.actor_id)?.profile.display_name ?? "마을 주민"} onClose={() => { void notifs.markRead([alarm.id]); setAlarm(null); }} />}
       {view === "home" && <MovingCakes villageId={village.id} myId={me.user_id} neighbors={v.residents.length - 1} />}
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
       {view === "home" && (
