@@ -75,9 +75,15 @@ begin
   select count(*) into left_count from public.study_goal_members where goal_id = p_goal and done_at is null;
   if left_count = 0 then
     update public.study_goals set completed_at = now() where id = p_goal;
-    for m in select user_id from public.study_goal_members where goal_id = p_goal and user_id <> me loop
-      insert into public.notifications (user_id, village_id, actor_id, kind, room_owner_id, summary)
-        values (m.user_id, g.village_id, me, 'study_goal', m.user_id, left(p_goal::text || '|' || g.title || '|done', 120));
+    -- 책걸이 기념: 팥시루떡과 송편을 마을 전체에 돌리고(간식 상자로), 알림도 보낸다. 같이 공부하지 않은 사람도 포함.
+    for m in select user_id from public.village_members where village_id = g.village_id loop
+      insert into public.gifts (from_user, to_user, kind, note) values
+        (g.created_by, m.user_id, 'siru', left('책걸이 기념 · ' || g.title, 40)),
+        (g.created_by, m.user_id, 'songpyeon', left('책걸이 기념 · ' || g.title, 40));
+      if m.user_id <> me then
+        insert into public.notifications (user_id, village_id, actor_id, kind, room_owner_id, summary)
+          values (m.user_id, g.village_id, me, 'study_goal', m.user_id, left(p_goal::text || '|' || g.title || '|done', 120));
+      end if;
     end loop;
     return true;
   end if;
@@ -87,3 +93,7 @@ revoke all on function public.create_study_goal(uuid, text, text, uuid[]), publi
 grant execute on function public.create_study_goal(uuid, text, text, uuid[]), public.set_study_goal_done(uuid, boolean) to authenticated;
 
 alter publication supabase_realtime add table public.study_goals, public.study_goal_members;
+
+-- 받은 간식은 3일이 지나면 간식 상자에서 저절로 사라진다 (매시간 정리)
+select cron.unschedule('gift-cleanup') where exists (select 1 from cron.job where jobname = 'gift-cleanup');
+select cron.schedule('gift-cleanup', '17 * * * *', $$delete from public.gifts where created_at < now() - interval '3 days'$$);

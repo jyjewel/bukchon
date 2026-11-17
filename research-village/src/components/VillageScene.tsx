@@ -4,6 +4,7 @@ import { STATUS_META } from "@/lib/constants";
 import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/time";
 import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
+import { BOOK_COLORS, flyingBookGrid } from "@/pixel/book";
 import { fxGrid } from "@/pixel/fx";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
@@ -385,6 +386,32 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               for (let j = 0; j < 3; j++) b.drawImage(star, Math.round(w.x + Math.cos(ang + j * 2.1) * (6 + u * 14) - 2), Math.round(w.y - AV_H - 2 - u * 10 + Math.sin(ang + j * 2.1) * 6));
               b.globalAlpha = 1;
             });
+            // 폴짝 뛰며 책을 공중으로 던진다
+            pa.members.forEach((id, k) => {
+              const w = walkers.current.get(id);
+              if (!w || !w.visible || w.moving) return;
+              for (let n = 0; n < 2; n++) {
+                const cyc = el * 0.8 + k * 0.29 + n * 0.5, u = cyc % 1, idx = Math.floor(cyc) + k + n * 3;
+                const bx = w.x + (n ? 7 : -7) + Math.sin(idx) * 4 * u, by = w.y - AV_H * 0.55 - Math.sin(Math.PI * u) * 36;
+                const bk = sp(`book${idx % BOOK_COLORS.length}`, () => flyingBookGrid(BOOK_COLORS[idx % BOOK_COLORS.length]));
+                b.save(); b.translate(Math.round(bx), Math.round(by)); b.rotate(u * Math.PI * 4 * (n ? 1 : -1));
+                b.drawImage(bk, -4, -3); b.restore();
+              }
+            });
+          }
+          // 현수막 대신 글씨만: 통통 튀는 "책걸이!"와 목표 이름
+          if (el > 1.5 && el < 21) {
+            const pop = Math.min(1, (el - 1.5) / 0.5), bounce = Math.round(Math.sin(tick * 0.25) * 2), ff = monFont ? "Galmuri11, sans-serif" : "sans-serif";
+            b.save();
+            b.textAlign = "center"; b.textBaseline = "middle"; b.lineJoin = "round";
+            b.globalAlpha = pop;
+            b.font = `${Math.round(22 * (0.6 + 0.4 * pop))}px ${ff}`;
+            b.lineWidth = 4; b.strokeStyle = "#3a2a33"; b.strokeText("책걸이!", W / 2, 26 + bounce);
+            b.fillStyle = Math.floor(tick / 6) % 2 ? "#ffe27a" : "#ffb3c8"; b.fillText("책걸이!", W / 2, 26 + bounce);
+            b.font = `11px ${ff}`; b.lineWidth = 3;
+            const label = pa.title.length > 24 ? `${pa.title.slice(0, 23)}…` : pa.title;
+            b.strokeText(label, W / 2, 45); b.fillStyle = "#ffffff"; b.fillText(label, W / 2, 45);
+            b.restore();
           }
         }
       }
@@ -483,7 +510,6 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       <button type="button" className="scene-hit" style={pct(ORB_POS.x - 10, ORB_POS.y - ORB_H, 20, ORB_H + 1)} aria-label="소원구슬 — 눌러서 소원 빌기" onClick={() => onOrb?.()} />
       {truck && <button type="button" className="scene-hit" style={pct(TRUCK_POS.x - TRUCK_W / 2, TRUCK_POS.y - TRUCK_H + 3, TRUCK_W, TRUCK_H - 4)} aria-label={truck === "night" ? "새벽 야식 트럭 — 눌러서 메뉴 보기" : "아침 밥차 — 눌러서 메뉴 보기"} onClick={() => onTruck?.()} />}
       {monument && !monument.broken_at && canBreakMonument && <button type="button" className="scene-hit" style={pct(MON_POS.x - Math.floor(MON_W / 2), MON_POS.y - MON_H + 1, MON_W, MON_H - 2)} aria-label="비석" onClick={() => onBreakMonument?.()} />}
-      {party && <div className="party-banner" role="status"><span className="party-banner-title">📖 책걸이!</span><span className="party-banner-goal">{party.title}</span><span className="party-banner-sub">다 같이 목표를 이뤘어요 🎉</span></div>}
       {boardNew > 0 && <span className="sr-only" role="status" aria-label={`게시판에 안 읽은 새 글 ${boardNew}개`}>게시판에 새 글이 있어요</span>}
       <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 소식 보기" onClick={() => onPlace("board")} />
 

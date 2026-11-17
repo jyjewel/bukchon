@@ -389,11 +389,3 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 @keyframes owl-fly { from { transform: translate(-70vw, -40vh); } 60% { transform: translate(-20vw, -12vh); } to { transform: translate(0, 0); } }
 @keyframes owl-bob { 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .owl-flying, .owl-bob { animation: none; } }
-
-/* 공동 목표 달성: 책걸이 잔치 현수막 */
-.party-banner { position: absolute; left: 50%; top: 4%; z-index: 30; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 18px; text-align: center; pointer-events: none;
-  background: #fffdf4; border: 2px solid var(--color-ink); box-shadow: 0 3px 0 rgb(58 42 51 / .3); animation: party-pop .5s ease-out both; max-width: 86%; }
-.party-banner-title { font-family: var(--font-display, inherit); font-size: clamp(16px, 3.2vw, 28px); color: #c2304a; }
-.party-banner-goal { font-size: clamp(12px, 2.2vw, 18px); }
-.party-banner-sub { font-size: clamp(10px, 1.8vw, 14px); color: var(--color-ink-soft, #6b5a63); }
-@keyframes party-pop { from { transform: translateX(-50%) scale(.6); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
