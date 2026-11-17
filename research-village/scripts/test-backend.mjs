@@ -734,6 +734,13 @@ await t("스터디 공지: 만들기·검증·권한·정해진 시간에 마을
   ok(await sv.rpc("fire_study_alarms"));
   assert.equal(ok(await m2.c.from("notifications").select("id").eq("kind", "study_alarm")).length, got.length);           // 같은 날 두 번 울리지 않는다
   assert.equal(ok(await m1.c.from("notifications").select("id").eq("kind", "study_alarm")).length >= 1, true);           // 만든 사람도 받는다
+  // 받을 사람을 고르면 그 사람들에게만 간다
+  const s2 = ok(await m1.c.from("study_schedules").insert({ ...base, title: "선택 스터디", recipients: [m1.id, m2.id] }).select("id").single());
+  await sv.from("study_schedules").update({ days: [kst.getUTCDay()], at_time: kst.toISOString().slice(11, 16) + ":00", last_fired_on: null }).eq("id", s2.id);
+  ok(await sv.rpc("fire_study_alarms"));
+  const has = async (x) => ok(await x.c.from("notifications").select("summary").eq("kind", "study_alarm")).some((g) => g.summary.startsWith(s2.id + "|"));
+  assert.equal(await has(m1), true); assert.equal(await has(m2), true); assert.equal(await has(a), false);
+  ok(await m1.c.from("study_schedules").delete().eq("id", s2.id));
   for (let i = 0; i < 9; i++) ok(await m1.c.from("study_schedules").insert({ ...base, title: `s${i}` }));
   assert.match((await m1.c.from("study_schedules").insert(base)).error?.message ?? "", /too_many_schedules/);
   ok(await a.c.from("study_schedules").delete().eq("id", s1.id));                                                         // 마을 관리자는 지울 수 있다

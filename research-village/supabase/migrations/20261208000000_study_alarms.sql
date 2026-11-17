@@ -12,6 +12,7 @@ create table public.study_schedules (
   tz text not null default 'Asia/Seoul',
   zoom_url text not null default '' check (zoom_url = '' or (char_length(zoom_url) <= 500 and zoom_url ~* '^https://([a-z0-9-]+\.)*(zoom\.us|zoomgov\.com)/')),
   note text not null default '' check (char_length(note) <= 100),
+  recipients uuid[] not null default '{}' check (cardinality(recipients) <= 6),   -- 알림 받을 사람. 비어 있으면 마을 모두
   active boolean not null default true,
   last_fired_on date,
   created_at timestamptz not null default now()
@@ -20,8 +21,8 @@ create index study_schedules_village on public.study_schedules (village_id);
 alter table public.study_schedules enable row level security;
 revoke all on public.study_schedules from anon, authenticated, public;
 grant select, delete on public.study_schedules to authenticated;
-grant insert (village_id, title, days, at_time, lead_min, zoom_url, note) on public.study_schedules to authenticated;
-grant update (title, days, at_time, lead_min, zoom_url, note, active) on public.study_schedules to authenticated;
+grant insert (village_id, title, days, at_time, lead_min, zoom_url, note, recipients) on public.study_schedules to authenticated;
+grant update (title, days, at_time, lead_min, zoom_url, note, recipients, active) on public.study_schedules to authenticated;
 create policy study_select on public.study_schedules for select to authenticated using (public.is_village_member(village_id));
 create policy study_insert on public.study_schedules for insert to authenticated
   with check (created_by = (select auth.uid()) and public.is_village_member(village_id));
@@ -75,7 +76,8 @@ begin
       update public.study_schedules set last_fired_on = local_now::date where id = s.id;
       insert into public.notifications (user_id, village_id, actor_id, kind, room_owner_id, summary)
         select m.user_id, s.village_id, s.created_by, 'study_alarm', m.user_id, left(s.id::text || '|' || s.title, 120)
-        from public.village_members m where m.village_id = s.village_id;
+        from public.village_members m where m.village_id = s.village_id
+          and (cardinality(s.recipients) = 0 or m.user_id = any (s.recipients));
       n := n + 1;
     end if;
   end loop;
