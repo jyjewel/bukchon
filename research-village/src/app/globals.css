@@ -389,3 +389,8 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 @keyframes owl-fly { from { transform: translate(-70vw, -40vh); } 60% { transform: translate(-20vw, -12vh); } to { transform: translate(0, 0); } }
 @keyframes owl-bob { 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .owl-flying, .owl-bob { animation: none; } }
+
+/* 제목줄을 잡고 끌어서 창 순서를 바꿀 수 있다 */
+.titlebar-grip { cursor: grab; }
+.titlebar-grip:active { cursor: grabbing; }
+.titlebar-grip h2 { user-select: none; }

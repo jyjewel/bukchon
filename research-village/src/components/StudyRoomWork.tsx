@@ -17,6 +17,7 @@ import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
 import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
+import WindowColumn from "./WindowColumn";
 import SnackBox from "./SnackBox";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
@@ -117,10 +118,10 @@ export default function StudyRoomWork({
       </div>
 
       {!focus && (
-        <div className="order-3 space-y-4">
-          <Window title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} /></Window>
-          <Window title="오늘의 체크리스트" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
-        </div>
+        <WindowColumn col="lab-right" userId={me.user_id} className="order-3 space-y-4">
+          <Window key="deadline" title="마감 일정" tone="butter"><DeadlinePanel planner={planner} userId={me.user_id} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} /></Window>
+          <Window key="todo" title="오늘의 체크리스트" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
+        </WindowColumn>
       )}
       {letter && <WelcomeLetter onClose={() => setLetter(false)} />}
     </div>

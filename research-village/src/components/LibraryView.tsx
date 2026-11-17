@@ -9,6 +9,8 @@ import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortab
 import { SortableItem, useSortSensors } from "./Sortable";
 import type { useStudyGoals } from "@/hooks/useStudyGoals";
 import StudyGoals from "./StudyGoals";
+import CoinShelf from "./CoinShelf";
+import WindowColumn from "./WindowColumn";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
 
@@ -64,8 +66,8 @@ export default function LibraryView({
     <div className="space-y-5">
       {error && <Notice kind="error">{error}</Notice>}
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <div className="space-y-5">
-          <Window title="함께 쓰는 책장" tone="butter">
+        <WindowColumn col="lib-left" userId={me.user_id} className="space-y-5">
+          <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
               <div className="px-box flex min-h-[180px] flex-wrap items-end gap-1 p-2" style={{ background: "linear-gradient(#6f4a30 0 0) bottom / 100% 10px no-repeat, #8a5f3c", ["--bd" as string]: "#3a2a33" }} role="group" aria-label="책장">
                 {lib.loaded && lib.books.length === 0 && <p className="w-full pb-4 text-center text-xs text-[#fff8e4]">아직 책이 없어요.</p>}
@@ -95,12 +97,13 @@ export default function LibraryView({
               </form>
             </div>
           </Window>
-        </div>
+          <CoinShelf key="coins" goals={goals.goals} />
+        </WindowColumn>
 
-        <div className="space-y-5">
-        <StudyGoals villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} />
-        <StudySchedules villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
-        <Window title="Zoom 회의" tone="mint" className="self-start">
+        <WindowColumn col="lib-right" userId={me.user_id} className="space-y-5">
+        <StudyGoals key="goals" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} />
+        <StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
+        <Window key="zoom" title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">
             <ul className="space-y-2">
               {lib.loaded && upcoming.length === 0 && <li className="text-ink-soft">예정된 회의가 없어요.</li>}
@@ -131,7 +134,7 @@ export default function LibraryView({
             </form>
           </div>
         </Window>
-        </div>
+        </WindowColumn>
       </div>
       {book && <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} />}
     </div>

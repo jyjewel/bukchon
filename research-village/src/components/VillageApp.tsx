@@ -31,6 +31,7 @@ import ProfileModal from "./ProfileModal";
 import SettingsView from "./SettingsView";
 import WelcomeBack from "./WelcomeBack";
 import UpdateNotice from "./UpdateNotice";
+import WindowColumn from "./WindowColumn";
 import WelcomeOwl from "./WelcomeOwl";
 import StudyAlarmDialog from "./StudyAlarmDialog";
 import { awayDays, isGesture } from "@/lib/social";
@@ -273,8 +274,8 @@ const me = v.me!;
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
       {view === "home" && (
         <main className="grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)_276px]">
-          <div className="order-3 space-y-4 lg:order-1">
-            <Window title="내 프로필" icon="" tone="lilac" as="aside" controls={foldProfile}>
+          <WindowColumn col="home-left" userId={me.user_id} className="order-3 space-y-4 lg:order-1">
+            <Window key="profile" title="내 프로필" icon="" tone="lilac" as="aside" controls={foldProfile}>
               <div className="flex items-center gap-3 p-3">
                 <button type="button" onClick={() => setSelected(me.user_id)} aria-label="내 프로필 보기" className="card px-2 pt-1">
                   <CharacterIcon avatar={profile.avatar} size={72} />
@@ -287,7 +288,7 @@ const me = v.me!;
               </div>
               <SayBox key={me.say} current={me.say} onSay={(t) => v.updateMyStatus({ message: t })} />
             </Window>
-            <Window title="지금 나는" icon="" tone="mint" as="aside">
+            <Window key="status" title="지금 나는" icon="" tone="mint" as="aside">
               <div className="space-y-1.5 p-3" role="radiogroup" aria-label="연구 상태">
                 {STATUS_ORDER.map((s) => {
                   const meta = STATUS_META[s];
@@ -303,7 +304,7 @@ const me = v.me!;
                 })}
               </div>
             </Window>
-            <Window title="대화" tone="rose" as="aside" controls={foldChat}>
+            <Window key="chat" title="대화" tone="rose" as="aside" controls={foldChat}>
               <ul className="space-y-1 p-2 text-sm">
                 {chat.pendingIncoming.map((c) => {
                   const other = byId.get(c.user_a);
@@ -328,10 +329,10 @@ const me = v.me!;
                 {chat.pendingIncoming.length === 0 && !chat.convs.some((c) => c.status === "active") && <li className="p-1 text-ink-soft">진행 중인 대화가 없어요.</li>}
               </ul>
             </Window>
-          </div>
+          </WindowColumn>
 
-          <div className="order-1 min-w-0 space-y-4 lg:order-2">
-            <Window title={village.name} icon="" tone="sky">
+          <WindowColumn col="home-center" userId={me.user_id} className="order-1 min-w-0 space-y-4 lg:order-2">
+            <Window key="map" title={village.name} icon="" tone="sky">
               <div>
                 <div>
                   <VillageScene party={party}
@@ -364,8 +365,8 @@ const me = v.me!;
                 </div>
               </div>
             </Window>
-            <ShoutBoard villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
-          </div>
+            <ShoutBoard key="shout" villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
+          </WindowColumn>
 
           <div className="order-2 space-y-4 lg:order-3">
             <Window title="마을 주민" icon="" tone="rose" as="aside">

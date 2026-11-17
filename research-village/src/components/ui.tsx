@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useWindowGrip } from "./WindowColumn";
 
 const TONES = { rose: "#ff9fb6", mint: "#a5e3a0", sky: "#a9d8f5", butter: "#ffdf7a", lilac: "#cdb8f2" } as const;
 export type Tone = keyof typeof TONES;
@@ -19,6 +20,7 @@ export function Window({
   title: string; icon?: string; tone?: Tone; children: ReactNode; className?: string; actions?: ReactNode; controls?: WindowControls; as?: "section" | "div" | "aside";
 }) {
   const id = useId();
+  const grip = useWindowGrip();
   const [own, setOwn] = useState(() => { try { return localStorage.getItem(`win-fold:${title}`) === "1"; } catch { return false; } });
   const c: WindowControls | undefined = controls ?? {
     collapsed: own,
@@ -26,7 +28,7 @@ export function Window({
   };
   return (
     <Tag className={`window ${className}`} aria-labelledby={id}>
-      <div className="titlebar" style={{ "--tb": TONES[tone] } as React.CSSProperties}>
+      <div className={`titlebar ${grip ? "titlebar-grip" : ""}`} style={{ "--tb": TONES[tone], touchAction: grip ? "manipulation" : undefined } as React.CSSProperties} {...(grip?.listeners ?? {})}>
         {c && <button type="button" className="fold" data-open={!c.collapsed} aria-expanded={!c.collapsed} aria-label={`${title} ${c.collapsed ? "펴기" : "접기"}`} title={c.collapsed ? "펴기" : "접기"} onClick={c.onToggle} />}
         <h2 id={id} className="flex-1 truncate">{title}</h2>
         {actions}
