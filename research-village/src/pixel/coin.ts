@@ -18,3 +18,13 @@ export function coinGrid(): Grid {
   px(g, 4, 4, "#ffffff"); px(g, 5, 3, "#fffbe0"); px(g, 3, 5, "#fffbe0");
   return outline(g, "#6b4a10");
 }
+
+/** 쌓아 둔 금화의 옆면 (18×5) */
+export function coinSideGrid(shine: number): Grid {
+  const g = grid(18, 5);
+  rect(g, 1, 1, 16, 3, "#e0a92c"); rect(g, 2, 0, 14, 1, "#f8d968"); rect(g, 2, 4, 14, 1, "#b8821f");
+  rect(g, 1, 1, 16, 1, "#f2c744"); rect(g, 1, 3, 16, 1, "#c98f24");
+  for (let x = 3; x < 16; x += 2) px(g, x, 2, "#b8821f");                // 톱니 무늬 옆면
+  px(g, 3 + (shine % 10), 1, "#fff6c0"); px(g, 4 + (shine % 10), 1, "#fffbe0");
+  return outline(g, "#6b4a10");
+}
