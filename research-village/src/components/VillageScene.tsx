@@ -5,6 +5,7 @@ import { currentPhase, currentSeason, type DayPhase, type Season } from "@/lib/t
 import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
 import { fxGrid } from "@/pixel/fx";
+import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { ORB_H, ORB_POS, ORB_W, newMarkGrid, orbPedestalGrid, orbSphereGrid } from "@/pixel/orb";
 import { RACCOON_POS, TRUCK_AWNING_Y, TRUCK_H, TRUCK_POS, TRUCK_REST_SPOTS, TRUCK_W, TRUCK_WINDOW, ladleGrid, raccoonGrid, truckGrid } from "@/pixel/truck";
@@ -66,13 +67,13 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     if (fx && fxRef.current?.id !== fx.id) fxRef.current = { ...fx, start: performance.now() };
   }, [fx]);
-  const [clock, setClock] = useState<{ season: Season; phase: DayPhase }>({ season: "spring", phase: "day" });
+  const [clock, setClock] = useState<{ season: Season; phase: DayPhase; xmas: boolean }>({ season: "spring", phase: "day", xmas: false });
   useEffect(() => {
     data.current = { houses, residents, myId };
   }, [houses, residents, myId]);
 
   useEffect(() => {
-    const update = () => setClock({ season: currentSeason(), phase: currentPhase() });
+    const update = () => setClock({ season: currentSeason(), phase: currentPhase(), xmas: isChristmasSeason() });
     update();
     const t = setInterval(update, 60_000);
     return () => clearInterval(t);
@@ -81,7 +82,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     const canvas = canvasRef.current, wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const { season, phase } = clock;
+    const { season, phase, xmas } = clock;
     const pal = SEASONS[season];
     const night = phase === "night";
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -99,6 +100,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
     const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(treeGrid(pal.leaves[(v + i) % pal.leaves.length], v + i, season)) }));
     const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
     const fountain = [0, 1, 2, 3].map((f) => bake(fountainGrid(f)));
+    const xtree = xmas ? [0, 1, 2, 3].map((f) => bake(christmasTreeGrid(f))) : [];
     const monSrc = monFont ? bake(monumentGrid()) : null;
     const board = bake(boardGrid()), bench = bake(benchGrid()), lamp = bake(lampGrid(night || phase === "dusk"));
 
@@ -171,7 +173,12 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       for (const t of trees) items.push({ y: t.y, draw: () => { shadow(t.x, t.y, 10); b.drawImage(t.c, t.x - 17, t.y - TREE_H + 2); } });
       for (const s of bushes) items.push({ y: s.y, draw: () => b.drawImage(s.c, s.x - 9, s.y - 11) });
       for (const l of LAMPS) items.push({ y: l.y, draw: () => b.drawImage(lamp, l.x - 5, l.y - 28) });
-      items.push({ y: PLAZA.y + 6, draw: () => b.drawImage(fountain[slow % 4], PLAZA.x - 19, PLAZA.y - 24) });
+      if (xmas) {
+        // 크리스마스 달: 분수 자리에 커다란 트리가 서고, 가로등까지 전구 줄이 이어진다
+        const base = { x: PLAZA.x, y: PLAZA.y + 6 };
+        items.push({ y: base.y, draw: () => { shadow(base.x, base.y, 24); b.drawImage(xtree[Math.floor(tick / 8) % 4], base.x - TREE_BASE.x, base.y - TREE_BASE.y); } });
+        items.push({ y: base.y + 0.5, draw: () => drawLightStrings(b, tick, base, LAMPS) });
+      } else items.push({ y: PLAZA.y + 6, draw: () => b.drawImage(fountain[slow % 4], PLAZA.x - 19, PLAZA.y - 24) });
       items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x - 44, PLAZA.y + 18) });
       items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x + 20, PLAZA.y + 18) });
       items.push({ y: BOARD.y, draw: () => { shadow(BOARD.x, BOARD.y, 14); b.drawImage(board, BOARD.x - 17, BOARD.y - 33); } });
@@ -399,6 +406,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           };
           const a = night ? 0.5 : 0.22;
           for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
+          if (xmas) drawTreeGlow(b, { x: PLAZA.x, y: PLAZA.y + 6 }, tick, a * 1.2);
           if (truck) glow(TRUCK_POS.x - 9, TRUCK_POS.y - 17, 26, a + 0.15);
           for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
           if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
