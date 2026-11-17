@@ -93,7 +93,7 @@ export default function PublicJournal({
                   <ul className="mt-2 space-y-1" aria-label="일지 댓글">
                     {cs.map((c) => (
                       <li key={c.id} className="flex items-start gap-2 text-sm">
-                        <span className="min-w-0 flex-1 break-words"><span className="font-display font-bold text-[#a63d5c]">{names[c.author_id] ?? "이웃마을 주민"}:</span> {c.body} <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span></span>
+                        <span className="min-w-0 flex-1 break-words"><span className="font-display">{names[c.author_id] ?? "이웃마을 주민"}:</span> {c.body} <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span></span>
                         {(c.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="댓글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", c.id); await load(); }}>지우기</button>}
                       </li>
                     ))}

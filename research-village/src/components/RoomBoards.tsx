@@ -60,7 +60,7 @@ export default function RoomBoards({
           {room.postits.map((p) => {
             return (
               <li key={p.id} className="flex items-start gap-2 text-sm">
-                <span className="shrink-0 font-display font-bold text-[#a63d5c]">{who(p.author_id)}:</span>
+                <span className="shrink-0 font-display">{who(p.author_id)}:</span>
                 <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
                 {(p.author_id === myId || isOwner) && (
                   <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
@@ -120,7 +120,7 @@ export default function RoomBoards({
             <ul className="dotted mt-2 space-y-1 pt-2">
               {cs.map((c) => (
                 <li key={c.id} className="text-sm">
-                  <span className="font-display font-bold text-[#a63d5c]">{who(c.author_id)}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
+                  <span className="font-display">{who(c.author_id)}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
                   <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span>
                   {(c.author_id === myId || isOwner) && (
                     <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", c.id))}>삭제</button>
