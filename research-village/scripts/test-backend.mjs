@@ -773,7 +773,11 @@ await t("공동 공부 목표: 고른 사람만, 모두 완료하면 끝나고 �
   assert.deepEqual(kinds, ["makgeolli", "songpyeon"]);
   assert.equal(ok(await a.c.from("gifts").select("kind").eq("to_user", a.id).eq("kind", "songpyeon")).length >= 1, true);    // 같이 한 사람도 받는다
   assert.match((await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: false })).error?.message ?? "", /goal_completed/);
-  ok(await a.c.from("study_goals").delete().eq("id", gid));                                                       // 마을 관리자는 지울 수 있다
+  await a.c.from("study_goals").delete().eq("id", gid);                                                           // 이룬 목표(기념 주화)는 지울 수 없다
+  assert.equal(ok(await a.c.from("study_goals").select("id").eq("id", gid)).length, 1);
+  const g2 = ok(await m1.c.rpc("create_study_goal", { p_village: village, p_title: "지울 목표", p_note: "", p_members: [m2.id] }));
+  await a.c.from("study_goals").delete().eq("id", g2);                                                            // 진행 중인 목표는 마을 관리자가 지울 수 있다
+  assert.equal(ok(await a.c.from("study_goals").select("id").eq("id", g2)).length, 0);
 });
 
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {

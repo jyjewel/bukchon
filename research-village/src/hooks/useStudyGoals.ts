@@ -11,10 +11,13 @@ export function useStudyGoals(villageId: string) {
   const [loaded, setLoaded] = useState(false);
   const load = useCallback(async () => {
     const sb = supabase();
-    const [g, m] = await Promise.all([
-      sb.from("study_goals").select("id, village_id, created_by, title, note, created_at, completed_at").eq("village_id", villageId).order("created_at", { ascending: false }).limit(40),
+    const cols = "id, village_id, created_by, title, note, created_at, completed_at";
+    const [a, d, m] = await Promise.all([
+      sb.from("study_goals").select(cols).eq("village_id", villageId).is("completed_at", null).order("created_at", { ascending: false }).limit(40),
+      sb.from("study_goals").select(cols).eq("village_id", villageId).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(500),   // 기념 주화는 전부 남는다
       sb.from("study_goal_members").select("goal_id, user_id, done_at"),
     ]);
+    const g = { error: a.error ?? d.error, data: [...(a.data ?? []), ...(d.data ?? [])] };
     if (g.error || m.error) return;
     const byGoal = new Map<string, GoalMember[]>();
     for (const r of m.data as { goal_id: string; user_id: string; done_at: string | null }[]) byGoal.set(r.goal_id, [...(byGoal.get(r.goal_id) ?? []), { user_id: r.user_id, done_at: r.done_at }]);

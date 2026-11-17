@@ -41,7 +41,6 @@ export default function StudyGoals({ villageId, me, residents, isAdmin, goals, l
     if (error) fail(error); else await reload();
   };
   const active = goals.filter((g) => !g.completed_at);
-  const finished = goals.filter((g) => g.completed_at).slice(0, 5);
   const row = (g: StudyGoal) => {
     const mine = g.members.find((m) => m.user_id === me.user_id);
     const doneCount = g.members.filter((m) => m.done_at).length;
@@ -66,9 +65,8 @@ export default function StudyGoals({ villageId, me, residents, isAdmin, goals, l
     <Window title="공동 공부 목표" tone="butter" className="self-start">
       <div className="space-y-3 p-3">
         <p className="text-sm text-ink-soft">함께할 사람을 골라 공부 목표를 정해요. 모두 ‘목표 완료’를 누르면 목표 달성!</p>
-        {loaded && active.length === 0 && finished.length === 0 && <p className="text-center text-sm text-ink-soft">아직 공동 목표가 없어요.</p>}
+        {loaded && active.length === 0 && <p className="text-center text-sm text-ink-soft">진행 중인 공동 목표가 없어요.</p>}
         <ul className="space-y-2" aria-label="진행 중인 목표">{active.map(row)}</ul>
-        {finished.length > 0 && <><p className="label">최근에 이룬 목표</p><ul className="space-y-2">{finished.map(row)}</ul></>}
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
         <form onSubmit={create} className="card space-y-2 p-2" aria-label="공동 목표 만들기">
           <p className="label">새 공동 목표</p>
