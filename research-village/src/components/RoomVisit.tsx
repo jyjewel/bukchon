@@ -13,7 +13,7 @@ import { Modal, Window } from "./ui";
 /** 다른 주민의 연구실 방문. 주민이 연구실 안에서 집중하고 있어도 들어가 볼 수 있다. */
 export default function RoomVisit({
   owner, myId, residents, tab, onTab, onBack, onProfile, give,
-}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"]; onTip: (title: string, note: string) => Promise<string | null> | string | null } }) {
+}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"] } }) {
   const [giving, setGiving] = useState(false);
   const room = useRoom(owner.user_id, false);
   const fav = useFavBooks(owner.user_id);
@@ -31,16 +31,19 @@ export default function RoomVisit({
         <Window title={`${name}의 연구실`} tone="butter">
           <RoomCanvas
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-            note={inRoom ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={onTab} onDesk={() => setGiving(true)}
+            note={inRoom ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={(t) => { onTab(t); document.getElementById(t === "shelf" ? "visit-results" : "visit-board")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} onDesk={() => setGiving(true)}
           />
           <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">책상을 누르면 커피나 간식을 올려 줄 수 있어요</p>
         </Window>
         <FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} />
+        <div id="visit-results"><Window title={`${name}님의 연구 성과`} tone="lilac">
+          <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} only="shelf" />
+        </Window></div>
         </div>
         <div className="space-y-5">
-          <Window title="구경하고 남기기" tone="sky">
-            <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} onTip={give.onTip} />
-          </Window>
+          <div id="visit-board"><Window title="구경하고 남기기" tone="sky">
+            <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} only="whiteboard" />
+          </Window></div>
         </div>
       </div>
       {giving && (

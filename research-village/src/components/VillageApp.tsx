@@ -166,7 +166,6 @@ const me = v.me!;
         return e;
       },
       onGift: (kind: string, note: string) => call("send_gift", { p_kind: kind, p_note: note }),
-      onTip: (title: string, note: string) => call("send_book_tip", { p_title: title, p_note: note }),
       onNudge: () => call("send_nudge", {}),
     };
   };

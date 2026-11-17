@@ -66,24 +66,6 @@ export function GiftBox({ name, onGift, onDone }: { name: string; onGift: (kind:
   );
 }
 
-/** 책 추천: 상대 책장에 꽂아 주기 */
-export function TipBox({ name, onTip }: { name: string; onTip: (title: string, note: string) => Promise<Result> | Result }) {
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState("");
-  const { done, view } = useFeedback();
-  return (
-    <section aria-label={`${name}님 책장에 책 추천하기`} className="space-y-1">
-      <h3 className="label">책 추천해서 꽂아 주기</h3>
-      <div className="flex flex-wrap items-start gap-1.5">
-        <div className="min-w-36 flex-[2]"><label className="sr-only" htmlFor="tip-title">추천할 책 제목</label><input id="tip-title" className="input" maxLength={100} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="책 제목" /></div>
-        <div className="min-w-32 flex-1"><label className="sr-only" htmlFor="tip-note">추천 한마디</label><input id="tip-note" className="input" maxLength={100} value={note} onChange={(e) => setNote(e.target.value)} placeholder="한마디 (선택)" /></div>
-        <button type="button" className="btn btn-primary btn-sm mt-[5px]" disabled={!title.trim()} onClick={() => void done(onTip(title.trim(), note.trim()), `《${title.trim()}》을(를) ${name}님 책장에 꽂아 두었어요.`, () => { setTitle(""); setNote(""); })}>추천하기</button>
-      </div>
-      {view}
-    </section>
-  );
-}
-
 /** 마감 독촉: 3일 넘게 안 들어온 이웃에게 */
 export function NudgeBox({ name, days, onNudge }: { name: string; days: number; onNudge: () => Promise<Result> | Result }) {
   const { done, view } = useFeedback();
