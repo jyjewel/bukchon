@@ -27,6 +27,7 @@ export default function RoomVisit({
         <button type="button" className="btn" onClick={onProfile}>{name}의 프로필</button>
       </div>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+        <div className="space-y-5">
         <Window title={`${name}의 연구실`} tone="butter">
           <RoomCanvas
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
@@ -34,11 +35,12 @@ export default function RoomVisit({
           />
           <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">책상을 누르면 커피나 간식을 올려 줄 수 있어요</p>
         </Window>
+        <FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} />
+        </div>
         <div className="space-y-5">
           <Window title="구경하고 남기기" tone="sky">
             <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} onTip={give.onTip} />
           </Window>
-          <FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} />
         </div>
       </div>
       {giving && (
