@@ -53,9 +53,8 @@ export default function WishDialog({ villageId, myId, residents, onClose }: { vi
     <Modal title="🔮 소원구슬" tone="lilac" onClose={onClose}>
       <div className="space-y-3">
         <div className="card space-y-1 px-3 py-2 text-sm">
-          <p className="font-display">마을에 새로 생기거나 고쳐졌으면 하는 기능을 비는 곳이에요</p>
-          <p className="text-ink-soft">개인적인 소원 말고, “이런 기능이 있으면 좋겠어요”, “이 부분이 불편해요”처럼 마을에 더해지거나 바뀌었으면 하는 것을 적어 주세요.</p>
-          <p className="text-ink-soft">빌어 주신 소원은 <b>24시간 안에 검토</b>한 뒤 처리하고, 진행 상태는 아래 ‘마을의 소원들’에서 볼 수 있어요. 하루에 세 개까지 빌 수 있어요.</p>
+          <p>마을에 새로 생기거나 고쳤으면 하는 기능을 말해주세요.</p>
+          <p>빌어주신 소원은 24시간 안에 검토 후 처리해요. (하루 세 개까지)</p>
         </div>
         <form onSubmit={submit} className="space-y-1">
           <label className="label" htmlFor="wish-text">소원</label>
