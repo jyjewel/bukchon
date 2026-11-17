@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortab
 import { SortableItem, useSortSensors } from "./Sortable";
 import type { useStudyGoals } from "@/hooks/useStudyGoals";
 import StudyGoals from "./StudyGoals";
-import CoinShelf from "./CoinShelf";
+import CoinStack from "./CoinShelf";
 import WindowColumn from "./WindowColumn";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
@@ -69,7 +69,8 @@ export default function LibraryView({
         <WindowColumn col="lib-left" userId={me.user_id} className="space-y-5">
           <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
-              <div className="px-box flex min-h-[180px] flex-wrap items-end gap-1 p-2" style={{ background: "linear-gradient(#6f4a30 0 0) bottom / 100% 10px no-repeat, #8a5f3c", ["--bd" as string]: "#3a2a33" }} role="group" aria-label="책장">
+              <div className="px-box relative flex min-h-[180px] items-end gap-1 p-2" style={{ background: "linear-gradient(#6f4a30 0 0) bottom / 100% 10px no-repeat, #8a5f3c", ["--bd" as string]: "#3a2a33" }}>
+                <div className="flex min-w-0 flex-1 flex-wrap items-end gap-1 self-stretch" role="group" aria-label="책장">
                 {lib.loaded && lib.books.length === 0 && <p className="w-full pb-4 text-center text-xs text-[#fff8e4]">아직 책이 없어요.</p>}
                 {lib.books.length > 1 && <p className="sr-only">책을 끌어서 순서를 바꿀 수 있어요. 키보드는 책에 초점을 두고 스페이스 키를 누른 뒤 화살표로 옮기세요.</p>}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBookDrag}>
@@ -87,6 +88,8 @@ export default function LibraryView({
                 })}
                 </SortableContext>
                 </DndContext>
+                </div>
+                <CoinStack goals={goals.goals} />
               </div>
               <form onSubmit={createBook} className="card space-y-1 p-2">
                 <label className="label" htmlFor="nb-title">새 책 만들기</label>
@@ -97,7 +100,6 @@ export default function LibraryView({
               </form>
             </div>
           </Window>
-          <CoinShelf key="coins" goals={goals.goals} />
         </WindowColumn>
 
         <WindowColumn col="lib-right" userId={me.user_id} className="space-y-5">

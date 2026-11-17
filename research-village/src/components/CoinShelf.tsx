@@ -1,34 +1,31 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { coinGrid } from "@/pixel/coin";
 import type { StudyGoal } from "@/hooks/useStudyGoals";
 import PixelArt from "./PixelArt";
-import { Window } from "./ui";
 
-/** 공동 책장의 기념주화: 공동 공부 목표를 이룰 때마다 금화가 하나씩 생기고, 이룬 날짜와 목표가 적힌다 */
-export default function CoinShelf({ goals }: { goals: StudyGoal[] }) {
+/** 공동 책장 오른쪽에 쌓이는 기념주화: 공동 공부 목표를 이룰 때마다 금화가 하나씩 쌓인다. 누르면 날짜와 목표가 보인다. */
+export default function CoinStack({ goals }: { goals: StudyGoal[] }) {
   const art = useMemo(() => coinGrid(), []);
-  const done = goals.filter((g) => g.completed_at).sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)));
+  const [open, setOpen] = useState<string | null>(null);
+  const done = goals.filter((g) => g.completed_at).sort((a, b) => String(a.completed_at).localeCompare(String(b.completed_at)));
+  if (done.length === 0) return null;
+  const shown = done.slice(-8);                                  // 맨 위에서 보이는 최근 금화 여덟 개
+  const dateOf = (g: StudyGoal) => { const d = new Date(g.completed_at!); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+  const sel = done.find((g) => g.id === open);
   return (
-    <Window title="기념 주화" tone="butter" className="self-start">
-      <div className="space-y-2 p-3">
-        <p className="text-sm text-ink-soft">공동 공부 목표를 이룰 때마다 금화가 하나씩 생겨요.</p>
-        {done.length === 0 ? <p className="py-2 text-center text-sm text-ink-soft">아직 이룬 목표가 없어요. 첫 금화를 만들어 보세요.</p> : (
-          <ul aria-label="기념주화" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {done.map((g) => {
-              const d = new Date(g.completed_at!);
-              return (
-                <li key={g.id} className="card flex flex-col items-center px-1 pb-1.5 pt-2 text-center">
-                  <PixelArt art={art} scale={4} sparkle label="금 기념주화" />
-                  <span className="mt-1 text-xs text-ink-soft">{d.getFullYear()}.{d.getMonth() + 1}.{d.getDate()}</span>
-                  <span className="line-clamp-2 break-words text-xs">{g.title}</span>
-                  <span className="text-[11px] text-ink-soft">{g.members.length}명이 함께</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    </Window>
+    <div className="flex w-[84px] shrink-0 flex-col items-center justify-end self-stretch border-l-2 border-dotted border-[#c9a27a] pl-1" aria-label={`기념주화 ${done.length}개`} role="group">
+      {sel && <p role="status" className="mb-1 w-full break-words text-center text-[10px] leading-tight text-[#fff8e4]">{dateOf(sel)}<br />{sel.title}<br /><span className="text-[#f2c744]">{sel.members.length}명이 함께</span></p>}
+      <ul className="flex flex-col-reverse items-center pb-2">
+        {shown.map((g, i) => (
+          <li key={g.id} className={i === 0 ? "" : "-mb-[38px]"}>
+            <button type="button" className="block" aria-label={`기념주화 ${dateOf(g)} ${g.title}`} title={`${dateOf(g)} · ${g.title}`} aria-pressed={open === g.id} onClick={() => setOpen(open === g.id ? null : g.id)}>
+              <PixelArt art={art} scale={3} sparkle={i === shown.length - 1} label="금 기념주화" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {done.length > shown.length && <span className="pb-1 text-[11px] text-[#fff8e4]">+{done.length - shown.length}</span>}
+    </div>
   );
 }
