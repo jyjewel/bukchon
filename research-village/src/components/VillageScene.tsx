@@ -43,6 +43,8 @@ export interface SceneProps {
   boardNew?: number;
   /** 비석 이벤트: 있으면 서 있고, 부서지면 먼지로 사라진다. 정해진 한 사람만 누를 수 있다 */
   monument?: { broken_at: string | null } | null;
+  /** 공동 목표를 다 이뤘을 때 광장에서 벌어지는 한바탕 잔치 */
+  party?: { id: string; title: string; members: string[]; start: number } | null;
   canBreakMonument?: boolean;
   onBreakMonument?: () => void;
   /** 연구실 앞 책상을 눌렀을 때 */
@@ -51,7 +53,7 @@ export interface SceneProps {
   fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -61,6 +63,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => { monRef.current = monument; }, [monument]);
   const [monFont, setMonFont] = useState(false);
   useEffect(() => { void document.fonts.load("11px Galmuri11").then(() => setMonFont(true)); }, []);
+  const partyRef = useRef(party);
+  useEffect(() => { partyRef.current = party; }, [party]);
   const newRef = useRef(boardNew);
   useEffect(() => { newRef.current = boardNew; }, [boardNew]);
   const fxRef = useRef<{ id: number; kind: string; from: string; to: string; start: number } | null>(null);
@@ -115,7 +119,17 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
 
+    const partySpot = (r: Resident) => {
+      const p = partyRef.current;
+      if (!p) return null;
+      const i = p.members.indexOf(r.user_id);
+      if (i < 0) return null;
+      const n = Math.max(2, p.members.length), a = Math.PI * (0.08 + (0.84 * i) / (n - 1));
+      return { x: PLAZA.x - Math.cos(a) * 56, y: PLAZA.y + 14 + Math.sin(a) * 22, visible: true };
+    };
     const targetOf = (r: Resident) => {
+      const spot = partySpot(r);
+      if (spot) return spot;
       const door = { x: HOUSE_POS[r.slot].x + 9, y: HOUSE_POS[r.slot].y + 3 };
       if (r.shown === "open") return { x: DESK_POS[r.slot].x, y: DESK_POS[r.slot].y - 2, visible: true };
       if (r.shown === "library") return { ...LIBRARY_SPOTS[r.slot], visible: true };
@@ -329,7 +343,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         const seated = r.shown === "open" && !w.moving;
         const f = w.moving ? ((Math.floor(tick / 4) % 2) + 1) as 1 | 2 : 0;
         const av = sp(`a${JSON.stringify(r.profile.avatar)}${f}${seated ? "s" : ""}`, () => avatarGrid(r.profile.avatar, f, seated));
-        const bob = !w.moving && (slow + r.slot) % 4 === 0 ? 1 : 0;
+        const pa = partyRef.current, dancing = Boolean(pa && pa.members.includes(r.user_id) && !w.moving && (performance.now() - pa.start) / 1000 > 3);
+        const bob = dancing ? -Math.round(Math.abs(Math.sin(tick * 0.28 + r.slot)) * 6) : !w.moving && (slow + r.slot) % 4 === 0 ? 1 : 0;
         items.push({
           y: w.y,
           draw: () => {
@@ -348,6 +363,31 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       }
       items.sort((a, c) => a.y - c.y);
       for (const it of items) it.draw();
+      {
+        // 책걸이: 색종이가 쏟아지고 별이 터진다
+        const pa = partyRef.current;
+        if (pa) {
+          const el = (performance.now() - pa.start) / 1000;
+          if (el > 3 && el < 21) {
+            const cols = ["#ff5a5a", "#ffd23f", "#6adf7a", "#5ab0ff", "#ff8ac2", "#ffffff"];
+            for (let i = 0; i < 90; i++) {
+              const sp0 = 28 + (i * 7) % 22, x = PLAZA.x - 110 + ((i * 53) % 220) + Math.round(Math.sin(el * 2 + i) * 5);
+              const y = ((el * sp0 + i * 23) % (H + 20)) - 10;
+              b.fillStyle = cols[i % cols.length];
+              b.fillRect(Math.round(x), Math.round(y), 2, i % 3 === 0 ? 3 : 2);
+            }
+            const star = sp("fx-star", () => fxGrid("star")!);
+            pa.members.forEach((id, k) => {
+              const w = walkers.current.get(id);
+              if (!w || !w.visible || w.moving) return;
+              const u = ((el * 1.4 + k * 0.37) % 1), ang = k * 1.7;
+              b.globalAlpha = Math.max(0, 1 - u);
+              for (let j = 0; j < 3; j++) b.drawImage(star, Math.round(w.x + Math.cos(ang + j * 2.1) * (6 + u * 14) - 2), Math.round(w.y - AV_H - 2 - u * 10 + Math.sin(ang + j * 2.1) * 6));
+              b.globalAlpha = 1;
+            });
+          }
+        }
+      }
       {
         // 소원구슬의 은은한 보랏빛 번짐
         b.globalCompositeOperation = "lighter";
@@ -443,6 +483,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       <button type="button" className="scene-hit" style={pct(ORB_POS.x - 10, ORB_POS.y - ORB_H, 20, ORB_H + 1)} aria-label="소원구슬 — 눌러서 소원 빌기" onClick={() => onOrb?.()} />
       {truck && <button type="button" className="scene-hit" style={pct(TRUCK_POS.x - TRUCK_W / 2, TRUCK_POS.y - TRUCK_H + 3, TRUCK_W, TRUCK_H - 4)} aria-label={truck === "night" ? "새벽 야식 트럭 — 눌러서 메뉴 보기" : "아침 밥차 — 눌러서 메뉴 보기"} onClick={() => onTruck?.()} />}
       {monument && !monument.broken_at && canBreakMonument && <button type="button" className="scene-hit" style={pct(MON_POS.x - Math.floor(MON_W / 2), MON_POS.y - MON_H + 1, MON_W, MON_H - 2)} aria-label="비석" onClick={() => onBreakMonument?.()} />}
+      {party && <div className="party-banner" role="status"><span className="party-banner-title">📖 책걸이!</span><span className="party-banner-goal">{party.title}</span><span className="party-banner-sub">다 같이 목표를 이뤘어요 🎉</span></div>}
       {boardNew > 0 && <span className="sr-only" role="status" aria-label={`게시판에 안 읽은 새 글 ${boardNew}개`}>게시판에 새 글이 있어요</span>}
       <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 소식 보기" onClick={() => onPlace("board")} />
 

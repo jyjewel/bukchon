@@ -14,6 +14,7 @@ const TEXT: Record<string, string> = {
   message: "새 메시지를 보냈어요",
   moving_cake: "이사 떡을 돌렸어요",
   study_alarm: "스터디 시간이에요",
+  study_goal: "공동 공부 목표 소식을 남겼어요",
   moving_thanks: "이사 떡을 잘 먹겠대요",
 };
 

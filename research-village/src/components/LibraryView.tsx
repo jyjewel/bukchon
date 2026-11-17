@@ -7,6 +7,8 @@ import type { Book, Resident } from "@/lib/types";
 import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { SortableItem, useSortSensors } from "./Sortable";
+import type { useStudyGoals } from "@/hooks/useStudyGoals";
+import StudyGoals from "./StudyGoals";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
 
@@ -16,8 +18,8 @@ const spineColor = (id: string) => SPINES[[...id].reduce((a, c) => a + c.charCod
 const ZOOM_NEW = "https://zoom.us/start/videomeeting";
 
 export default function LibraryView({
-  lib, villageId, me, residents, isAdmin,
-}: { lib: Lib; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean }) {
+  lib, goals, onGoalDone, villageId, me, residents, isAdmin,
+}: { lib: Lib; goals: ReturnType<typeof useStudyGoals>; onGoalDone: () => void; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean }) {
   const [bookId, setBookId] = useState<string | null>(null);
   const [nowMs] = useState(() => Date.now());
   const [error, setError] = useState("");
@@ -96,6 +98,7 @@ export default function LibraryView({
         </div>
 
         <div className="space-y-5">
+        <StudyGoals villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} />
         <StudySchedules villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
         <Window title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">

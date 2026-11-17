@@ -746,6 +746,29 @@ await t("스터디 공지: 만들기·검증·권한·정해진 시간에 마을
   ok(await a.c.from("study_schedules").delete().eq("id", s1.id));                                                         // 마을 관리자는 지울 수 있다
 });
 
+await t("공동 공부 목표: 고른 사람만, 모두 완료하면 끝나고 알림", async () => {
+  const bad = await m1.c.rpc("create_study_goal", { p_village: village, p_title: "혼자", p_note: "", p_members: [] });
+  assert.match(bad.error?.message ?? "", /bad_members/);                                                          // 혼자는 안 된다
+  assert.ok((await outside[1].c.rpc("create_study_goal", { p_village: village, p_title: "x", p_note: "", p_members: [m1.id] })).error); // 마을 밖
+  assert.match((await m1.c.rpc("create_study_goal", { p_village: village, p_title: "x", p_note: "", p_members: [outside[1].id] })).error?.message ?? "", /bad_members/);
+  const gid = ok(await m1.c.rpc("create_study_goal", { p_village: village, p_title: "논문 3편 읽기", p_note: "", p_members: [m2.id, a.id] }));
+  const got = ok(await m2.c.from("notifications").select("summary,kind").eq("kind", "study_goal"));
+  assert.ok(got.some((g) => g.summary === `${gid}|논문 3편 읽기|new`));
+  assert.equal(ok(await m2.c.from("study_goal_members").select("user_id").eq("goal_id", gid)).length, 3);
+  assert.ok((await ok(await m2.c.from("study_goals").select("id").eq("id", gid))).length === 1);
+  assert.equal(ok(await outside[1].c.from("study_goals").select("id").eq("id", gid)).length, 0);
+  assert.match((await outside[1].c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })).error?.message ?? "", /not_member|no_goal/);
+  assert.equal(ok(await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })), false);
+  assert.equal(ok(await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: false })), false);                 // 취소할 수 있다
+  ok(await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true }));
+  assert.equal(ok(await m2.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })), false);
+  assert.equal(ok(await a.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })), true);                   // 마지막 한 명 → 끝
+  assert.ok(ok(await m1.c.from("study_goals").select("completed_at").eq("id", gid).single()).completed_at);
+  assert.ok(ok(await m1.c.from("notifications").select("summary").eq("kind", "study_goal")).some((g) => g.summary === `${gid}|논문 3편 읽기|done`));
+  assert.match((await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: false })).error?.message ?? "", /goal_completed/);
+  ok(await a.c.from("study_goals").delete().eq("id", gid));                                                       // 마을 관리자는 지울 수 있다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

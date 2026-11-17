@@ -10,6 +10,7 @@ import type { useAuth } from "@/hooks/useAuth";
 import type { useVillage } from "@/hooks/useVillage";
 import { useChat } from "@/hooks/useChat";
 import { useLibrary } from "@/hooks/useLibrary";
+import { useStudyGoals } from "@/hooks/useStudyGoals";
 import { useNotifications } from "@/hooks/useNotifications";
 import { STATUS_META, STATUS_ORDER, VILLAGE_CAPACITY } from "@/lib/constants";
 import { errorMessage, supabase } from "@/lib/supabase";
@@ -100,6 +101,22 @@ const me = v.me!;
   const notifs = useNotifications(me.user_id, onNew);
   const chat = useChat(me.user_id, village.id, onIncoming);
   const lib = useLibrary(village.id);
+  const goals = useStudyGoals(village.id);
+  // 공동 목표를 다 이루면 광장에 모여 한바탕 잔치(홈 화면을 보고 있을 때만, 이룬 지 1분 반 안이면)
+  const [party, setParty] = useState<{ id: string; title: string; members: string[]; start: number } | null>(null);
+  const partySeen = useRef(new Set<string>());
+  useEffect(() => {
+    if (view !== "home" || party) return;
+    const g = goals.goals.find((x) => x.completed_at && !partySeen.current.has(x.id) && Date.now() - new Date(x.completed_at).getTime() < 90_000);
+    if (!g) return;
+    partySeen.current.add(g.id);
+    setParty({ id: g.id, title: g.title, members: g.members.map((m) => m.user_id), start: performance.now() });
+  }, [goals.goals, view, party]);
+  useEffect(() => {
+    if (!party) return;
+    const t = setTimeout(() => setParty(null), 24_000);
+    return () => clearTimeout(t);
+  }, [party]);
   // 스터디 알람: 집중 연구 중이면 건너뛰고, 끝난 뒤 30분 안이면 그때 띄운다
   useEffect(() => {
     if (me.status.status === "focus") return;
@@ -146,6 +163,7 @@ const me = v.me!;
     if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
     if (n.kind === "meeting") return setView("library");
     if (n.kind === "study_alarm") return setAlarm(n);
+    if (n.kind === "study_goal") return setView(n.summary.endsWith("|done") ? "home" : "library");
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
     if (n.kind === "gift") return visit(me.user_id, "whiteboard");
     if (n.kind === "journal_reaction" || n.kind === "journal_comment") return visit(n.room_owner_id, "whiteboard");
@@ -316,7 +334,7 @@ const me = v.me!;
             <Window title={village.name} icon="" tone="sky">
               <div>
                 <div>
-                  <VillageScene
+                  <VillageScene party={party}
                     houses={v.houses}
                     residents={v.residents}
                     myId={me.user_id}
@@ -388,7 +406,7 @@ const me = v.me!;
           <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onProfile={() => setSelected(owner.user_id)} give={give(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
-      {view === "library" && <main><LibraryView lib={lib} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
+      {view === "library" && <main><LibraryView lib={lib} goals={goals} onGoalDone={() => setView("home")} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
       {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification} onReply={(n) => give(n.actor_id).onGesture(isGesture(n.summary) ? n.summary : "thesis")}
                 onThank={async (n) => {
