@@ -765,12 +765,12 @@ await t("공동 공부 목표: 고른 사람만, 모두 완료하면 끝나고 �
   assert.equal(ok(await a.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })), true);                   // 마지막 한 명 → 끝
   assert.ok(ok(await m1.c.from("study_goals").select("completed_at").eq("id", gid).single()).completed_at);
   assert.ok(ok(await m1.c.from("notifications").select("summary").eq("kind", "study_goal")).some((g) => g.summary === `${gid}|논문 3편 읽기|done`));
-  // 같이 공부하지 않은 마을 사람에게도 알림과 책걸이 떡(팥시루떡·송편)이 간다
+  // 같이 공부하지 않은 마을 사람에게도 알림과 책걸이 선물(송편·막걸리)이 간다
   const bystander = inside.find((x) => ![m1.id, m2.id, a.id].includes(x.id));
   assert.ok(bystander);
   assert.ok(ok(await bystander.c.from("notifications").select("summary").eq("kind", "study_goal")).some((g) => g.summary === `${gid}|논문 3편 읽기|done`));
   const kinds = ok(await bystander.c.from("gifts").select("kind,note").eq("to_user", bystander.id)).filter((g) => g.note.startsWith("책걸이 기념")).map((g) => g.kind).sort();
-  assert.deepEqual(kinds, ["siru", "songpyeon"]);
+  assert.deepEqual(kinds, ["makgeolli", "songpyeon"]);
   assert.equal(ok(await a.c.from("gifts").select("kind").eq("to_user", a.id).eq("kind", "songpyeon")).length >= 1, true);    // 같이 한 사람도 받는다
   assert.match((await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: false })).error?.message ?? "", /goal_completed/);
   ok(await a.c.from("study_goals").delete().eq("id", gid));                                                       // 마을 관리자는 지울 수 있다
