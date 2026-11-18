@@ -40,20 +40,22 @@ export function GiftBox({ name, onGift, onDone }: { name: string; onGift: (kind:
   const drinks = GIFTS.filter((g) => !(SNACK_IDS as readonly string[]).includes(g.id));
   const snacks = GIFTS.filter((g) => (SNACK_IDS as readonly string[]).includes(g.id));
   const arts = useMemo(() => Object.fromEntries(SNACK_IDS.map((id) => [id, snackGrid(id)])) as Record<SnackId, ReturnType<typeof snackGrid>>, []);
-  const send = (g: (typeof GIFTS)[number]) => done(onGift(g.id, note.trim()), `${name}님 책상에 ${g.label}을(를) 올려 두었어요.`, () => { setNote(""); onDone?.(); });
+  const [pick, setPick] = useState<GiftId | null>(null);
+  const picked = GIFTS.find((g) => g.id === pick);
+  const send = () => { if (picked) void done(onGift(picked.id, note.trim()), `${name}님 책상에 ${picked.label}을(를) 올려 두었어요.`, () => { setNote(""); setPick(null); onDone?.(); }); };
   return (
     <section aria-label={`${name}님 책상에 건네기`} className="space-y-2">
       <p className="text-sm text-ink-soft">책상 위에 하루 동안 올라가요. 보낸 사람과 한마디는 {name}님에게만 보여요.</p>
       <p className="label">마실 것</p>
       <div className="flex flex-wrap items-center gap-1.5">
         {drinks.map((g) => (
-          <button key={g.id} type="button" className="btn btn-sm btn-mint" onClick={() => void send(g)}>{g.label}</button>
+          <button key={g.id} type="button" className={`btn btn-sm btn-mint ${pick === g.id ? "ring-2 ring-ink" : ""}`} aria-pressed={pick === g.id} onClick={() => setPick(g.id)}>{g.label}</button>
         ))}
       </div>
       <p className="label">간식</p>
       <div className="flex flex-wrap items-stretch gap-1.5" role="group" aria-label="간식">
         {snacks.map((g) => (
-          <button key={g.id} type="button" className="card flex w-[88px] flex-col items-center px-1 pb-1 pt-1.5 text-center hover:bg-[#fff3c4]" onClick={() => void send(g)}>
+          <button key={g.id} type="button" className={`card flex w-[88px] flex-col items-center px-1 pb-1 pt-1.5 text-center hover:bg-[#fff3c4] ${pick === g.id ? "bg-[#fff3c4] ring-2 ring-ink" : ""}`} aria-pressed={pick === g.id} onClick={() => setPick(g.id)}>
             <PixelArt art={arts[g.id as SnackId]} scale={3} label={`${g.label} 도트 그림`} />
             <span className="mt-1 block text-xs leading-tight">{g.label}</span>
           </button>
@@ -61,6 +63,7 @@ export function GiftBox({ name, onGift, onDone }: { name: string; onGift: (kind:
       </div>
       <label className="sr-only" htmlFor="give-note">건넬 때 한마디</label>
       <input id="give-note" className="input" maxLength={40} value={note} onChange={(e) => setNote(e.target.value)} placeholder="한마디 (선택, 예: 힘내요!)" />
+      <button type="button" className="btn btn-primary btn-sm" disabled={!picked} onClick={send}>{picked ? `${picked.label} 보내기` : "보낼 것을 골라 주세요"}</button>
       {view}
     </section>
   );
