@@ -19,7 +19,7 @@ import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
 import WindowColumn from "./WindowColumn";
 import SnackBox from "./SnackBox";
-import LabPortal from "./LabPortal";
+import PortalDialog from "./LabPortal";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
 type Section = "journal" | "notes" | "diary" | "boards" | "results" | "shelf" | "archive" | "drawer" | "snacks";
@@ -43,6 +43,7 @@ export default function StudyRoomWork({
   const [section, setSection] = useState<Section>("journal");
   const [focus, setFocus] = useState(false);
   const [letter, setLetter] = useState(false);
+  const [portal, setPortal] = useState(false);
   const room = useRoom(me.user_id, true);
   const fav = useFavBooks(me.user_id);
   const [target, setTarget] = useState<OpenTarget | null>(null);
@@ -60,8 +61,8 @@ export default function StudyRoomWork({
           {roomView === "view" ? (
             <div className="space-y-3">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} />
-              <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로 가요.</p>
+                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} onPortal={() => { setRoomView(null); setPortal(true); }} />
+              <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로, 벽 아래 쥐구멍을 누르면 다른 연구실로 건너가요.</p>
               <div className="flex gap-1">
                 <button type="button" className="btn btn-primary" onClick={() => setRoomView("decorate")}>꾸미기</button>
                 <button type="button" className="btn" onClick={() => setRoomView(null)}>닫기</button>
@@ -78,10 +79,8 @@ export default function StudyRoomWork({
       {!focus && (
         <div className="order-2 space-y-4 lg:order-1">
           <Window title={`${me.profile.display_name}의 연구실`} tone="butter">
-            <button type="button" onClick={() => setRoomView("view")} aria-label="연구실 크게 보기" className="block w-full cursor-pointer">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} />
-            </button>
+                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("view")} onPortal={() => setPortal(true)} />
             <p className="px-2 pt-1 text-center text-xs text-ink-soft">그림을 누르면 크게 보고 꾸밀 수 있어요</p>
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {SECTIONS.map((s) => (
@@ -92,7 +91,6 @@ export default function StudyRoomWork({
               ))}
             </nav>
           </Window>
-          <LabPortal residents={residents} myId={me.user_id} currentId={me.user_id} onGo={onVisit} />
         </div>
       )}
 
@@ -125,6 +123,7 @@ export default function StudyRoomWork({
           <Window key="todo" title="오늘의 체크리스트" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </WindowColumn>
       )}
+      {portal && <PortalDialog residents={residents} myId={me.user_id} currentId={me.user_id} onGo={onVisit} onClose={() => setPortal(false)} />}
       {letter && <WelcomeLetter onClose={() => setLetter(false)} />}
     </div>
   );

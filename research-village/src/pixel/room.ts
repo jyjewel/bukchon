@@ -7,6 +7,7 @@ import { avatarGrid } from "./avatar";
 import { petSprite, wichuSprite } from "./pets";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
+export const PORTAL_HOLE = { x: 34, y: 52 };
 export const ROOM_W = 144;
 export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
@@ -54,6 +55,22 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
       for (let x = (y % 12 ? 10 : 0); x < ROOM_W; x += 22) rect(g, x, y, 1, 6, line);
     }
     for (let i = 0; i < 40; i++) px(g, Math.floor(r() * ROOM_W), 55 + Math.floor(r() * 28), speck);
+  }
+
+  // 쥐구멍 포털: 벽 아래(걸레받이)에 뚫린 작은 구멍. 안쪽에서 보랏빛이 새어 나오고 가끔 반짝인다 (누르면 다른 연구실로 건너갈 수 있다)
+  {
+    const hx = PORTAL_HOLE.x, hy = PORTAL_HOLE.y, tw = opts.frame % 3;
+    const D = "#2a1f26";
+    // 구멍 둘레: 갉아 낸 나무 자국
+    rect(g, hx - 6, hy - 6, 13, 7, "#8b5d38"); px(g, hx - 6, hy - 6, WOOD_L); px(g, hx + 6, hy - 6, WOOD_L);
+    // 아치 모양 구멍 (아래는 평평, 위는 둥글게)
+    rect(g, hx - 5, hy - 4, 11, 5, D); rect(g, hx - 4, hy - 5, 9, 1, D); rect(g, hx - 2, hy - 6, 5, 1, D);
+    rect(g, hx - 4, hy - 3, 9, 4, "#3a2a5c"); rect(g, hx - 3, hy - 4, 7, 1, "#3a2a5c");
+    rect(g, hx - 3, hy - 2, 7, 3, "#5a48c0"); rect(g, hx - 2, hy - 1, 5, 2, "#8a7af0");              // 안쪽에서 새어 나오는 보랏빛
+    px(g, hx - 1, hy - 2, "#e8e2ff"); px(g, hx + 1, hy - 1, tw === 0 ? "#ffffff" : "#c3b9ff");
+    px(g, hx + 3, hy - 7 - (tw === 1 ? 1 : 0), "#fff2a8"); px(g, hx - 4, hy - 8 + (tw === 2 ? 1 : 0), tw === 2 ? "#ffffff" : "#d8d0ff");
+    // 구멍 앞 바닥의 부스러기
+    px(g, hx - 7, hy + 1, WOOD_D); px(g, hx + 7, hy + 1, WOOD_D); px(g, hx + 8, hy, WOOD_D); px(g, hx - 3, hy + 2, "#a87850");
   }
 
   // 창문 (창밖 풍경: 시간 따라 / 맑은 낮 / 별 밤 / 비 / 눈 / 벚꽃)
