@@ -314,12 +314,15 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     for (const [x, y] of [[13, 1], [12, 2], [13, 2], [14, 2], [13, 3]]) px(g, x, y, "#fff6c0");
     px(g, 13, 2, "#ffffff");
   } else if (style === "twoblock") {
-    // 투블럭: 옆과 뒤는 짧게 밀어 까끌한 자국만 남기고, 윗머리는 길러 볼륨 있게 앞으로 내린 머리
-    const stub = shade(skin, -46);
-    rect(g, 6, 0, 6, 1, hair); rect(g, 5, 1, 8, 1, hair); rect(g, 4, 2, 10, 2, hair); rect(g, 5, 4, 8, 1, hair);
-    for (const x of [5, 7, 8, 10, 12]) px(g, x, 5, hair);                                   // 이마 위 들쭉날쭉한 앞머리
-    rect(g, 6, 1, 3, 1, hairL); px(g, 10, 0, hairL); px(g, 5, 2, hairL); px(g, 12, 3, hairD); px(g, 9, 4, hairD);
-    for (const [x, y] of [[3, 4], [3, 6], [4, 5], [14, 4], [14, 6], [13, 5], [3, 8], [14, 8], [4, 7], [13, 7]] as [number, number][]) px(g, x, y, stub);   // 밀어 올린 옆머리의 까끌한 자국
+    // 투블럭: 윗머리는 길러서 볼륨을 주고 한쪽으로 쓸어 내리고, 옆·뒤는 짧게 밀어 올려(페이드) 경계가 또렷한 머리
+    const mix = (a: string, b: string, t: number) => { const c = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16); return `#${[0, 1, 2].map((i) => Math.round(c(a, i) * (1 - t) + c(b, i) * t).toString(16).padStart(2, "0")).join("")}`; };
+    const fade1 = mix(skin, hair, 0.7), fade2 = mix(skin, hair, 0.45), fade3 = mix(skin, hair, 0.22);
+    rect(g, 7, 0, 5, 1, hair); rect(g, 5, 1, 8, 1, hair); rect(g, 5, 2, 9, 1, hair); rect(g, 4, 3, 10, 1, hair);   // 위로 솟은 윗머리
+    rect(g, 5, 4, 8, 1, hair); rect(g, 5, 5, 5, 1, hair); px(g, 10, 5, hair); px(g, 5, 6, hair); px(g, 6, 6, hair);       // 한쪽(왼쪽)으로 쓸어 내린 앞머리
+    rect(g, 7, 1, 3, 1, hairL); px(g, 10, 0, hairL); px(g, 6, 2, hairL); px(g, 8, 3, hairL); px(g, 11, 2, hairD); px(g, 7, 5, hairD);
+    // 옆머리 페이드: 위는 진하고 아래로 갈수록 살색에 가까워진다
+    for (const x of [4, 13]) { px(g, x, 4, fade1); px(g, x, 5, fade2); px(g, x, 6, fade3); px(g, x, 7, fade3); }
+    px(g, 3, 4, fade1); px(g, 14, 4, fade1); px(g, 3, 5, fade2); px(g, 14, 5, fade2);
   } else if (style === "receding") {
     // 반대머리: 이마가 넓게 벗겨지고 정수리 쪽과 옆머리만 남은 머리
     rect(g, 6, 3, 6, 1, skin); rect(g, 6, 4, 6, 1, skin);
