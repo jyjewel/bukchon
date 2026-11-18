@@ -274,23 +274,28 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     px(g, cx, cy - 8, "#c9a24a");
   }
   if (st.extras.includes("xmastree")) {
-    // 꾸민 크리스마스 트리: 세 단 초록 가지, 꼭대기 별, 전구·오너먼트·반짝이 줄, 아래에 선물
+    // 작은 크리스마스 트리: 세 단 둥근 가지(밝은 쪽/그늘 쪽), 금빛 반짝이 줄, 알록달록 오너먼트, 꼭대기 별, 빨간 화분과 작은 선물
     const cx = 130;
-    [[48, 9, 2], [57, 9, 4], [66, 9, 6]].forEach(([y0, rows, hw0], t) => {
-      for (let i = 0; i < rows + 1; i++) {
-        const hw = hw0 + Math.floor(i * (t === 2 ? 0.62 : 0.55)) + 1, y = y0 + i;
-        rect(g, cx - hw, y, hw * 2 + 1, 1, i % 2 ? "#2f7d3f" : "#3f9a4e");
-        px(g, cx - hw, y, "#256a34"); px(g, cx + hw, y, "#256a34");
+    const tiers: [number, number, number][] = [[55, 7, 1], [60, 8, 3], [66, 9, 4]];   // [첫 줄 y, 줄 수, 첫 줄 반폭]
+    tiers.forEach(([y0, rows, hw0], t) => {
+      for (let i = 0; i < rows; i++) {
+        const hw = hw0 + Math.round(i * (t === 0 ? 0.55 : 0.6)), y = y0 + i;
+        rect(g, cx - hw, y, hw * 2 + 1, 1, "#3f9a4e");
+        rect(g, cx - hw, y, Math.max(1, Math.ceil(hw * 0.7)), 1, "#5bb85f");        // 빛 받는 왼쪽
+        rect(g, cx + Math.max(0, hw - 1), y, hw > 0 ? 2 : 1, 1, "#2a7a3c");          // 그늘진 오른쪽
+        if (i === rows - 1) { for (let x = -hw; x <= hw; x++) if ((x + hw) % 2 === 0) px(g, cx + x, y, "#2a7a3c"); }   // 아랫단 물결
       }
     });
-    rect(g, cx - 1, 76, 3, 4, "#7a4a2a");
-    for (const [x, y] of [[-1, 50], [-3, 55], [3, 59], [-6, 63], [2, 68], [-8, 72], [7, 73], [0, 63], [-3, 69]]) { px(g, cx + x, y, "#ffd65c"); }
-    const orn: [number, number, string][] = [[2, 52, "#e0302a"], [-4, 59, "#5f8fd6"], [5, 62, "#e0302a"], [-2, 66, "#ffd65c"], [4, 70, "#5f8fd6"], [-7, 70, "#e0302a"], [8, 74, "#ffd65c"], [-1, 73, "#e0302a"]];
-    for (const [dx, y, c] of orn) { rect(g, cx + dx, y, 2, 2, c); px(g, cx + dx, y, "#ffffff"); }
-    for (let i = 0; i < 17; i++) px(g, cx - 8 + i, 66 + Math.round(Math.sin(i / 2.7) * 2), "#fff8d6"); // 반짝이 줄
-    rect(g, cx - 2, 44, 5, 1, "#ffd65c"); rect(g, cx - 1, 43, 3, 3, "#ffd65c"); px(g, cx, 42, "#ffd65c"); px(g, cx, 47, "#ffd65c"); px(g, cx, 44, "#fff3b0");
-    rect(g, cx - 12, 77, 6, 5, "#e0605a"); rect(g, cx - 10, 77, 2, 5, "#ffd65c"); rect(g, cx - 12, 79, 6, 1, "#ffd65c");
-    rect(g, cx + 6, 78, 7, 4, "#5f8fd6"); rect(g, cx + 8, 78, 2, 4, "#ffffff"); rect(g, cx + 6, 80, 7, 1, "#ffffff");
+    rect(g, cx - 1, 75, 3, 2, "#7a4a2a");
+    rect(g, cx - 4, 77, 9, 4, "#d9303a"); rect(g, cx - 4, 77, 9, 1, "#ff6b6b"); rect(g, cx - 3, 80, 7, 1, "#a8202a");      // 빨간 화분
+    for (let i = 0; i < 15; i++) { const x = cx - 6 + i, y = 68 + Math.round(i * 0.55 - 3 + Math.sin(i / 1.6)); px(g, x, y, "#ffe27a"); } // 금빛 줄
+    const orn: [number, number, string][] = [[-2, 59, "#e0302a"], [2, 63, "#5f8fd6"], [-5, 68, "#ffd65c"], [4, 69, "#e0302a"], [0, 72, "#b57edc"], [-2, 65, "#ffd65c"]];
+    for (const [dx, y, c] of orn) { px(g, cx + dx, y, c); px(g, cx + dx, y + 1, shade(c, -30)); px(g, cx + dx, y, "#ffffff"); px(g, cx + dx + 1, y, c); }
+    // 꼭대기 별
+    rect(g, cx - 1, 52, 3, 3, "#ffd65c"); px(g, cx, 51, "#ffd65c"); px(g, cx - 2, 53, "#ffd65c"); px(g, cx + 2, 53, "#ffd65c"); px(g, cx, 53, "#fff6c0");
+    // 작은 선물 두 개
+    rect(g, cx - 11, 77, 5, 4, "#5f8fd6"); rect(g, cx - 9, 77, 1, 4, "#ffffff"); rect(g, cx - 11, 78, 5, 1, "#ffffff");
+    rect(g, cx + 6, 78, 5, 3, "#e0605a"); rect(g, cx + 8, 78, 1, 3, "#ffd65c");
   }
   if (st.extras.includes("brewing")) {
     // 맥주 발효통(카보이): 나무 받침 위의 유리통에 황금빛 맥주가 익고, 윗부분에 거품, 마개에 꽂힌 에어락에서 보글보글
