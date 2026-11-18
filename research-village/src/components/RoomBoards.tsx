@@ -10,6 +10,7 @@ import PublicDeadlines from "./PublicDeadlines";
 import { giftOf } from "@/lib/social";
 import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { OWNER_BG, speakerName, speakerStyle } from "@/lib/tone";
 import { SortableItem, useSortSensors } from "./Sortable";
 import { Notice } from "./ui";
 
@@ -58,8 +59,8 @@ export default function RoomBoards({
         <ul className="space-y-1" aria-label="붙은 포스트잇">
           {room.postits.map((p) => {
             return (
-              <li key={p.id} className="flex items-start gap-2 text-sm">
-                <span className="shrink-0 font-display">{who(p.author_id)}:</span>
+              <li key={p.id} className="flex items-start gap-2 text-sm" style={speakerStyle(p.author_id, owner.user_id, myId)}>
+                <span className="shrink-0 font-display">{speakerName(p.author_id, myId, who(p.author_id))}:</span>
                 <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
                 {(p.author_id === myId || isOwner) && (
                   <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
@@ -77,6 +78,7 @@ export default function RoomBoards({
   const [cm, setCm] = useState<Record<string, string>>({});
   const whiteboard = (
     <div className="space-y-3">
+      <h3 className="border-b-2 border-[#d4a63a] pb-0.5 font-display text-base">{isOwner ? "내 칸" : `${owner.profile.display_name}님의 칸`} <span className="font-body text-xs text-ink-soft">· 주인이 쓴 글은 따뜻한 상아색</span></h3>
       {room.gifts.length > 0 && (
         <section aria-label="받은 선물" className="space-y-1">
           <h3 className="label">{isOwner ? "받은 선물 (보낸 사람은 나에게만 보여요 · 하루 동안 책상에 올라가요)" : `${owner.profile.display_name}님의 책상 위 선물`}</h3>
@@ -90,9 +92,7 @@ export default function RoomBoards({
       {!isOwner && <PublicDeadlines ownerId={owner.user_id} name={owner.profile.display_name} />}
       <PublicJournal ownerId={owner.user_id} isOwner={isOwner} name={owner.profile.display_name} myId={myId} names={Object.fromEntries(residents.map((r) => [r.user_id, r.profile.display_name]))} />
       <div className="dotted" />
-      {postitsBlock}
-      {!isOwner && <h3 className="label dotted pt-3">고민하는 문제</h3>}
-      {isOwner && <div className="dotted" />}
+      <h3 className="label">{isOwner ? "요즘 고민하는 문제" : "고민하는 문제"}</h3>
       {isOwner ? (
         <form className="space-y-1" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("whiteboard_items").insert({ owner_id: myId, body: wb.trim() }))) setWb(""); }}>
           <label className="label" htmlFor="wb-new">요즘 고민하는 문제를 적어 보세요</label>
@@ -104,7 +104,7 @@ export default function RoomBoards({
       {room.items.map((it) => {
         const cs = room.comments.filter((c) => c.item_id === it.id);
         return (
-          <article key={it.id} className="card p-3" style={{ background: it.resolved ? "#eef8ea" : "#fffdf6" }}>
+          <article key={it.id} className="card p-3" style={{ background: it.resolved ? "#eef8ea" : OWNER_BG }}>
             <div className="flex items-start gap-2">
               <p className="flex-1 whitespace-pre-wrap break-words text-sm">{it.body}</p>
               {it.resolved && <span className="chip">해결됨</span>}
@@ -118,8 +118,8 @@ export default function RoomBoards({
             )}
             <ul className="dotted mt-2 space-y-1 pt-2">
               {cs.map((c) => (
-                <li key={c.id} className="text-sm">
-                  <span className="font-display">{who(c.author_id)}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
+                <li key={c.id} className="text-sm" style={speakerStyle(c.author_id, owner.user_id, myId)}>
+                  <span className="font-display">{speakerName(c.author_id, myId, who(c.author_id))}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
                   <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span>
                   {(c.author_id === myId || isOwner) && (
                     <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", c.id))}>삭제</button>
@@ -139,6 +139,8 @@ export default function RoomBoards({
           </article>
         );
       })}
+      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">{isOwner ? "받은 포스트잇" : "남겨 주세요"} <span className="font-body text-xs text-ink-soft">· <span className="px-1" style={{ background: "#e3f1fb" }}>다른 사람</span> <span className="px-1" style={{ background: "#ffe6ee" }}>나</span></span></h3>
+      {postitsBlock}
     </div>
   );
 
