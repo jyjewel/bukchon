@@ -44,7 +44,7 @@ export default function RoomBoards({
   const postitsBlock = (
     <div className="space-y-3">
       <form className="space-y-2" onSubmit={async (e: FormEvent) => { e.preventDefault(); if (await run(sb.from("postits").insert({ owner_id: owner.user_id, author_id: myId, body: pi.trim(), color }))) setPi(""); }}>
-        <label className="label" htmlFor="pi-new">{isOwner ? "화이트보드에 붙이는 메모" : "포스트잇 붙이기"}</label>
+        <label className="sr-only" htmlFor="pi-new">포스트잇 내용</label>
         <textarea id="pi-new" className="input" rows={2} maxLength={140} value={pi} onChange={(e) => setPi(e.target.value)} placeholder="응원, 질문, 읽어 볼 만한 자료…" />
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="포스트잇 색">
           {POSTIT_COLORS.map((c) => (
@@ -138,7 +138,7 @@ export default function RoomBoards({
           </article>
         );
       })}
-      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">포스트잇 <span className="font-body text-xs text-ink-soft">· <span className="px-1" style={{ background: "#e3f1fb" }}>다른 사람</span> <span className="px-1" style={{ background: "#ffe6ee" }}>나</span></span></h3>
+      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">포스트잇</h3>
       {postitsBlock}
     </div>
   );
