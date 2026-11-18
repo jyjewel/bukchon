@@ -57,7 +57,7 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     for (let i = 0; i < 40; i++) px(g, Math.floor(r() * ROOM_W), 55 + Math.floor(r() * 28), speck);
   }
 
-  // 쥐구멍 포털: 벽 아래(걸레받이)에 뚫린 작은 구멍. 안쪽에서 보랏빛이 새어 나오고 가끔 반짝인다 (누르면 다른 연구실로 건너갈 수 있다)
+  // 포탈: 벽 아래(걸레받이)에 뚫린 작은 구멍. 안쪽에서 보랏빛이 새어 나오고 가끔 반짝인다 (누르면 다른 연구실로 건너갈 수 있다)
   {
     const hx = PORTAL_HOLE.x, hy = PORTAL_HOLE.y, tw = opts.frame % 3;
     const D = "#2a1f26";

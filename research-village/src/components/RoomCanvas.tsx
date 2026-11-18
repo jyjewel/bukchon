@@ -47,7 +47,7 @@ export default function RoomCanvas({
         </>
       )}
       {onDesk && <button type="button" className="scene-hit" style={pos(50, 40, 46, 14)} aria-label="책상에 건네기" onClick={onDesk} />}
-      {onPortal && <button type="button" className="scene-hit" style={pos(PORTAL_HOLE.x - 8, PORTAL_HOLE.y - 9, 17, 12)} aria-label="쥐구멍 포털 — 눌러서 다른 연구실로 건너가기" onClick={onPortal} />}
+      {onPortal && <button type="button" className="scene-hit" style={pos(PORTAL_HOLE.x - 8, PORTAL_HOLE.y - 9, 17, 12)} aria-label="포탈 — 눌러서 다른 연구실로 건너가기" onClick={onPortal} />}
       {note && <p className="scene-label" style={{ top: "88%" }}>{note}</p>}
     </div>
   );

@@ -62,7 +62,7 @@ export default function StudyRoomWork({
             <div className="space-y-3">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} onPortal={() => { setRoomView(null); setPortal(true); }} />
-              <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로, 벽 아래 쥐구멍을 누르면 다른 연구실로 건너가요.</p>
+              <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로, 벽 아래 포탈을 누르면 다른 연구실로 건너가요.</p>
               <div className="flex gap-1">
                 <button type="button" className="btn btn-primary" onClick={() => setRoomView("decorate")}>꾸미기</button>
                 <button type="button" className="btn" onClick={() => setRoomView(null)}>닫기</button>

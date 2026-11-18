@@ -10,9 +10,9 @@ export default function PortalDialog({ residents, myId, currentId, onGo, onClose
   const art = useMemo(() => portalGrid(), []);
   const list = [...residents.filter((r) => r.user_id === myId), ...residents.filter((r) => r.user_id !== myId)].filter((r) => r.user_id !== currentId);
   return (
-    <Modal title="쥐구멍 포털" tone="lilac" onClose={onClose}>
+    <Modal title="포탈" tone="lilac" onClose={onClose}>
       <div className="flex items-start gap-3">
-        <PixelArt art={art} scale={4} sparkle label="포털 도트 그림" />
+        <PixelArt art={art} scale={4} sparkle label="포탈 도트 그림" />
         <div className="min-w-0 flex-1">
           <p className="mb-2 text-sm text-ink-soft">어느 연구실로 건너갈까요?</p>
           {list.length === 0 ? <p className="text-sm text-ink-soft">건너갈 연구실이 아직 없어요.</p> : (

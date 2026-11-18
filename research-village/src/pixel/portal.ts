@@ -1,6 +1,6 @@
 import { disc, grid, outline, px, rect, type Grid } from "./core";
 
-/** 연구실 포털: 돌 문틀 속에서 보랏빛 소용돌이가 도는 문 (20×26) */
+/** 연구실 포탈: 돌 문틀 속에서 보랏빛 소용돌이가 도는 문 (20×26) */
 export function portalGrid(): Grid {
   const g = grid(20, 26);
   const S1 = "#a49cb8", S2 = "#c9c3d9", S3 = "#7d7592";
