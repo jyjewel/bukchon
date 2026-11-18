@@ -846,6 +846,22 @@ await t("크리스마스 산타: 이브 밤과 25일 아침에만, 한 해 한 �
   await sv.from("app_settings").delete().eq("key", "now_override");
 });
 
+await t("지도에서 걷기: 광장에서 쉬는 상태가 되고 위치가 남으며, 상태를 바꾸면 위치가 지워진다", async () => {
+  const pos = async (u) => ok(await u.c.from("research_status").select("status,pos_x,pos_y").eq("village_id", village).eq("user_id", u.id).single());
+  ok(await m1.c.from("research_status").update({ status: "open" }).eq("village_id", village).eq("user_id", m1.id));
+  ok(await m1.c.rpc("walk_to", { p_village: village, p_x: 120, p_y: 200 }));
+  assert.deepEqual(await pos(m1), { status: "rest", pos_x: 120, pos_y: 200 });                 // 걸으면 광장에서 쉬는 중이 된다
+  assert.equal((await pos(m2)).pos_x, null);                                                    // 남의 위치는 그대로
+  assert.deepEqual((await ok(await m2.c.from("research_status").select("pos_x,pos_y").eq("user_id", m1.id).eq("village_id", village).single())), { pos_x: 120, pos_y: 200 });   // 이웃도 볼 수 있다
+  assert.match((await m1.c.rpc("walk_to", { p_village: village, p_x: 999, p_y: 5 })).error?.message ?? "", /bad_pos|check/);
+  assert.ok((await outside[1].c.rpc("walk_to", { p_village: village, p_x: 100, p_y: 100 })).error);   // 마을 밖
+  ok(await m1.c.from("research_status").update({ status: "library" }).eq("village_id", village).eq("user_id", m1.id));
+  assert.deepEqual(await pos(m1), { status: "library", pos_x: null, pos_y: null });             // 상태를 바꾸면 원래 자리로
+  ok(await m1.c.from("research_status").update({ status: "focus" }).eq("village_id", village).eq("user_id", m1.id));
+  assert.match((await m1.c.rpc("walk_to", { p_village: village, p_x: 100, p_y: 100 })).error?.message ?? "", /cannot_walk/);   // 집중 연구 중엔 못 걷는다
+  ok(await m1.c.from("research_status").update({ status: "rest" }).eq("village_id", village).eq("user_id", m1.id));
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

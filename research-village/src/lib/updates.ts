@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-18-walk", date: "11월 18일", title: "[소원] 어디든 누르면 걸어 다닐 수 있어요", body: "마을 지도의 빈 곳을 누르면 내 캐릭터가 걸어가요. 이웃에게도 보여요." },
   { id: "2026-11-18-portal", date: "11월 18일", title: "연구실 벽의 포탈로 다른 연구실에 바로 건너갈 수 있어요", body: "" },
   { id: "2026-11-18-hairpods", date: "11월 18일", title: "캐릭터 머리에 투블럭, 액세서리에 에어팟이 생겼어요", body: "" },
   { id: "2026-11-18-habit", date: "11월 18일", title: "공동 공부 목표를 고칠 수 있고, 기간을 정해 매일 체크하는 목표가 생겼어요", body: "예: 한 달 동안 주 3일 한시 읽기. 매일 연구실 체크리스트에 올라와요." },

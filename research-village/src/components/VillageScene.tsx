@@ -6,6 +6,7 @@ import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
 import { BOOK_COLORS, flyingBookGrid } from "@/pixel/book";
 import { fxGrid } from "@/pixel/fx";
+import { nearestWalkable } from "@/lib/walk";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
@@ -50,6 +51,8 @@ export interface SceneProps {
   /** 크리스마스 이브 밤: 산타와 루돌프가 마을을 돌아다닌다. 산타를 누르면 선물 */
   santa?: boolean;
   onSanta?: () => void;
+  /** 지도의 빈 곳을 눌렀을 때(걸을 수 있는 자리로 보정된 좌표) */
+  onWalk?: (x: number, y: number) => void;
   canBreakMonument?: boolean;
   onBreakMonument?: () => void;
   /** 연구실 앞 책상을 눌렀을 때 */
@@ -58,7 +61,7 @@ export interface SceneProps {
   fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null, santa = false, onSanta }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null, santa = false, onSanta, onWalk }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -141,6 +144,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       const door = { x: HOUSE_POS[r.slot].x + 9, y: HOUSE_POS[r.slot].y + 3 };
       if (r.shown === "open") return { x: DESK_POS[r.slot].x, y: DESK_POS[r.slot].y - 2, visible: true };
       if (r.shown === "library") return { ...LIBRARY_SPOTS[r.slot], visible: true };
+      if (r.shown === "rest" && r.status.pos_x != null && r.status.pos_y != null) return { x: r.status.pos_x, y: r.status.pos_y, visible: true };
       if (r.shown === "rest") return { ...(truck ? TRUCK_REST_SPOTS : REST_SPOTS)[r.slot], visible: true };
       return { ...door, visible: false };
     };
@@ -544,7 +548,12 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   const bySlot = new Map(residents.map((r) => [r.slot, r]));
   return (
     <div ref={wrapRef} className="scene relative w-full" style={{ aspectRatio: `${W} / ${H}` }} role="group" aria-label={`마을 지도 — ${SEASONS[clock.season].label}, ${PHASE_LABEL[clock.phase]}`}>
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden onClick={(e) => {
+        if (!onWalk) return;
+        const r = e.currentTarget.getBoundingClientRect();
+        const p = nearestWalkable(((e.clientX - r.left) / r.width) * W, ((e.clientY - r.top) / r.height) * H);
+        if (p) onWalk(p.x, p.y);
+      }} />
 
       <button type="button" className="scene-hit" style={pct(PLAZA.x - PLAZA.rx, PLAZA.y - PLAZA.ry, PLAZA.rx * 2, PLAZA.ry * 2)} aria-label="마을 광장 — 눌러서 열기" onClick={() => onPlace("plaza")}>
       </button>

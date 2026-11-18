@@ -80,6 +80,9 @@ export interface StatusRow {
   updated_at: string;
   message: string;
   message_at: string | null;
+  /** 광장에서 쉬는 중일 때 지도에서 누른 자리 (없으면 기본 자리) */
+  pos_x?: number | null;
+  pos_y?: number | null;
 }
 
 export interface House {

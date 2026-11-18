@@ -184,6 +184,18 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     [villageId, userId, skew, load],
   );
 
+  /** 지도에서 누른 곳으로 걸어간다 (광장에서 쉬는 상태가 되고, 이웃 화면에서도 그 자리에 선다). 오류 문구를 돌려주고 성공이면 null */
+  const walkTo = useCallback(
+    async (x: number, y: number): Promise<string | null> => {
+      if (!villageId || !userId) return null;
+      setStatuses((prev) => (prev[userId] ? { ...prev, [userId]: { ...prev[userId], status: "rest", pos_x: x, pos_y: y, left_at: null, last_seen_at: new Date(Date.now() + skew).toISOString() } } : prev));
+      const { error } = await supabase().rpc("walk_to", { p_village: villageId, p_x: x, p_y: y });
+      if (error) { void load(); return error.message.includes("cannot_walk") ? "cannot_walk" : error.message; }
+      return null;
+    },
+    [villageId, userId, skew, load],
+  );
+
   /** 다른 마을로 옮겨 간다. 떠나는 마을에서는 곧바로 자리를 비운 것으로 보인다. */
   const switchVillage = useCallback(
     async (id: string) => {
@@ -203,5 +215,5 @@ export function useVillage(userId: string | null, accessToken: string | null) {
 
   const setStatus = useCallback((status: ResearchState) => updateMyStatus({ status }), [updateMyStatus]);
 
-  return { loading, villages, switchVillage, prevSeen: villageId ? prevSeen[villageId] ?? null : null, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus };
+  return { loading, villages, switchVillage, prevSeen: villageId ? prevSeen[villageId] ?? null : null, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus, walkTo };
 }

@@ -364,7 +364,7 @@ const me = v.me!;
             <Window key="map" title={village.name} icon="" tone="sky">
               <div>
                 <div>
-                  <VillageScene party={party} santa={phase === "eve"} onSanta={() => setGiftOpen("eve")}
+                  <VillageScene party={party} onWalk={(x, y) => { if (me.shown === "focus" || me.shown === "offline") { setNotice("집중 연구 중이거나 오프라인일 때는 걸어 다닐 수 없어요. ‘지금 나는’에서 상태를 바꿔 보세요."); return; } setNotice(""); void v.walkTo(x, y); }} santa={phase === "eve"} onSanta={() => setGiftOpen("eve")}
                     houses={v.houses}
                     residents={v.residents}
                     myId={me.user_id}
