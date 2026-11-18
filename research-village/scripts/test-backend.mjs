@@ -862,6 +862,21 @@ await t("지도에서 걷기: 광장에서 쉬는 상태가 되고 위치가 남
   ok(await m1.c.from("research_status").update({ status: "rest" }).eq("village_id", village).eq("user_id", m1.id));
 });
 
+await t("연구실 새 글 표시: 새 글이 있으면 집이 반짝, 보고 나면 꺼진다(내가 쓴 글은 안 센다)", async () => {
+  const news = async (who) => ok(await who.c.rpc("rooms_with_news", { p_village: village }));
+  assert.ok(!(await news(m1)).includes(a.id));
+  ok(await a.c.from("whiteboard_items").insert({ body: "새 고민" }));
+  assert.ok((await news(m1)).includes(a.id));                     // 이웃에게 반짝
+  assert.ok(!(await news(a)).includes(a.id));                     // 내 집은 아님
+  ok(await m1.c.from("room_seen").upsert({ owner_id: a.id, seen_at: new Date().toISOString() }, { onConflict: "viewer_id,owner_id" }));
+  assert.ok(!(await news(m1)).includes(a.id));                    // 보고 나면 꺼짐
+  ok(await m1.c.from("postits").insert({ owner_id: a.id, body: "내가 붙임" }));
+  assert.ok(!(await news(m1)).includes(a.id));                    // 내가 쓴 글은 새 글이 아님
+  ok(await m2.c.from("postits").insert({ owner_id: a.id, body: "다른 이웃이 붙임" }));
+  assert.ok((await news(m1)).includes(a.id));                     // 다른 사람이 쓰면 다시 반짝
+  assert.equal((await m1.c.from("room_seen").select("*").eq("viewer_id", a.id)).data.length, 0);   // 남의 확인 기록은 못 본다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

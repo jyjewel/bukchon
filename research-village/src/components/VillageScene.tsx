@@ -58,10 +58,12 @@ export interface SceneProps {
   /** 연구실 앞 책상을 눌렀을 때 */
   onDesk: (slot: number) => void;
   /** 이웃에게 던지기 (학위논문·마감 알림·과자). id 가 바뀔 때마다 한 번 재생된다 */
+  /** 새 글이 올라온 이웃의 집 자리: 그 집 둘레에서 별빛이 반짝인다 */
+  sparkleSlots?: number[];
   fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null, santa = false, onSanta, onWalk }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, sparkleSlots, monument = null, canBreakMonument = false, onBreakMonument, party = null, santa = false, onSanta, onWalk }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -76,6 +78,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   const santaRef = useRef(santa);
   useEffect(() => { santaRef.current = santa; }, [santa]);
   const santaBtn = useRef<HTMLButtonElement>(null);
+  const sparkRef = useRef(new Set<number>());
+  useEffect(() => { sparkRef.current = new Set(sparkleSlots ?? []); }, [sparkleSlots]);
   const newRef = useRef(boardNew);
   useEffect(() => { newRef.current = boardNew; }, [boardNew]);
   const fxRef = useRef<{ id: number; kind: string; from: string; to: string; start: number } | null>(null);
@@ -349,6 +353,20 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           draw: () => {
             shadow(pos.x, pos.y, 26);
             b.drawImage(c, pos.x - 27, pos.y - HOUSE_H + 2);
+            if (sparkRef.current.has(h.slot)) {
+              // 새 글이 있는 집: 둘레에서 흰색~노랑 별빛이 번갈아 반짝인다
+              const spots: [number, number][] = [[-27, -50], [27, -52], [-20, -30], [26, -24], [-6, -66], [16, -62], [0, -40], [-29, -12], [29, -6]];
+              spots.forEach(([dx, dy], i) => {
+                const t = ((tick / 3 + h.slot * 5 + i * 5) % 16) / 16;
+                if (t > 0.6) return;
+                const k = t < 0.3 ? t / 0.3 : (0.6 - t) / 0.3;
+                const x = Math.round(pos.x + dx), y = Math.round(pos.y + dy), r2 = k > 0.8 ? 3 : k > 0.45 ? 2 : 1;
+                b.fillStyle = "#3a2a33"; b.globalAlpha = 0.25; b.fillRect(x - r2 - 1, y - 1, r2 * 2 + 3, 3); b.fillRect(x - 1, y - r2 - 1, 3, r2 * 2 + 3); b.globalAlpha = 1;
+                b.fillStyle = i % 2 ? "#ffe97a" : "#fff6b0";
+                for (let d = 1; d <= r2; d++) { b.fillRect(x - d, y, 1, 1); b.fillRect(x + d, y, 1, 1); b.fillRect(x, y - d, 1, 1); b.fillRect(x, y + d, 1, 1); }
+                b.fillStyle = "#ffffff"; b.fillRect(x, y, 1, 1); if (k > 0.45) { b.fillRect(x - 1, y, 3, 1); b.fillRect(x, y - 1, 1, 3); }
+              });
+            }
             const inside = r && r.shown === "focus" && !walkers.current.get(r.user_id)?.visible;
             if (inside) {
               // 창문 너머로 보이는 집중 중인 주민

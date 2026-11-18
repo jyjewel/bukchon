@@ -22,6 +22,7 @@ import VillageScene from "./VillageScene";
 import StudyRoom from "./StudyRoomWork";
 import SayBox from "./SayBox";
 import PlazaNews from "./PlazaNews";
+import { useRoomNews } from "@/hooks/useRoomNews";
 import { useNewsBadge } from "@/hooks/useNewsBadge";
 import { useMonument } from "@/hooks/useMonument";
 import ChatView from "./ChatView";
@@ -90,6 +91,7 @@ const me = v.me!;
   const [alarm, setAlarm] = useState<AppNotification | null>(null);
   const alarmSeen = useRef(new Set<string>());
   const newsBadge = useNewsBadge(village.id, me.user_id);
+  const roomNews = useRoomNews(village.id);
   const monument = useMonument(village.id);
   // 크리스마스 이브 밤: 산타와 루돌프가 돌아다니고, 놓친 사람은 25일 아침에 선물을 받는다
   const xmas = useChristmas(me.user_id);
@@ -174,6 +176,7 @@ const me = v.me!;
     if (t) setTab(t);
     setVisitId(userId);
     setView("visit");
+    roomNews.markSeen(userId);
   };
   /** 포탈로 건너가기: 다른 마을 주민이면 그 마을로 옮긴 뒤 연구실을 연다 */
   const goPortal = (userId: string, villageId: string) => {
@@ -375,6 +378,7 @@ const me = v.me!;
                     libraryStyle={village.library_style}
                     onOrb={() => setWishOpen(true)}
                     boardNew={newsBadge.count}
+                    sparkleSlots={v.residents.filter((r) => roomNews.owners.has(r.user_id)).map((r) => r.slot)}
                     monument={monument.row}
                     canBreakMonument={monument.row?.target_user === me.user_id}
                     onBreakMonument={() => void monument.breakIt()}
