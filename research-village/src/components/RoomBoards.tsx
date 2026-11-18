@@ -139,7 +139,7 @@ export default function RoomBoards({
           </article>
         );
       })}
-      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">{isOwner ? "받은 포스트잇" : "남겨 주세요"} <span className="font-body text-xs text-ink-soft">· <span className="px-1" style={{ background: "#e3f1fb" }}>다른 사람</span> <span className="px-1" style={{ background: "#ffe6ee" }}>나</span></span></h3>
+      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">포스트잇 <span className="font-body text-xs text-ink-soft">· <span className="px-1" style={{ background: "#e3f1fb" }}>다른 사람</span> <span className="px-1" style={{ background: "#ffe6ee" }}>나</span></span></h3>
       {postitsBlock}
     </div>
   );
