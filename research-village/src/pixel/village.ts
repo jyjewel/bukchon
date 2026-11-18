@@ -168,11 +168,11 @@ export function houseTypeOf(style: HouseStyle): HouseType {
 }
 
 /** 건물 종류마다 다른 위치 정보 (그림 좌표 기준, 바닥 가운데가 (27, 62)) */
-export const HOUSE_META: Record<HouseType, { window: { x: number; y: number }; smoke: { x: number; y: number } | null; bubble: { x: number; y: number } }> = {
-  classic: { window: { x: 11, y: 37 }, smoke: { x: 40, y: 3 }, bubble: { x: 9, y: 20 } },
-  hut: { window: { x: 14, y: 41 }, smoke: { x: 27, y: 15 }, bubble: { x: 8, y: 30 } },
-  office: { window: { x: 11, y: 37 }, smoke: null, bubble: { x: 9, y: 22 } },
-  hanok: { window: { x: 12, y: 42 }, smoke: { x: 47, y: 10 }, bubble: { x: 9, y: 26 } },
+export const HOUSE_META: Record<HouseType, { perch: { x: number; y: number }; window: { x: number; y: number }; smoke: { x: number; y: number } | null; bubble: { x: number; y: number } }> = {
+  classic: { perch: { x: 18, y: 8 }, window: { x: 11, y: 37 }, smoke: { x: 40, y: 3 }, bubble: { x: 9, y: 20 } },
+  hut: { perch: { x: 27, y: 16 }, window: { x: 14, y: 41 }, smoke: { x: 27, y: 15 }, bubble: { x: 8, y: 30 } },
+  office: { perch: { x: 26, y: 5 }, window: { x: 11, y: 37 }, smoke: null, bubble: { x: 9, y: 22 } },
+  hanok: { perch: { x: 22, y: 18 }, window: { x: 12, y: 42 }, smoke: { x: 47, y: 10 }, bubble: { x: 9, y: 26 } },
 };
 
 type HouseOpts = { lit: boolean; empty: boolean; mine: boolean };

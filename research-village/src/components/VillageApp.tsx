@@ -378,7 +378,7 @@ const me = v.me!;
                     libraryStyle={village.library_style}
                     onOrb={() => setWishOpen(true)}
                     boardNew={newsBadge.count}
-                    sparkleSlots={v.residents.filter((r) => roomNews.owners.has(r.user_id)).map((r) => r.slot)}
+                    birdSlots={v.residents.filter((r) => roomNews.owners.has(r.user_id)).map((r) => r.slot)}
                     monument={monument.row}
                     canBreakMonument={monument.row?.target_user === me.user_id}
                     onBreakMonument={() => void monument.breakIt()}
