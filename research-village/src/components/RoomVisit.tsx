@@ -6,14 +6,15 @@ import type { BoardTab, Resident } from "@/lib/types";
 import { useState } from "react";
 import FavoriteShelf from "./FavoriteShelf";
 import { GiftBox } from "./GiveBox";
+import LabPortal from "./LabPortal";
 import RoomBoards from "./RoomBoards";
 import RoomCanvas from "./RoomCanvas";
 import { Modal, Window } from "./ui";
 
 /** 다른 주민의 연구실 방문. 주민이 연구실 안에서 집중하고 있어도 들어가 볼 수 있다. */
 export default function RoomVisit({
-  owner, myId, residents, tab, onTab, onBack, onProfile, give,
-}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"] } }) {
+  owner, myId, residents, tab, onTab, onBack, onProfile, onGoto, give,
+}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; onGoto: (userId: string) => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"] } }) {
   const [giving, setGiving] = useState(false);
   const room = useRoom(owner.user_id, false);
   const fav = useFavBooks(owner.user_id);
@@ -35,6 +36,7 @@ export default function RoomVisit({
           />
           <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">책상을 누르면 커피나 간식을 올려 줄 수 있어요</p>
         </Window>
+        <LabPortal residents={residents} myId={myId} currentId={owner.user_id} onGo={onGoto} />
         <FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} />
         <div id="visit-results"><Window title={`${name}님의 연구 성과`} tone="lilac">
           <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} only="shelf" />

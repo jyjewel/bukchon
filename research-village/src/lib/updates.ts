@@ -9,6 +9,8 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-18-portal", date: "11월 18일", title: "연구실 포털로 다른 연구실에 바로 건너갈 수 있어요", body: "" },
+  { id: "2026-11-18-hairpods", date: "11월 18일", title: "캐릭터 머리에 투블럭, 액세서리에 에어팟이 생겼어요", body: "" },
   { id: "2026-11-18-habit", date: "11월 18일", title: "공동 공부 목표를 고칠 수 있고, 기간을 정해 매일 체크하는 목표가 생겼어요", body: "예: 한 달 동안 주 3일 한시 읽기. 매일 연구실 체크리스트에 올라와요." },
   { id: "2026-11-17-dragwin", date: "11월 17일", title: "창 제목줄을 끌어서 순서를 바꿀 수 있어요", body: "같은 칸 안에서 옮길 수 있고, 폰에서는 꾹 눌러서 끌어요." },
   { id: "2026-11-17-goals", date: "11월 17일", title: "도서관에 함께 정하는 공동 공부 목표가 생겼어요", body: "" },

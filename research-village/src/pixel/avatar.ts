@@ -313,6 +313,13 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     rect(g, 7, 3, 2, 1, "#fffdf0"); px(g, 6, 4, "#fffdf0"); px(g, 9, 4, "#fff6d8");
     for (const [x, y] of [[13, 1], [12, 2], [13, 2], [14, 2], [13, 3]]) px(g, x, y, "#fff6c0");
     px(g, 13, 2, "#ffffff");
+  } else if (style === "twoblock") {
+    // 투블럭: 옆과 뒤는 짧게 밀어 까끌한 자국만 남기고, 윗머리는 길러 볼륨 있게 앞으로 내린 머리
+    const stub = shade(skin, -46);
+    rect(g, 6, 0, 6, 1, hair); rect(g, 5, 1, 8, 1, hair); rect(g, 4, 2, 10, 2, hair); rect(g, 5, 4, 8, 1, hair);
+    for (const x of [5, 7, 8, 10, 12]) px(g, x, 5, hair);                                   // 이마 위 들쭉날쭉한 앞머리
+    rect(g, 6, 1, 3, 1, hairL); px(g, 10, 0, hairL); px(g, 5, 2, hairL); px(g, 12, 3, hairD); px(g, 9, 4, hairD);
+    for (const [x, y] of [[3, 4], [3, 6], [4, 5], [14, 4], [14, 6], [13, 5], [3, 8], [14, 8], [4, 7], [13, 7]] as [number, number][]) px(g, x, y, stub);   // 밀어 올린 옆머리의 까끌한 자국
   } else if (style === "receding") {
     // 반대머리: 이마가 넓게 벗겨지고 정수리 쪽과 옆머리만 남은 머리
     rect(g, 6, 3, 6, 1, skin); rect(g, 6, 4, 6, 1, skin);
@@ -358,6 +365,10 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   if (has("hairpin")) { rect(g, 10, 4, 3, 1, accent); px(g, 10, 4, shade(accent, 50)); px(g, 12, 5, accent); }
   if (has("ribbon")) {
     rect(g, 10, 2, 2, 2, "#e0605a"); rect(g, 13, 2, 2, 2, "#e0605a"); px(g, 12, 3, "#c94c4c");
+  }
+  if (has("airpods")) {
+    // 에어팟: 양쪽 귀에 하얀 이어버드와 줄기
+    for (const x of [3, 14]) { rect(g, x, 8, 1, 2, "#ffffff"); rect(g, x, 10, 1, 3, "#eef0f4"); px(g, x, 8, "#d8dce6"); px(g, x, 12, "#c9ced9"); }
   }
   if (has("headphones")) {
     const band = "#3a3a4a";

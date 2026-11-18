@@ -38,6 +38,7 @@ export const HAIR_STYLES = [
   { id: "pigtails", label: "양갈래" },
   { id: "bun", label: "똥머리" },
   { id: "curly", label: "곱슬" },
+  { id: "twoblock", label: "투블럭" },
   { id: "receding", label: "반대머리" },
   { id: "bald", label: "삭발" },
 ];
@@ -97,6 +98,7 @@ export const ACCESSORIES = [
   { id: "square", label: "사각 안경" },
   { id: "sunglasses", label: "선글라스" },
   { id: "headphones", label: "헤드폰" },
+  { id: "airpods", label: "에어팟" },
   { id: "hairpin", label: "머리핀" },
   { id: "ribbon", label: "리본" },
   { id: "mask", label: "마스크" },
