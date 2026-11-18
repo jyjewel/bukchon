@@ -138,7 +138,8 @@ export default function RoomBoards({
           </article>
         );
       })}
-      <h3 className="mt-5 border-b-2 border-[#5f9fd6] pb-0.5 font-display text-base">포스트잇</h3>
+      <div className="dotted" />
+      <h3 className="label">포스트잇</h3>
       {postitsBlock}
     </div>
   );
