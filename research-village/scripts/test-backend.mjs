@@ -780,6 +780,50 @@ await t("공동 공부 목표: 고른 사람만, 모두 완료하면 끝나고 �
   assert.equal(ok(await a.c.from("study_goals").select("id").eq("id", g2)).length, 0);
 });
 
+await t("기간형 공동 목표: 만들기·체크·고치기·기간이 끝나면 판정(달성/미달)", async () => {
+  const sv = createClient(url, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+  const ymd = (off) => new Date(Date.now() + 9 * 3600e3 + off * 86400e3).toISOString().slice(0, 10);
+  const base = { p_village: village, p_title: "한시 읽기", p_note: "", p_members: [m2.id], p_start: ymd(0), p_end: ymd(29), p_per_week: 3 };
+  assert.match((await m1.c.rpc("create_habit_goal", { ...base, p_end: ymd(3) })).error?.message ?? "", /bad_period|check/);   // 7일 미만
+  assert.match((await m1.c.rpc("create_habit_goal", { ...base, p_per_week: 9 })).error?.message ?? "", /bad_period/);
+  assert.match((await m1.c.rpc("create_habit_goal", { ...base, p_start: ymd(-3) })).error?.message ?? "", /bad_period/);       // 과거 시작
+  assert.ok((await m1.c.rpc("create_habit_goal", { ...base, p_members: [outside[1].id] })).error);
+  const gid = ok(await m1.c.rpc("create_habit_goal", base));
+  assert.equal(ok(await m2.c.from("study_goals").select("kind,per_week").eq("id", gid).single()).per_week, 3);
+  ok(await m1.c.rpc("set_goal_check", { p_goal: gid, p_day: ymd(0), p_on: true }));
+  assert.match((await m1.c.rpc("set_goal_check", { p_goal: gid, p_day: ymd(1), p_on: true })).error?.message ?? "", /bad_day/);   // 미래
+  assert.match((await m1.c.rpc("set_goal_check", { p_goal: gid, p_day: ymd(-5), p_on: true })).error?.message ?? "", /bad_day/);  // 너무 옛날
+  assert.ok((await outside[1].c.rpc("set_goal_check", { p_goal: gid, p_day: ymd(0), p_on: true })).error);                     // 구성원이 아님
+  assert.equal(ok(await m2.c.from("study_goal_checks").select("day").eq("goal_id", gid)).length, 1);                       // 같이 하는 사람의 체크는 보인다
+  ok(await m1.c.rpc("set_goal_check", { p_goal: gid, p_day: ymd(0), p_on: false }));
+  assert.match((await m1.c.rpc("set_study_goal_done", { p_goal: gid, p_done: true })).error?.message ?? "", /not_once/);        // 기간형은 완료 버튼이 없다
+  // 고치기: 만든 사람·관리자만, 이름·종료일·사람
+  assert.match((await m2.c.rpc("update_study_goal", { p_goal: gid, p_title: "x", p_note: "", p_members: [m2.id], p_end: ymd(29), p_per_week: 3 })).error?.message ?? "", /not_allowed/);
+  ok(await m1.c.rpc("update_study_goal", { p_goal: gid, p_title: "한시 읽기 (수정)", p_note: "메모", p_members: [m2.id], p_end: ymd(20), p_per_week: 4 }));
+  const g = ok(await m1.c.from("study_goals").select("title,end_date,per_week").eq("id", gid).single());
+  assert.deepEqual([g.title, g.end_date, g.per_week], ["한시 읽기 (수정)", ymd(20), 4]);
+  // 기간이 끝난 것으로 만들고 판정: 필요 일수 = ceil(10 * 3 / 7) = 5, 둘 다 5일 → 달성
+  await sv.from("study_goals").update({ start_date: ymd(-10), end_date: ymd(-1), per_week: 3 }).eq("id", gid);
+  for (const u of [m1, m2]) for (let i = 1; i <= 5; i++) await sv.from("study_goal_checks").insert({ goal_id: gid, user_id: u.id, day: ymd(-i) });
+  ok(await sv.rpc("finalize_habit_goals"));
+  assert.ok(ok(await m1.c.from("study_goals").select("completed_at").eq("id", gid).single()).completed_at);
+  assert.ok(ok(await m2.c.from("notifications").select("summary").eq("kind", "study_goal")).some((n) => n.summary === `${gid}|한시 읽기 (수정)|done`));
+  assert.ok(ok(await m2.c.from("gifts").select("kind,note").eq("to_user", m2.id)).some((x) => x.kind === "makgeolli" && x.note.includes("한시 읽기")));
+  assert.match((await m1.c.rpc("update_study_goal", { p_goal: gid, p_title: "x", p_note: "", p_members: [m2.id], p_end: ymd(5), p_per_week: 3 })).error?.message ?? "", /goal_completed/);
+  // 한 명이 모자라면 조용히 미달
+  const g2 = ok(await m1.c.rpc("create_habit_goal", { ...base, p_title: "미달 목표" }));
+  await sv.from("study_goals").update({ start_date: ymd(-10), end_date: ymd(-1) }).eq("id", g2);
+  for (let i = 1; i <= 5; i++) await sv.from("study_goal_checks").insert({ goal_id: g2, user_id: m1.id, day: ymd(-i) });
+  for (let i = 1; i <= 4; i++) await sv.from("study_goal_checks").insert({ goal_id: g2, user_id: m2.id, day: ymd(-i) });
+  ok(await sv.rpc("finalize_habit_goals"));
+  const r2 = ok(await m1.c.from("study_goals").select("completed_at,missed_at").eq("id", g2).single());
+  assert.ok(!r2.completed_at && r2.missed_at);
+  assert.ok(ok(await m2.c.from("notifications").select("summary").eq("kind", "study_goal")).some((n) => n.summary === `${g2}|미달 목표|missed`));
+  assert.ok((await m1.c.rpc("finalize_habit_goals")).error);                                                                  // 일반 사용자는 실행 불가
+  ok(await m1.c.from("study_goals").delete().eq("id", g2));
+  assert.equal(ok(await m1.c.from("study_goals").select("id").eq("id", g2)).length, 0);                                       // 미달 목표는 지울 수 있다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

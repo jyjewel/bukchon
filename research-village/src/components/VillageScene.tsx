@@ -364,6 +364,65 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       }
       items.sort((a, c) => a.y - c.y);
       for (const it of items) it.draw();
+      // ── 던지기: 보낸 사람에게서 받은 사람에게 날아가 별이 튄다 ──
+      const f = fxRef.current;
+      if (f) {
+        const el = (performance.now() - f.start) / 1000;
+        const a = walkers.current.get(f.from), t = walkers.current.get(f.to);
+        if (!a || !t || el > 1.5) fxRef.current = null;
+        else {
+          const sx = a.x, sy = a.y - AV_H / 2, tx = t.x, ty = t.y - AV_H / 2;
+          if (el < 0.7) {
+            const u = el / 0.7, x = sx + (tx - sx) * u, y = sy + (ty - sy) * u - Math.sin(Math.PI * u) * 22;
+            const spr = sp(`fx-${f.kind}`, () => fxGrid(f.kind) ?? fxGrid("thesis")!);
+            const spin = Math.floor(el * 14) % 4;
+            b.save();
+            b.translate(Math.round(x), Math.round(y));
+            b.rotate((spin * Math.PI) / 2);
+            b.drawImage(spr, -Math.floor(spr.width / 2), -Math.floor(spr.height / 2));
+            b.restore();
+          } else {
+            const u = (el - 0.7) / 0.8, star = sp("fx-star", () => fxGrid("star")!);
+            for (let i = 0; i < 6; i++) {
+              const ang = (i / 6) * Math.PI * 2 + 0.4, r = 4 + u * 16;
+              b.globalAlpha = Math.max(0, 1 - u);
+              b.drawImage(star, Math.round(tx + Math.cos(ang) * r - 2), Math.round(ty + Math.sin(ang) * r - 2));
+            }
+            b.globalAlpha = 1;
+          }
+        }
+      }
+
+      // ── 시간대 색조와 불빛 ──
+      const tint = TINT[phase];
+      if (tint) {
+        b.globalCompositeOperation = "multiply";
+        b.fillStyle = tint;
+        b.fillRect(0, 0, W, H);
+        if (night || phase === "dusk") {
+          b.globalCompositeOperation = "lighter";
+          const glow = (x: number, y: number, rad: number, a: number) => {
+            const gr = b.createRadialGradient(x, y, 1, x, y, rad);
+            gr.addColorStop(0, `rgb(255 214 120 / ${a})`);
+            gr.addColorStop(1, "rgb(255 214 120 / 0)");
+            b.fillStyle = gr;
+            b.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+          };
+          const a = night ? 0.5 : 0.22;
+          for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
+          if (xmas) drawTreeGlow(b, { x: PLAZA.x, y: PLAZA.y + 6 }, tick, a * 1.2);
+          if (truck) glow(TRUCK_POS.x - 9, TRUCK_POS.y - 17, 26, a + 0.15);
+          for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
+          if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
+          if (night) for (let i = 0; i < 10; i++) {
+            if ((slow + i * 3) % 7 < 3) continue;
+            b.fillStyle = "rgb(255 246 160 / 0.9)";
+            b.fillRect((i * 97 + 40 + Math.round(Math.sin(tick * 0.02 + i) * 4)) % W, (i * 53 + 70 + Math.round(Math.cos(tick * 0.017 + i) * 3)) % H, 1, 1);
+          }
+        }
+        b.globalCompositeOperation = "source-over";
+      }
+
       {
         // 책걸이: 색종이가 쏟아지고 별이 터진다
         const pa = partyRef.current;
@@ -424,65 +483,6 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         gr.addColorStop(1, "rgb(170 150 255 / 0)");
         b.fillStyle = gr;
         b.fillRect(gx - 20, gy - 20, 40, 40);
-        b.globalCompositeOperation = "source-over";
-      }
-
-      // ── 던지기: 보낸 사람에게서 받은 사람에게 날아가 별이 튄다 ──
-      const f = fxRef.current;
-      if (f) {
-        const el = (performance.now() - f.start) / 1000;
-        const a = walkers.current.get(f.from), t = walkers.current.get(f.to);
-        if (!a || !t || el > 1.5) fxRef.current = null;
-        else {
-          const sx = a.x, sy = a.y - AV_H / 2, tx = t.x, ty = t.y - AV_H / 2;
-          if (el < 0.7) {
-            const u = el / 0.7, x = sx + (tx - sx) * u, y = sy + (ty - sy) * u - Math.sin(Math.PI * u) * 22;
-            const spr = sp(`fx-${f.kind}`, () => fxGrid(f.kind) ?? fxGrid("thesis")!);
-            const spin = Math.floor(el * 14) % 4;
-            b.save();
-            b.translate(Math.round(x), Math.round(y));
-            b.rotate((spin * Math.PI) / 2);
-            b.drawImage(spr, -Math.floor(spr.width / 2), -Math.floor(spr.height / 2));
-            b.restore();
-          } else {
-            const u = (el - 0.7) / 0.8, star = sp("fx-star", () => fxGrid("star")!);
-            for (let i = 0; i < 6; i++) {
-              const ang = (i / 6) * Math.PI * 2 + 0.4, r = 4 + u * 16;
-              b.globalAlpha = Math.max(0, 1 - u);
-              b.drawImage(star, Math.round(tx + Math.cos(ang) * r - 2), Math.round(ty + Math.sin(ang) * r - 2));
-            }
-            b.globalAlpha = 1;
-          }
-        }
-      }
-
-      // ── 시간대 색조와 불빛 ──
-      const tint = TINT[phase];
-      if (tint) {
-        b.globalCompositeOperation = "multiply";
-        b.fillStyle = tint;
-        b.fillRect(0, 0, W, H);
-        if (night || phase === "dusk") {
-          b.globalCompositeOperation = "lighter";
-          const glow = (x: number, y: number, rad: number, a: number) => {
-            const gr = b.createRadialGradient(x, y, 1, x, y, rad);
-            gr.addColorStop(0, `rgb(255 214 120 / ${a})`);
-            gr.addColorStop(1, "rgb(255 214 120 / 0)");
-            b.fillStyle = gr;
-            b.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-          };
-          const a = night ? 0.5 : 0.22;
-          for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
-          if (xmas) drawTreeGlow(b, { x: PLAZA.x, y: PLAZA.y + 6 }, tick, a * 1.2);
-          if (truck) glow(TRUCK_POS.x - 9, TRUCK_POS.y - 17, 26, a + 0.15);
-          for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
-          if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
-          if (night) for (let i = 0; i < 10; i++) {
-            if ((slow + i * 3) % 7 < 3) continue;
-            b.fillStyle = "rgb(255 246 160 / 0.9)";
-            b.fillRect((i * 97 + 40 + Math.round(Math.sin(tick * 0.02 + i) * 4)) % W, (i * 53 + 70 + Math.round(Math.cos(tick * 0.017 + i) * 3)) % H, 1, 1);
-          }
-        }
         b.globalCompositeOperation = "source-over";
       }
 

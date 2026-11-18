@@ -108,11 +108,17 @@ const me = v.me!;
   const partySeen = useRef(new Set<string>());
   useEffect(() => {
     if (view !== "home" || party) return;
-    const g = goals.goals.find((x) => x.completed_at && !partySeen.current.has(x.id) && Date.now() - new Date(x.completed_at).getTime() < 90_000);
+    // 기간형은 자정에 끝나므로 하루 안에 처음 홈을 보는 때 한 번 보여 준다 (한 번 본 목표는 기억해 두고 다시 안 보여 준다)
+    const key = `party-seen:${me.user_id}`;
+    let seen: string[] = [];
+    try { seen = JSON.parse(localStorage.getItem(key) ?? "[]"); } catch { /* 없어도 괜찮다 */ }
+    const g = goals.goals.find((x) => x.completed_at && !partySeen.current.has(x.id) && !seen.includes(x.id)
+      && Date.now() - new Date(x.completed_at).getTime() < (x.kind === "habit" ? 20 * 3600_000 : 90_000));
     if (!g) return;
     partySeen.current.add(g.id);
+    try { localStorage.setItem(key, JSON.stringify([...seen, g.id].slice(-30))); } catch { /* 저장 못 해도 괜찮다 */ }
     setParty({ id: g.id, title: g.title, members: g.members.map((m) => m.user_id), start: performance.now() });
-  }, [goals.goals, view, party]);
+  }, [goals.goals, view, party, me.user_id]);
   useEffect(() => {
     if (!party) return;
     const t = setTimeout(() => setParty(null), 24_000);

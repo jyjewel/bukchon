@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { dateKey, daysUntil, ddayLabel } from "@/lib/time";
 import { useToday, type Todo, type usePlanner } from "@/hooks/usePlanner";
+import { useMyHabits } from "@/hooks/useStudyGoals";
 import { Notice } from "./ui";
 
 type Planner = ReturnType<typeof usePlanner>;
@@ -87,7 +88,14 @@ export function TodoPanel({ planner, userId }: { planner: Planner; userId: strin
   const today = useToday();
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
+  const habits = useMyHabits(userId, today);
   const sb = supabase();
+  const toggleHabit = async (id: string, on: boolean) => {
+    habits.setList((all) => all.map((h) => (h.id === id ? { ...h, checked: on ? [...h.checked, today] : h.checked.filter((d) => d !== today) } : h)));   // 바로 체크되어 보이게
+    const { error } = await sb.rpc("set_goal_check", { p_goal: id, p_day: today, p_on: on });
+    setError(error ? errorMessage(error) : "");
+    await habits.reload();
+  };
   const run = async (p: PromiseLike<{ error: unknown }>) => {
     const { error } = await p;
     setError(error ? errorMessage(error) : "");
@@ -118,6 +126,23 @@ export function TodoPanel({ planner, userId }: { planner: Planner; userId: strin
   };
   return (
     <div className="space-y-2 p-3">
+      {habits.list.length > 0 && (
+        <ul aria-label="공동 공부" className="space-y-1">
+          {habits.list.map((h) => {
+            const on = h.checked.includes(today), n = h.checked.length;
+            return (
+              <li key={h.id} className="card p-2 text-sm" style={{ background: "#eef6ff" }}>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input type="checkbox" className="h-5 w-5 shrink-0" aria-label={`공동 공부: ${h.title} 완료`} checked={on} onChange={() => void toggleHabit(h.id, !on)} />
+                  <span className={`min-w-0 flex-1 break-words ${on ? "line-through" : ""}`}>공동 공부: {h.title}</span>
+                  <span className="chip shrink-0 text-xs">{n}/{h.need}일</span>
+                </label>
+                <div className="mt-1 h-1.5 w-full overflow-hidden border border-[#3a2a33] bg-white" aria-hidden><div className="h-full" style={{ width: `${Math.min(100, Math.round((n / h.need) * 100))}%`, background: n >= h.need ? "#6adf7a" : "#ffd23f" }} /></div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {shown.length > 0 && <p className="text-xs text-ink-soft" aria-live="polite">{done.length}/{shown.length} 완료{done.length === shown.length ? " 🎉" : ""}</p>}
       <form onSubmit={add} className="flex items-start gap-1">
         <div className="min-w-0 flex-1">
