@@ -35,7 +35,7 @@ export default function PublicDeadlines({ ownerId, name }: { ownerId: string; na
   if (upcoming.length === 0) return null;
   return (
     <section aria-label={`${name}님의 공개 마감`} className="space-y-1">
-      <h3 className="label">{name}님의 임박한 마감 <span className="text-ink-soft">(공개)</span></h3>
+      <h3 className="label">임박한 마감 <span className="text-ink-soft">(공개)</span></h3>
       <ul className="space-y-1">
         {upcoming.map((d) => {
           const n = daysUntil(d.due_date, today);
