@@ -2,7 +2,7 @@
 import { STATUS_META } from "@/lib/constants";
 import { useFavBooks } from "@/hooks/useFavBooks";
 import { useRoom } from "@/hooks/useRoom";
-import type { BoardTab, Resident } from "@/lib/types";
+import type { BoardTab, Resident, VillageInfo } from "@/lib/types";
 import { useState } from "react";
 import FavoriteShelf from "./FavoriteShelf";
 import { GiftBox } from "./GiveBox";
@@ -13,8 +13,8 @@ import { Modal, Window } from "./ui";
 
 /** 다른 주민의 연구실 방문. 주민이 연구실 안에서 집중하고 있어도 들어가 볼 수 있다. */
 export default function RoomVisit({
-  owner, myId, residents, tab, onTab, onBack, onProfile, onGoto, give,
-}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; onGoto: (userId: string) => void; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"] } }) {
+  owner, myId, residents, tab, onTab, onBack, onProfile, onGoto, villages, villageId, give,
+}: { owner: Resident; myId: string; residents: Resident[]; tab: BoardTab; onTab: (t: BoardTab) => void; onBack: () => void; onProfile: () => void; onGoto: (userId: string, villageId: string) => void; villages: VillageInfo[]; villageId: string; give: { onGift: React.ComponentProps<typeof GiftBox>["onGift"] } }) {
   const [giving, setGiving] = useState(false);
   const [portal, setPortal] = useState(false);
   const room = useRoom(owner.user_id, false);
@@ -48,7 +48,7 @@ export default function RoomVisit({
           </Window></div>
         </div>
       </div>
-      {portal && <PortalDialog residents={residents} myId={myId} currentId={owner.user_id} onGo={onGoto} onClose={() => setPortal(false)} />}
+      {portal && <PortalDialog villages={villages} currentVillageId={villageId} myId={myId} currentId={owner.user_id} onGo={onGoto} onClose={() => setPortal(false)} />}
       {giving && (
         <Modal title={`${name}님 책상에 건네기`} tone="mint" onClose={() => setGiving(false)}>
           <GiftBox name={name} onGift={give.onGift} onDone={() => setTimeout(() => setGiving(false), 900)} />

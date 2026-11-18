@@ -159,13 +159,18 @@ const me = v.me!;
     setVisitId(userId);
     setView("visit");
   };
+  /** 포탈로 건너가기: 다른 마을 주민이면 그 마을로 옮긴 뒤 연구실을 연다 */
+  const goPortal = (userId: string, villageId: string) => {
+    if (villageId === village.id || !v.villages.some((x) => x.id === villageId)) return visit(userId);
+    onOpenInOtherVillage({ id: `portal-${userId}`, user_id: me.user_id, village_id: villageId, actor_id: userId, kind: "postit", room_owner_id: userId, summary: "", created_at: new Date().toISOString(), read_at: null });
+  };
   const openChat = (id: string | null) => {
     setChatId(id);
     setSelected(null);
     setView("chat");
   };
   const openNotification = (n: AppNotification) => {
-    void notifs.markRead([n.id]);
+    if (!n.id.startsWith("portal-")) void notifs.markRead([n.id]);
     setToast(null);
     if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
     if (n.kind === "meeting") return setView("library");
@@ -406,11 +411,11 @@ const me = v.me!;
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} onVisit={(id) => visit(id)} /></main>}
+      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} onVisit={goPortal} villageId={village.id} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
-          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={(id) => visit(id)} onProfile={() => setSelected(owner.user_id)} give={give(owner.user_id)} /></main>
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={goPortal} villages={v.villages} villageId={village.id} onProfile={() => setSelected(owner.user_id)} give={give(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
       {view === "library" && <main><LibraryView lib={lib} goals={goals} onGoalDone={() => setView("home")} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
