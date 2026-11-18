@@ -28,37 +28,31 @@ export default function PortalDialog({ villages, currentVillageId, myId, current
     return () => { alive = false; };
   }, [villages]);
 
-  // 현재 마을을 맨 앞에. 같은 사람이 여러 마을에 있어도 처음 나온 마을 한 곳에만 보여 준다.
+  // 친구 목록처럼 마을 구분 없이 한 줄로: 같은 사람이 여러 마을에 있어도 한 번만, 건너갈 때는 지금 마을을 먼저 따져서 가능하면 마을을 옮기지 않는다.
   const ordered = [...villages].sort((a, b) => (a.id === currentVillageId ? -1 : b.id === currentVillageId ? 1 : 0));
-  const seen = new Set<string>([currentId]);
-  const groups = ordered.map((v) => {
-    const people = (byVillage?.[v.id] ?? []).filter((x) => { if (seen.has(x.user_id)) return false; seen.add(x.user_id); return true; })
-      .sort((a, b) => (a.user_id === myId ? -1 : b.user_id === myId ? 1 : a.name.localeCompare(b.name, "ko")));
-    return { v, people };
-  }).filter((g) => g.people.length > 0);
+  const people = new Map<string, { user_id: string; name: string; villageId: string }>();
+  for (const v of ordered) for (const x of byVillage?.[v.id] ?? []) if (x.user_id !== currentId && !people.has(x.user_id)) people.set(x.user_id, { ...x, villageId: v.id });
+  const list = [...people.values()].sort((a, b) => (a.user_id === myId ? -1 : b.user_id === myId ? 1 : a.name.localeCompare(b.name, "ko")));
 
   return (
     <Modal title="포탈" tone="lilac" onClose={onClose}>
       <div className="flex items-start gap-3">
         <PixelArt art={art} scale={4} sparkle label="포탈 도트 그림" />
         <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm text-ink-soft">어느 연구실로 건너갈까요? 내가 사는 모든 마을의 주민에게 갈 수 있어요.</p>
+          <p className="text-sm text-ink-soft">어느 연구실로 건너갈까요?</p>
           {byVillage === null && <p className="text-sm text-ink-soft">포탈이 열리는 중…</p>}
-          {byVillage && groups.length === 0 && <p className="text-sm text-ink-soft">건너갈 연구실이 아직 없어요.</p>}
-          {groups.map(({ v, people }) => (
-            <section key={v.id} aria-label={`${v.name} 주민`} className="space-y-1">
-              {villages.length > 1 && <h3 className="label">{v.name}{v.id === currentVillageId ? " (지금 마을)" : ""}</h3>}
-              <ul className="flex flex-wrap gap-1" aria-label={`${v.name}에서 이동할 연구실`}>
-                {people.map((r) => (
-                  <li key={r.user_id}>
-                    <button type="button" className="btn btn-sm" onClick={() => { onClose(); onGo(r.user_id, v.id); }} aria-label={`${r.user_id === myId ? "내" : `${r.name}의`} 연구실로 이동`}>
-                      {r.user_id === myId ? "내 연구실" : r.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          {byVillage && list.length === 0 && <p className="text-sm text-ink-soft">건너갈 연구실이 아직 없어요.</p>}
+          {list.length > 0 && (
+            <ul className="flex flex-wrap gap-1" aria-label="이동할 연구실">
+              {list.map((r) => (
+                <li key={r.user_id}>
+                  <button type="button" className="btn btn-sm" onClick={() => { onClose(); onGo(r.user_id, r.villageId); }} aria-label={`${r.user_id === myId ? "내" : `${r.name}의`} 연구실로 이동`}>
+                    {r.user_id === myId ? "내 연구실" : r.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </Modal>
