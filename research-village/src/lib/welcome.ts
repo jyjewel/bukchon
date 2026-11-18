@@ -16,3 +16,16 @@ export const LETTER: { icon: string; title: string; body: string }[] = [
   { icon: "🔮", title: "소원구슬", body: "마을에 새로 생기거나 고쳤으면 하는 기능을 광장의 구슬에 말해 주세요. 24시간 안에 검토 후 처리해요. 하루 3개까지예요." },
   { icon: "🔔", title: "알림", body: "설정에서 폰 알림을 켜면 댓글이나 스터디 시간을 놓치지 않아요." },
 ];
+
+/** 서버에 '편지를 읽었어요'를 남긴다(다른 기기에서 다시 안 오게). 실패해도 이 기기에서는 이미 기억한다. */
+import { supabase } from "@/lib/supabase";
+export async function markWelcomeRead(uid: string) {
+  setWelcome(uid, "read");
+  try { await supabase().from("user_flags").upsert({ user_id: uid, flag: "welcome_read" }, { onConflict: "user_id,flag", ignoreDuplicates: true }); } catch { /* 이 기기엔 이미 기억했다 */ }
+}
+export async function welcomeReadOnServer(uid: string): Promise<boolean> {
+  try {
+    const { data } = await supabase().from("user_flags").select("flag").eq("user_id", uid).eq("flag", "welcome_read").maybeSingle();
+    return Boolean(data);
+  } catch { return false; }
+}

@@ -99,6 +99,8 @@ const me = v.me!;
   const morningShown = useRef(false);
   const [notice, setNotice] = useState("");
   const [fx, setFx] = useState<{ id: number; kind: string; from: string; to: string } | null>(null);
+  // 던지기 효과는 한 번 날아가면 끝: 지워 두지 않으면 지도를 다시 열 때마다 또 날아간다
+  useEffect(() => { if (!fx) return; const t = setTimeout(() => setFx(null), 2200); return () => clearTimeout(t); }, [fx]);
   const viewRef = useRef<View>("home");
   const statusRef = useRef(me.status.status);
   useEffect(() => { viewRef.current = view; statusRef.current = me.status.status; });
