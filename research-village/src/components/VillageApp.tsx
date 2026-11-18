@@ -33,6 +33,9 @@ import WelcomeBack from "./WelcomeBack";
 import UpdateNotice from "./UpdateNotice";
 import WindowColumn from "./WindowColumn";
 import WelcomeOwl from "./WelcomeOwl";
+import ChristmasGift from "./ChristmasGift";
+import { useChristmas } from "@/hooks/useChristmas";
+import { xmasPhase } from "@/lib/christmas";
 import StudyAlarmDialog from "./StudyAlarmDialog";
 import { awayDays, isGesture } from "@/lib/social";
 import { lastSeenLabel } from "@/lib/time";
@@ -88,6 +91,12 @@ const me = v.me!;
   const alarmSeen = useRef(new Set<string>());
   const newsBadge = useNewsBadge(village.id, me.user_id);
   const monument = useMonument(village.id);
+  // 크리스마스 이브 밤: 산타와 루돌프가 돌아다니고, 놓친 사람은 25일 아침에 선물을 받는다
+  const xmas = useChristmas(me.user_id);
+  const [phase, setPhase] = useState(() => xmasPhase());
+  useEffect(() => { const t = setInterval(() => setPhase(xmasPhase()), 60_000); return () => clearInterval(t); }, []);
+  const [giftOpen, setGiftOpen] = useState<"eve" | "morning" | null>(null);
+  const morningShown = useRef(false);
   const [notice, setNotice] = useState("");
   const [fx, setFx] = useState<{ id: number; kind: string; from: string; to: string } | null>(null);
   const viewRef = useRef<View>("home");
@@ -106,6 +115,11 @@ const me = v.me!;
   // 공동 목표를 다 이루면 광장에 모여 한바탕 잔치(홈 화면을 보고 있을 때만, 이룬 지 1분 반 안이면)
   const [party, setParty] = useState<{ id: string; title: string; members: string[]; start: number } | null>(null);
   const partySeen = useRef(new Set<string>());
+  useEffect(() => {
+    if (view !== "home" || phase !== "morning" || !xmas.loaded || xmas.thisYear || morningShown.current) return;
+    morningShown.current = true;
+    setGiftOpen("morning");
+  }, [view, phase, xmas.loaded, xmas.thisYear]);
   useEffect(() => {
     if (view !== "home" || party) return;
     // 기간형은 자정에 끝나므로 하루 안에 처음 홈을 보는 때 한 번 보여 준다 (한 번 본 목표는 기억해 두고 다시 안 보여 준다)
@@ -280,6 +294,10 @@ const me = v.me!;
 
       {view === "home" && <UpdateNotice userId={me.user_id} />}
       {view === "home" && <WelcomeOwl userId={me.user_id} />}
+      {giftOpen && (
+        <ChristmasGift mode={giftOpen} already={Boolean(xmas.thisYear)} claim={xmas.claim} onClose={() => setGiftOpen(null)}
+          onWear={async () => { await supabase().from("profiles").update({ avatar: { ...profile.avatar, hat: "santa" } }).eq("id", me.user_id); await auth.reloadProfile(); await v.reload(); }} />
+      )}
       {alarm && <StudyAlarmDialog n={alarm} creator={byId.get(alarm.actor_id)?.profile.display_name ?? "마을 주민"} onClose={() => { void notifs.markRead([alarm.id]); setAlarm(null); }} />}
       {view === "home" && <MovingCakes villageId={village.id} myId={me.user_id} neighbors={v.residents.length - 1} />}
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
@@ -346,7 +364,7 @@ const me = v.me!;
             <Window key="map" title={village.name} icon="" tone="sky">
               <div>
                 <div>
-                  <VillageScene party={party}
+                  <VillageScene party={party} santa={phase === "eve"} onSanta={() => setGiftOpen("eve")}
                     houses={v.houses}
                     residents={v.residents}
                     myId={me.user_id}

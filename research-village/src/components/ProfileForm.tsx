@@ -1,6 +1,8 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
+import { useChristmas } from "@/hooks/useChristmas";
+import { XMAS_ACCESSORIES, XMAS_HATS } from "@/lib/constants";
 import { ACCENTS, ACCESSORIES, BEARDS, EYES, PANTS, SHOES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 import { normalizeAvatar, type FullAvatar } from "@/pixel/avatar";
@@ -14,6 +16,7 @@ export default function ProfileForm({
   /** 마을에 살고 있을 때만: 지금 하는 연구(주제·읽는 책) */
   status?: { topic: string; reading: string }; onSaveStatus?: (patch: { topic: string; reading: string }) => Promise<string | null>;
 }) {
+  const xmas = useChristmas(profile.id);
   const [name, setName] = useState(profile.display_name);
   const [field, setField] = useState(profile.field);
   const [bio, setBio] = useState(profile.bio);
@@ -73,8 +76,8 @@ export default function ProfileForm({
           <Swatches label="옷 색" options={OUTFITS} value={avatar.outfit} onChange={(outfit) => set({ outfit })} />
           <Swatches label="바지 색" options={PANTS} value={avatar.pants} onChange={(pants) => set({ pants })} />
           <Choices label="신발" options={SHOES} value={avatar.shoes} onChange={(shoes) => set({ shoes })} />
-          <Choices label="모자" options={HATS} value={avatar.hat} onChange={(hat) => set({ hat })} />
-          <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES} values={avatar.accessories} onToggle={toggleAccessory} />
+          <Choices label="모자" options={HATS.filter((h) => !XMAS_HATS.includes(h.id) || xmas.hasAny || avatar.hat === h.id)} value={avatar.hat} onChange={(hat) => set({ hat })} />
+          <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES.filter((a) => !XMAS_ACCESSORIES.includes(a.id) || (a.id === "goldnose" ? xmas.golden : xmas.hasAny) || avatar.accessories.includes(a.id))} values={avatar.accessories} onToggle={toggleAccessory} />
           <Swatches label="모자·소품 색" options={ACCENTS} value={avatar.accent} onChange={(accent) => set({ accent })} />
           <Toggles label="소품" options={PROPS} values={avatar.props} onToggle={toggleProp} />
         </div>

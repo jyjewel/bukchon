@@ -373,6 +373,17 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
     // 에어팟: 양쪽 귀에 하얀 이어버드와 줄기
     for (const x of [3, 14]) { rect(g, x, 8, 1, 2, "#ffffff"); rect(g, x, 10, 1, 3, "#eef0f4"); px(g, x, 8, "#d8dce6"); px(g, x, 12, "#c9ced9"); }
   }
+  if (has("rudolph")) {
+    // 루돌프: 머리띠에 달린 갈색 뿔과 빨갛게 빛나는 코
+    rect(g, 4, 1, 10, 1, "#6b4a30");
+    for (const [x, y] of [[4, 0], [5, 0], [3, 0], [13, 0], [12, 0], [14, 0]] as [number, number][]) px(g, x, y, "#8a6240");
+    px(g, 3, 1, "#8a6240"); px(g, 14, 1, "#8a6240");
+    rect(g, 8, 11, 2, 2, "#e0302a"); px(g, 8, 11, "#ff9a90"); px(g, 9, 12, "#b01f1f");
+  }
+  if (has("goldnose")) {
+    // 황금 루돌프 코: 반짝반짝 금빛 코
+    rect(g, 8, 11, 2, 2, "#f2c744"); px(g, 8, 11, "#fff6c0"); px(g, 9, 12, "#c98f24"); px(g, 10, 10, "#fff2a8"); px(g, 7, 12, "#fffbe0");
+  }
   if (has("headphones")) {
     const band = "#3a3a4a";
     rect(g, 4, 1, 10, 1, band); px(g, 3, 2, band); px(g, 14, 2, band);
@@ -400,6 +411,14 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   if (hat === "beret") {
     rect(g, 4, 1, 10, 1, "#8a5a9c"); rect(g, 2, 2, 13, 2, "#8a5a9c"); rect(g, 3, 4, 11, 1, "#6f4680");
     px(g, 9, 0, "#6f4680"); rect(g, 5, 2, 3, 1, "#a878b8");
+  }
+  if (hat === "santa") {
+    // 산타 모자: 빨간 모자가 한쪽으로 늘어지고 하얀 털 단과 방울이 달렸다
+    rect(g, 6, 0, 6, 1, "#d9303a"); rect(g, 5, 1, 8, 2, "#d9303a"); rect(g, 4, 3, 10, 1, "#d9303a");
+    rect(g, 12, 1, 3, 1, "#d9303a"); rect(g, 14, 2, 2, 2, "#d9303a"); rect(g, 15, 4, 2, 1, "#c02530");
+    rect(g, 15, 5, 3, 3, "#ffffff"); px(g, 16, 5, "#f0f0f8");
+    rect(g, 3, 4, 12, 2, "#ffffff"); px(g, 3, 5, "#dcdce8"); px(g, 14, 5, "#dcdce8"); rect(g, 6, 4, 3, 1, "#f4f4fc");
+    rect(g, 6, 1, 2, 1, "#ff8088"); px(g, 5, 2, "#a82430");
   }
   if (hat === "phd") {
     rect(g, 5, 2, 8, 3, "#2f2a3a");                  // 모자 몸통

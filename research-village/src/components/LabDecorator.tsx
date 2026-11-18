@@ -1,4 +1,6 @@
 "use client";
+import { useChristmas } from "@/hooks/useChristmas";
+import { XMAS_EXTRAS } from "@/lib/constants";
 import { useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import {
@@ -10,6 +12,7 @@ import { Choices, Notice, Swatches, Toggles } from "./ui";
 
 /** 연구실 안쪽 꾸미기: 고르는 즉시 미리보기에 보이고 내 계정에 저장된다. (마을과 상관없이 하나) */
 export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: () => Promise<void> }) {
+  const xmas = useChristmas(me.user_id);
   const [style, setStyle] = useState<LabStyle>(() => normalizeLabStyle(me.profile.lab_style));
   const [error, setError] = useState("");
 
@@ -42,7 +45,7 @@ export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: (
       <Choices label="창밖 풍경" options={[...LAB_VIEWS]} value={style.view} onChange={(view) => void change({ view })} />
       <Choices label="반려동물" options={[...LAB_PETS]} value={style.pet} onChange={(pet) => void change({ pet })} />
       <Toggles
-        label="소품" options={[...LAB_EXTRAS]} values={style.extras}
+        label="소품" options={LAB_EXTRAS.filter((x) => !XMAS_EXTRAS.includes(x.id) || xmas.hasAny || style.extras.includes(x.id))} values={style.extras}
         onToggle={(id) => void change({ extras: style.extras.includes(id) ? style.extras.filter((x) => x !== id) : [...style.extras, id] })}
       />
     </div>

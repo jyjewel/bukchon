@@ -91,7 +91,12 @@ export const HATS = [
   { id: "beanie", label: "비니" },
   { id: "beret", label: "베레모" },
   { id: "phd", label: "박사모" },
+  { id: "santa", label: "산타 모자" },
 ];
+/** 크리스마스 이브에 산타에게 선물로 받아야 고를 수 있는 것들 */
+export const XMAS_HATS = ["santa"];
+export const XMAS_ACCESSORIES = ["rudolph", "goldnose"];
+export const XMAS_EXTRAS = ["xmassocks", "wreath"];
 /** 여러 개를 동시에 쓸 수 있다. 안경류(glasses·square·sunglasses)는 하나만 고를 수 있다. */
 export const ACCESSORIES = [
   { id: "glasses", label: "동그란 안경" },
@@ -99,6 +104,8 @@ export const ACCESSORIES = [
   { id: "sunglasses", label: "선글라스" },
   { id: "headphones", label: "헤드폰" },
   { id: "airpods", label: "에어팟" },
+  { id: "rudolph", label: "루돌프 뿔과 코" },
+  { id: "goldnose", label: "황금 루돌프 코" },
   { id: "hairpin", label: "머리핀" },
   { id: "ribbon", label: "리본" },
   { id: "mask", label: "마스크" },

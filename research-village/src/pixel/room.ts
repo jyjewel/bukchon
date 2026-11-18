@@ -256,6 +256,23 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(g, x0 + 7, y0, 2, 2, RD); px(g, x0 + 7, y0, R);                         // 꽃봉오리
     rect(g, x0 + 1, y0 + 4, 2, 1, R); px(g, x0 + 9, y0 + 5, R);
   }
+  if (st.extras.includes("xmassocks")) {
+    // 벽걸이 양말: 창문 위 초록 줄에 매달린 빨강·초록·줄무늬 양말 셋
+    for (let x = 10; x <= 46; x++) px(g, x, 6 + Math.round(Math.sin((x - 10) * 0.35) * 1.2), "#2e8a4c");
+    const sock = (x: number, c: string, c2: string) => {
+      rect(g, x, 8, 4, 2, "#ffffff"); rect(g, x, 10, 4, 4, c); rect(g, x, 14, 6, 2, c); px(g, x + 5, 15, c2); rect(g, x + 1, 11, 2, 1, c2); rect(g, x, 14, 2, 1, c2);
+      px(g, x + 3, 7, "#c9a24a");
+    };
+    sock(14, "#d9303a", "#ff8088"); sock(25, "#2e8a4c", "#8ad06a"); sock(36, "#d9303a", "#ffffff");
+  }
+  if (st.extras.includes("wreath")) {
+    // 크리스마스 리스: 창문 가운데 걸린 초록 고리에 빨간 열매와 리본
+    const cx = 29, cy = 24;
+    disc(g, cx, cy, 7, 7, "#1f6b3a"); disc(g, cx, cy, 5.2, 5.2, "#46a860"); disc(g, cx, cy, 3.6, 3.6, "#a6dcf7");
+    for (const [dx, dy] of [[-5, -2], [4, -4], [5, 3], [-3, 5], [0, -6], [2, 6]] as [number, number][]) { px(g, cx + dx, cy + dy, "#e0302a"); px(g, cx + dx + 1, cy + dy, "#ff8a80"); }
+    rect(g, cx - 3, cy + 5, 6, 2, "#d9303a"); px(g, cx - 1, cy + 4, "#d9303a"); px(g, cx + 1, cy + 4, "#d9303a"); px(g, cx, cy + 5, "#ffd23f");
+    px(g, cx, cy - 8, "#c9a24a");
+  }
   if (st.extras.includes("xmastree")) {
     // 꾸민 크리스마스 트리: 세 단 초록 가지, 꼭대기 별, 전구·오너먼트·반짝이 줄, 아래에 선물
     const cx = 130;

@@ -45,7 +45,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                   <span className="flex w-16 shrink-0 justify-center">{icon(r.kind)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-display">{giftOf(r.kind)?.label ?? "선물"}</span>
-                    <span className="block break-words text-sm">{who(r.from_user)}님{r.note ? <>: “{r.note}”</> : ""}</span>
+                    <span className="block break-words text-sm">{r.note.startsWith("🎅") ? <>🎅 산타{r.note.slice(2) ? <>: “{r.note.slice(2).trim()}”</> : ""}</> : <>{who(r.from_user)}님{r.note ? <>: “{r.note}”</> : ""}</>}</span>
                   </span>
                   <span className="shrink-0 text-xs text-ink-soft">{relativeTime(r.created_at)}</span>
                 </li>

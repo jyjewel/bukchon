@@ -20,6 +20,8 @@ import { Modal, Window } from "./ui";
 import WindowColumn from "./WindowColumn";
 import SnackBox from "./SnackBox";
 import PortalDialog from "./LabPortal";
+import { SantaCard } from "./ChristmasGift";
+import { useChristmas } from "@/hooks/useChristmas";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
 type Section = "journal" | "notes" | "diary" | "boards" | "results" | "shelf" | "archive" | "drawer" | "snacks";
@@ -44,6 +46,8 @@ export default function StudyRoomWork({
   const [focus, setFocus] = useState(false);
   const [letter, setLetter] = useState(false);
   const [portal, setPortal] = useState(false);
+  const xmas = useChristmas(me.user_id);
+  const [cardYear, setCardYear] = useState<number | null>(null);
   const room = useRoom(me.user_id, true);
   const fav = useFavBooks(me.user_id);
   const [target, setTarget] = useState<OpenTarget | null>(null);
@@ -106,7 +110,7 @@ export default function StudyRoomWork({
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" || section === "results" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
             {section === "snacks" && <SnackBox residents={residents} myId={me.user_id} />}
-            {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} />}
+            {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} cards={xmas.rows} onOpenCard={setCardYear} />}
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
             {section === "notes" && <ResearchNotes data={notes} userId={me.user_id} openId={target?.kind === "note" ? target.key : undefined} />}
             {section === "diary" && <DiaryPanel myId={me.user_id} entries={diary.entries} loaded={diary.loaded} reload={diary.reload} openId={target?.kind === "diary" ? target.key : undefined} />}
@@ -123,6 +127,7 @@ export default function StudyRoomWork({
           <Window key="todo" title="오늘의 체크리스트" tone="butter"><TodoPanel planner={planner} userId={me.user_id} /></Window>
         </WindowColumn>
       )}
+      {cardYear !== null && xmas.rows.find((r) => r.year === cardYear) && <SantaCard row={xmas.rows.find((r) => r.year === cardYear)!} name={me.profile.display_name} onClose={() => setCardYear(null)} />}
       {portal && <PortalDialog villages={villages} currentVillageId={villageId} myId={me.user_id} currentId={me.user_id} onGo={onVisit} onClose={() => setPortal(false)} />}
       {letter && <WelcomeLetter onClose={() => setLetter(false)} />}
     </div>

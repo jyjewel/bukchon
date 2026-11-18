@@ -6,6 +6,7 @@ import type { House, Resident } from "@/lib/types";
 import { bake } from "@/pixel/core";
 import { BOOK_COLORS, flyingBookGrid } from "@/pixel/book";
 import { fxGrid } from "@/pixel/fx";
+import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { ORB_H, ORB_POS, ORB_W, newMarkGrid, orbPedestalGrid, orbSphereGrid } from "@/pixel/orb";
@@ -46,6 +47,9 @@ export interface SceneProps {
   monument?: { broken_at: string | null } | null;
   /** 공동 목표를 다 이뤘을 때 광장에서 벌어지는 한바탕 잔치 */
   party?: { id: string; title: string; members: string[]; start: number } | null;
+  /** 크리스마스 이브 밤: 산타와 루돌프가 마을을 돌아다닌다. 산타를 누르면 선물 */
+  santa?: boolean;
+  onSanta?: () => void;
   canBreakMonument?: boolean;
   onBreakMonument?: () => void;
   /** 연구실 앞 책상을 눌렀을 때 */
@@ -54,7 +58,7 @@ export interface SceneProps {
   fx?: { id: number; kind: string; from: string; to: string } | null;
 }
 
-export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null }: SceneProps) {
+export default function VillageScene({ houses, residents, myId, onCharacter, onHouse, onPlace, onDesk, fx, truck, onTruck, libraryStyle = "classic", onOrb, boardNew = 0, monument = null, canBreakMonument = false, onBreakMonument, party = null, santa = false, onSanta }: SceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const tagRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -66,6 +70,9 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => { void document.fonts.load("11px Galmuri11").then(() => setMonFont(true)); }, []);
   const partyRef = useRef(party);
   useEffect(() => { partyRef.current = party; }, [party]);
+  const santaRef = useRef(santa);
+  useEffect(() => { santaRef.current = santa; }, [santa]);
+  const santaBtn = useRef<HTMLButtonElement>(null);
   const newRef = useRef(boardNew);
   useEffect(() => { newRef.current = boardNew; }, [boardNew]);
   const fxRef = useRef<{ id: number; kind: string; from: string; to: string; start: number } | null>(null);
@@ -138,6 +145,10 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       return { ...door, visible: false };
     };
 
+    // 산타와 루돌프: 광장 둘레를 천천히 돈다 (루돌프가 앞, 산타는 조금 뒤에서 따라간다)
+    const route: [number, number][] = [[150, 176], [182, 206], [232, 214], [284, 198], [310, 168], [286, 142], [236, 130], [186, 138]];
+    const rud = { x: route[0][0], y: route[0][1], i: 1, left: false, moving: true };
+    const trail: [number, number][] = [];
     let raf = 0, last = 0, tick = 0;
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -168,6 +179,14 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         }
       }
 
+      // ── 산타와 루돌프 걸음 ──
+      if (santaRef.current) {
+        const [tx, ty] = route[rud.i], dx = tx - rud.x, dy = ty - rud.y, dist = Math.hypot(dx, dy);
+        if (dist < 1.2) rud.i = (rud.i + 1) % route.length;
+        else { rud.x += (dx / dist) * 0.8; rud.y += (dy / dist) * 0.8; if (Math.abs(dx) > 0.3) rud.left = dx < 0; }
+        trail.push([rud.x, rud.y]); if (trail.length > 40) trail.shift();
+      }
+
       // ── 바닥 ──
       b.globalCompositeOperation = "source-over";
       b.globalAlpha = 1;
@@ -187,6 +206,31 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       };
       for (const t of trees) items.push({ y: t.y, draw: () => { shadow(t.x, t.y, 10); b.drawImage(t.c, t.x - 17, t.y - TREE_H + 2); } });
       for (const s of bushes) items.push({ y: s.y, draw: () => b.drawImage(s.c, s.x - 9, s.y - 11) });
+      if (santaRef.current && trail.length > 0) {
+        const sp0 = trail[0], face = rud.left;
+        const rf = (Math.floor(tick / 5) % 2) as 0 | 1;
+        items.push({ y: rud.y, draw: () => {
+          const x = Math.round(rud.x), y = Math.round(rud.y), spr = sp(`rud${rf}`, () => rudolphGrid(rf));
+          shadow(x, y, 9);
+          if (face) { b.save(); b.translate(x * 2, 0); b.scale(-1, 1); b.drawImage(spr, x - 13, y - 21); b.restore(); } else b.drawImage(spr, x - 13, y - 21);
+          // 반짝이는 루돌프 코
+          const gl = 0.55 + 0.4 * Math.sin(tick * 0.3), nx = face ? x - 12 : x + 12;
+          b.globalCompositeOperation = "lighter"; b.fillStyle = `rgb(255 80 60 / ${gl})`; b.fillRect(nx - 2, y - 13, 5, 5); b.globalCompositeOperation = "source-over";
+        } });
+        items.push({ y: sp0[1], draw: () => {
+          const x = Math.round(sp0[0]), y = Math.round(sp0[1]), f = (Math.floor(tick / 4) % 2) + 1 as 1 | 2;
+          const av = sp(`santa${f}`, () => avatarGrid(SANTA_AVATAR, f, false)), sack = sp("sack", () => sackGrid());
+          shadow(x, y, 6);
+          if (face) { b.save(); b.translate(x * 2, 0); b.scale(-1, 1); b.drawImage(sack, x + 3, y - 18); b.drawImage(av, x - AV_CX, y - AV_H + 1); b.restore(); }
+          else { b.drawImage(sack, x - 15, y - 18); b.drawImage(av, x - AV_CX, y - AV_H + 1); }
+          if (Math.floor(tick / 45) % 4 === 0) {           // 가끔 "호호호!"
+            b.save(); b.textAlign = "center"; b.textBaseline = "middle"; b.font = `9px ${monFont ? "Galmuri11, sans-serif" : "sans-serif"}`; b.lineWidth = 3; b.lineJoin = "round";
+            b.strokeStyle = "#3a2a33"; b.strokeText("호호호!", x, y - AV_H - 6); b.fillStyle = "#ffe27a"; b.fillText("호호호!", x, y - AV_H - 6); b.restore();
+          }
+        } });
+        const tag = santaBtn.current;
+        if (tag) { tag.style.display = ""; tag.style.left = `${((sp0[0] - 12) / W) * 100}%`; tag.style.top = `${((sp0[1] - AV_H) / H) * 100}%`; tag.style.width = `${(24 / W) * 100}%`; tag.style.height = `${(AV_H / H) * 100}%`; }
+      } else if (santaBtn.current) santaBtn.current.style.display = "none";
       for (const l of LAMPS) items.push({ y: l.y, draw: () => b.drawImage(lamp, l.x - 5, l.y - 28) });
       if (xmas) {
         // 크리스마스 달: 분수 자리에 커다란 트리가 서고, 가로등까지 전구 줄이 이어진다
@@ -510,6 +554,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       <button type="button" className="scene-hit" style={pct(ORB_POS.x - 10, ORB_POS.y - ORB_H, 20, ORB_H + 1)} aria-label="소원구슬 — 눌러서 소원 빌기" onClick={() => onOrb?.()} />
       {truck && <button type="button" className="scene-hit" style={pct(TRUCK_POS.x - TRUCK_W / 2, TRUCK_POS.y - TRUCK_H + 3, TRUCK_W, TRUCK_H - 4)} aria-label={truck === "night" ? "새벽 야식 트럭 — 눌러서 메뉴 보기" : "아침 밥차 — 눌러서 메뉴 보기"} onClick={() => onTruck?.()} />}
       {monument && !monument.broken_at && canBreakMonument && <button type="button" className="scene-hit" style={pct(MON_POS.x - Math.floor(MON_W / 2), MON_POS.y - MON_H + 1, MON_W, MON_H - 2)} aria-label="비석" onClick={() => onBreakMonument?.()} />}
+      <button ref={santaBtn} type="button" className="scene-hit" style={{ display: "none" }} aria-label="산타 할아버지 — 눌러서 선물 받기" onClick={() => onSanta?.()} />
       {boardNew > 0 && <span className="sr-only" role="status" aria-label={`게시판에 안 읽은 새 글 ${boardNew}개`}>게시판에 새 글이 있어요</span>}
       <button type="button" className="scene-hit" style={pct(BOARD.x - 17, BOARD.y - 33, 34, 34)} aria-label="마을 게시판 — 눌러서 소식 보기" onClick={() => onPlace("board")} />
 

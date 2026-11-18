@@ -824,6 +824,28 @@ await t("기간형 공동 목표: 만들기·체크·고치기·기간이 끝나
   assert.equal(ok(await m1.c.from("study_goals").select("id").eq("id", g2)).length, 0);                                       // 미달 목표는 지울 수 있다
 });
 
+await t("크리스마스 산타: 이브 밤과 25일 아침에만, 한 해 한 번, 선물이 간식 상자로", async () => {
+  const sv = createClient(url, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+  const T = (kst) => new Date(kst + "+09:00").toISOString();
+  assert.match((await sv.rpc("_claim_christmas", { p_user: m1.id, p_now: T("2026-12-24T17:59:00") })).error?.message ?? "", /not_christmas/);   // 이브 저녁 6시 전
+  assert.match((await sv.rpc("_claim_christmas", { p_user: m1.id, p_now: T("2026-12-26T00:00:00") })).error?.message ?? "", /not_christmas/);
+  const eve = ok(await sv.rpc("_claim_christmas", { p_user: m1.id, p_now: T("2026-12-24T21:00:00") }));
+  assert.equal(eve.kind, "eve"); assert.equal(eve.snacks.length, 2); assert.ok(eve.snacks.includes("cocoa"));
+  assert.match((await sv.rpc("_claim_christmas", { p_user: m1.id, p_now: T("2026-12-25T09:00:00") })).error?.message ?? "", /already/);   // 한 사람 한 번
+  const morning = ok(await sv.rpc("_claim_christmas", { p_user: m2.id, p_now: T("2026-12-25T07:00:00") }));                                 // 놓친 사람은 아침에
+  assert.equal(morning.kind, "morning");
+  assert.equal(ok(await sv.rpc("_claim_christmas", { p_user: m3.id, p_now: T("2026-12-25T05:59:00") })).kind, "eve");                       // 아침 6시 전까지는 이브 구간
+  const mine = ok(await m1.c.from("christmas_gifts").select("kind,snacks,stats").eq("year", 2026));
+  assert.equal(mine.length, 1); assert.equal(ok(await m2.c.from("christmas_gifts").select("user_id")).length, 1);                         // 남의 선물은 안 보인다
+  const g = ok(await m1.c.from("gifts").select("kind,note").eq("to_user", m1.id)).filter((x) => x.note.startsWith("🎅"));
+  assert.equal(g.length, 2);
+  assert.ok((await m1.c.rpc("_claim_christmas", { p_user: m1.id, p_now: T("2026-12-24T21:00:00") })).error);                                // 일반 사용자는 내부 함수를 못 쓴다
+  assert.ok((await m1.c.rpc("claim_christmas")).error);                                                                                     // 지금은 크리스마스가 아니다
+  await sv.from("app_settings").upsert({ key: "now_override", value: T("2026-12-24T22:00:00") });
+  const viaApi = ok(await a.c.rpc("claim_christmas")); assert.equal(viaApi.kind, "eve");                                                  // 시계를 바꾸면 공개 함수도 이브로 본다
+  await sv.from("app_settings").delete().eq("key", "now_override");
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

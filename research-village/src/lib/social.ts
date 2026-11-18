@@ -43,7 +43,7 @@ export const TTEOK = [
 ] as const;
 export type TteokKind = (typeof TTEOK)[number]["id"];
 /** 예전에 건넨 "간식" 선물이 계속 읽히도록 남겨 둔 종류 */
-const OLD_GIFTS = [{ id: "snack", label: "간식", icon: "🍪" }, { id: "makgeolli", label: "막걸리", icon: "🍶" }] as const;
+const OLD_GIFTS = [{ id: "snack", label: "간식", icon: "🍪" }, { id: "makgeolli", label: "막걸리", icon: "🍶" }, { id: "cocoa", label: "핫초코", icon: "☕" }, { id: "gingerbread", label: "진저맨 쿠키", icon: "🍪" }, { id: "stollen", label: "슈톨렌", icon: "🍞" }, { id: "xmascake", label: "딸기 케이크", icon: "🍰" }] as const;
 /** 간식으로 묶이는 선물 (고르는 화면에서 따로 보여 준다) */
 export const SNACK_IDS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "haribo"] as const;
 export const giftOf = (id: string): { id: string; label: string; icon: string } | undefined => GIFTS.find((g) => g.id === id) ?? TTEOK.find((g) => g.id === id) ?? OLD_GIFTS.find((g) => g.id === id);

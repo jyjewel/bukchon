@@ -28,7 +28,7 @@ export default function WelcomeLetter({ onClose, first = false }: { onClose: () 
 }
 
 /** 연구실 서랍 화면: 보관된 편지를 눌러 다시 읽는다 */
-export function LetterDrawer({ onOpen }: { onOpen: () => void }) {
+export function LetterDrawer({ onOpen, cards = [], onOpenCard }: { onOpen: () => void; cards?: { year: number }[]; onOpenCard?: (year: number) => void }) {
   const art = useMemo(() => letterGrid(), []);
   return (
     <section aria-label="편지 서랍">
@@ -38,6 +38,12 @@ export function LetterDrawer({ onOpen }: { onOpen: () => void }) {
           <PixelArt art={art} scale={3} label="편지 도트 그림" />
           <span><span className="block font-display">마을에서 온 사용법 편지</span><span className="block text-xs text-ink-soft">부엉이가 가져다 준 편지 · 눌러서 다시 읽기</span></span>
         </button>
+        {cards.map((c) => (
+          <button key={c.year} type="button" className="card flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fff3c4]" onClick={() => onOpenCard?.(c.year)}>
+            <span aria-hidden className="flex w-[66px] justify-center text-3xl">💌</span>
+            <span><span className="block font-display">{c.year}년 산타의 카드</span><span className="block text-xs text-ink-soft">크리스마스 이브에 받은 카드 · 눌러서 다시 읽기</span></span>
+          </button>
+        ))}
       </div>
     </section>
   );
