@@ -1,4 +1,5 @@
 "use client";
+import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Shout } from "@/lib/types";
@@ -21,9 +22,9 @@ export function useShouts(villageId: string) {
       .channel(`shouts:${villageId}:${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "shouts" }, () => void load())
       .subscribe();
-    const poll = setInterval(() => void load(), 60_000);
+    const poll = visibleInterval(() => void load(), 60_000);
     return () => {
-      clearInterval(poll);
+      stopPoll(poll);
       void sb.removeChannel(channel);
     };
   }, [load, villageId]);

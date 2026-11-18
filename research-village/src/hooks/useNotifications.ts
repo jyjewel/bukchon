@@ -1,4 +1,5 @@
 "use client";
+import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { AppNotification } from "@/lib/types";
@@ -36,9 +37,9 @@ export function useNotifications(userId: string, onNew: (n: AppNotification) => 
         void load(); // 다른 마을 주민의 이름도 함께 가져온다
       })
       .subscribe();
-    const poll = setInterval(() => void load(), 60_000);
+    const poll = visibleInterval(() => void load(), 60_000);
     return () => {
-      clearInterval(poll);
+      stopPoll(poll);
       void sb.removeChannel(channel);
     };
   }, [userId, load]);

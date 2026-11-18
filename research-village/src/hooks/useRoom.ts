@@ -1,4 +1,5 @@
 "use client";
+import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Achievement, BookTip, Gift, Postit, WhiteboardComment, WhiteboardItem } from "@/lib/types";
@@ -58,10 +59,10 @@ export function useRoom(ownerId: string, isOwner: boolean, enabled = true) {
       .on("postgres_changes", { event: "*", schema: "public", table: "gifts" }, again)
       .on("postgres_changes", { event: "*", schema: "public", table: "book_tips" }, again)
       .subscribe();
-    const poll = setInterval(() => void load(), 45_000);
+    const poll = visibleInterval(() => void load(), 45_000);
     return () => {
       clearTimeout(timer);
-      clearInterval(poll);
+      stopPoll(poll);
       void sb.removeChannel(channel);
     };
   }, [load, ownerId, enabled]);

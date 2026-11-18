@@ -1,4 +1,5 @@
 "use client";
+import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -54,8 +55,8 @@ export function useStudyGoals(villageId: string) {
       .on("postgres_changes", { event: "*", schema: "public", table: "study_goal_members" }, again)
       .on("postgres_changes", { event: "*", schema: "public", table: "study_goal_checks" }, again)
       .subscribe();
-    const poll = setInterval(() => void load(), 30_000);
-    return () => { clearTimeout(timer); clearInterval(poll); void sb.removeChannel(channel); };
+    const poll = visibleInterval(() => void load(), 30_000);
+    return () => { clearTimeout(timer); stopPoll(poll); void sb.removeChannel(channel); };
   }, [load, villageId]);
   return { goals, loaded, reload: load };
 }
@@ -84,8 +85,8 @@ export function useMyHabits(userId: string, today: string) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 처음 한 번 불러온다
     void load();
-    const t = setInterval(() => void load(), 60_000);
-    return () => clearInterval(t);
+    const t = visibleInterval(() => void load(), 60_000);
+    return () => stopPoll(t);
   }, [load]);
   return { list, reload: load, setList };
 }

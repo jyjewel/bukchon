@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-18-password", date: "11월 18일", title: "비밀번호를 바꾸거나, 잊었을 때 다시 정할 수 있어요", body: "설정에서 바꾸고, 로그인 화면의 ‘비밀번호를 잊었어요’로 메일을 받아요." },
   { id: "2026-11-18-walk", date: "11월 18일", title: "[소원] 어디든 누르면 걸어 다닐 수 있어요", body: "마을 지도의 빈 곳을 누르면 내 캐릭터가 걸어가요. 이웃에게도 보여요." },
   { id: "2026-11-18-portal", date: "11월 18일", title: "연구실 벽의 포탈로 다른 연구실에 바로 건너갈 수 있어요", body: "" },
   { id: "2026-11-18-hairpods", date: "11월 18일", title: "캐릭터 머리에 투블럭, 액세서리에 에어팟이 생겼어요", body: "" },

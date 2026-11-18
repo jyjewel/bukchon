@@ -1,4 +1,5 @@
 "use client";
+import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { ChatMessage, Conversation } from "@/lib/types";
@@ -37,9 +38,9 @@ export function useChat(userId: string, villageId: string, onIncoming: (c: Conve
       .channel(`chat:${userId}:${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void load())
       .subscribe();
-    const poll = setInterval(() => void load(), 30_000);
+    const poll = visibleInterval(() => void load(), 30_000);
     return () => {
-      clearInterval(poll);
+      stopPoll(poll);
       void sb.removeChannel(channel);
     };
   }, [load, userId]);
@@ -77,9 +78,9 @@ export function useMessages(convId: string | null, enabled: boolean) {
         setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
       })
       .subscribe();
-    const poll = setInterval(() => void load(), 20_000);
+    const poll = visibleInterval(() => void load(), 20_000);
     return () => {
-      clearInterval(poll);
+      stopPoll(poll);
       void sb.removeChannel(channel);
     };
   }, [convId, enabled, load]);

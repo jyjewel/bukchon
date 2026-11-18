@@ -1,4 +1,5 @@
 "use client";
+import PasswordForm from "./PasswordForm";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { VILLAGE_CAPACITY } from "@/lib/constants";
@@ -80,6 +81,10 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
           </div>
         </section>
 
+        <section className="dotted pt-3" aria-label="비밀번호">
+          <h3 className="label">비밀번호 바꾸기</h3>
+          <PasswordForm />
+        </section>
         <section className="dotted pt-3">
           <h3 className="label">초대 링크 <span className="text-ink-soft">(주민 {residents.length}/{VILLAGE_CAPACITY}명)</span></h3>
           {invite ? (

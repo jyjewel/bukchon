@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { isConfigured } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useVillage } from "@/hooks/useVillage";
+import PasswordForm from "./PasswordForm";
 import AuthScreen from "./AuthScreen";
 import ProfileForm from "./ProfileForm";
 import VillageGate from "./VillageGate";
@@ -83,6 +84,18 @@ function Configured() {
 
   if (!auth.ready) return <Loading />;
   if (!auth.session || !auth.userId) return <Splash><AuthScreen hasInvite={Boolean(invite.code)} /></Splash>;
+  if (auth.recovery) {
+    return (
+      <Splash>
+        <Window title="새 비밀번호 정하기" icon="" tone="butter">
+          <div className="space-y-3 p-4">
+            <p className="text-sm text-ink-soft">재설정 메일로 들어오셨어요. 새 비밀번호를 정하면 바로 마을로 들어가요.</p>
+            <PasswordForm submitLabel="이 비밀번호로 정하기" onDone={() => setTimeout(auth.endRecovery, 800)} />
+          </div>
+        </Window>
+      </Splash>
+    );
+  }
   if (!auth.profile) return <Loading />;
   if (!auth.profile.onboarded) {
     return (
