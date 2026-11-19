@@ -26,6 +26,7 @@ export function useVillage(userId: string | null, accessToken: string | null) {
   const [villages, setVillages] = useState<VillageInfo[]>([]);
   const [prevSeen, setPrevSeen] = useState<Record<string, string>>({}); // 마을마다 이번에 들어오기 직전의 마지막 접속 시각
   const currentRef = useRef<string | null>(null);
+  const orderRef = useRef<string[]>([]);
   const [statuses, setStatuses] = useState<Record<string, StatusRow>>({});
   const [skew, setSkew] = useState(0); // 서버 시각 - 내 시각 (ms)
   const [now, setNow] = useState(() => Date.now());
@@ -45,7 +46,12 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     const sb = supabase();
     const mine = await sb.from("village_members").select("village_id, role").eq("user_id", userId).order("joined_at");
     if (mine.error) return; // 일시적 오류: 기존 화면 유지
-    const ids = (mine.data ?? []).map((x) => x.village_id as string);
+    const prefs = await sb.from("user_prefs").select("village_order").maybeSingle();
+    if (!prefs.error) orderRef.current = (prefs.data?.village_order as string[] | undefined) ?? [];
+    // 내가 정한 순서가 먼저, 나머지는 들어간 순서대로
+    const byOrder = (a: string, b: string) => { const ia = orderRef.current.indexOf(a), ib = orderRef.current.indexOf(b); return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib); };
+    const joinedOrder = (mine.data ?? []).map((x) => x.village_id as string);
+    const ids = [...joinedOrder].sort((a, b) => byOrder(a, b) || joinedOrder.indexOf(a) - joinedOrder.indexOf(b));
     if (!ids.length) {
       setRaw(null);
       setVillages([]);
@@ -62,9 +68,10 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     const vs = await sb.from("villages").select("id, name, theme, library_style, gate_locked").in("id", ids);
     if (vs.error || !vs.data) return;
     setVillages(
-      mine.data!.flatMap((x) => {
-        const info = vs.data!.find((y) => y.id === x.village_id);
-        return info ? [{ id: info.id as string, name: info.name as string, role: x.role as "admin" | "member" }] : [];
+      ids.flatMap((id) => {
+        const info = vs.data!.find((y) => y.id === id);
+        const m = mine.data!.find((y) => y.village_id === id);
+        return info && m ? [{ id: info.id as string, name: info.name as string, role: m.role as "admin" | "member" }] : [];
       }),
     );
     const [m, h, s] = await Promise.all([
@@ -85,7 +92,7 @@ export function useVillage(userId: string | null, accessToken: string | null) {
 
   // 첫 로드
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 로그인 사용자가 바뀌면 마을을 다시 읽는다
+     
     void load();
   }, [load]);
 
@@ -213,7 +220,14 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     [userId, villageId, load],
   );
 
+  /** 내 화면의 마을 순서를 바꾼다(저장되어 다른 기기에서도 같다) */
+  const reorderVillages = useCallback(async (ids: string[]) => {
+    orderRef.current = ids;
+    setVillages((cur) => [...cur].sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id)));
+    await supabase().from("user_prefs").upsert({ village_order: ids, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  }, []);
+
   const setStatus = useCallback((status: ResearchState) => updateMyStatus({ status }), [updateMyStatus]);
 
-  return { loading, villages, switchVillage, prevSeen: villageId ? prevSeen[villageId] ?? null : null, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus, walkTo };
+  return { loading, villages, switchVillage, reorderVillages, prevSeen: villageId ? prevSeen[villageId] ?? null : null, village: raw?.village ?? null, houses: raw?.houses ?? [], residents, me, skew, reload: load, setStatus, updateMyStatus, walkTo };
 }

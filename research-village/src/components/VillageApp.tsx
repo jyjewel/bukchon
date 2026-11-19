@@ -437,13 +437,6 @@ const me = v.me!;
                   {me.role === "admin" ? <button type="button" className="underline" onClick={() => setView("settings")}>초대 링크 만들기</button> : "관리자가 초대 링크를 보낼 수 있어요."}
                 </p>
               )}
-              <p className="border-t-2 border-dotted border-line px-3 py-2 text-right">
-                <button type="button" className="text-xs text-ink-soft underline" onClick={async () => {
-                  if (!window.confirm(`정말 ‘${village.name}’ 마을을 나갈까요? 이 마을의 집이 비고 이 마을의 대화 기록이 지워져요. 내 연구실·다이어리·일지는 그대로 남아요.`)) return;
-                  const { error } = await supabase().rpc("leave_village", { p_village: village.id });
-                  if (error) setNotice(errorMessage(error)); else await v.reload();
-                }}>마을 나가기</button>
-              </p>
             </Window>
           </div>
         </main>
@@ -463,7 +456,7 @@ const me = v.me!;
                   const { error } = await supabase().rpc("thank_moving_cake", { p_village: n.village_id, p_target: n.actor_id });
                   return error && !errorMessage(error).includes("already_thanked") ? errorMessage(error) : null;
                 }} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
-      {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} /></main>}
+      {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} villages={v.villages} onReorder={v.reorderVillages} /></main>}
 
       {selectedResident && (
         <ProfileModal resident={selectedResident} isMe={selectedResident.user_id === me.user_id} onClose={() => setSelected(null)} onEditProfile={() => { setSelected(null); setView("settings"); }} onVisit={() => visit(selectedResident.user_id)} onChat={() => void startChat(selectedResident.user_id)} give={give(selectedResident.user_id)} />

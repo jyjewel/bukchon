@@ -3,7 +3,7 @@ import PasswordForm from "./PasswordForm";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { VILLAGE_CAPACITY } from "@/lib/constants";
-import type { HouseType, Profile, Resident, Village } from "@/lib/types";
+import type { HouseType, Profile, Resident, Village, VillageInfo } from "@/lib/types";
 import { houseTypeOf } from "@/pixel/village";
 import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
@@ -139,8 +139,8 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
 }
 
 export default function SettingsView({
-  profile, me, village, residents, reloadProfile, reloadVillage,
-}: { profile: Profile; me: Resident; village: Village; residents: Resident[]; reloadProfile: () => Promise<void>; reloadVillage: () => Promise<void> }) {
+  profile, me, village, residents, reloadProfile, reloadVillage, villages, onReorder,
+}: { profile: Profile; me: Resident; village: Village; residents: Resident[]; reloadProfile: () => Promise<void>; reloadVillage: () => Promise<void>; villages: VillageInfo[]; onReorder: (ids: string[]) => Promise<void> }) {
   const [error, setError] = useState("");
 
   const setHouseType = async (type: HouseType) => {
@@ -214,6 +214,22 @@ export default function SettingsView({
             ))}
           </ul>
         </Window>
+        {villages.length > 1 && (
+          <Window title="내 마을 순서" icon="" tone="lilac">
+            <div className="space-y-2 p-3">
+              <p className="text-sm text-ink-soft">위쪽 마을 이름을 누를 때 보이는 순서예요. 내 화면에서만 바뀌어요.</p>
+              <ol className="space-y-1">
+                {villages.map((x, i) => (
+                  <li key={x.id} className="card flex items-center gap-2 px-2 py-1 text-sm">
+                    <span className="flex-1 truncate">{x.name}</span>
+                    <button type="button" className="btn btn-sm" disabled={i === 0} aria-label={`${x.name} 위로`} onClick={() => { const a = villages.map((v) => v.id); [a[i - 1], a[i]] = [a[i], a[i - 1]]; void onReorder(a); }}>▲</button>
+                    <button type="button" className="btn btn-sm" disabled={i === villages.length - 1} aria-label={`${x.name} 아래로`} onClick={() => { const a = villages.map((v) => v.id); [a[i + 1], a[i]] = [a[i], a[i + 1]]; void onReorder(a); }}>▼</button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Window>
+        )}
         <MovingCakes villageId={village.id} myId={me.user_id} neighbors={residents.length - 1} compact />
         <Window title={`집 꾸미기 · ${village.name}`} icon="" tone="mint" controls={foldHouse}>
           <div className="space-y-3 p-3">
@@ -228,7 +244,7 @@ export default function SettingsView({
               <button type="button" className="btn" onClick={async () => { await detachPush(); await supabase().auth.signOut(); }}>로그아웃</button>
             </div>
             <div className="dotted flex flex-wrap gap-2 pt-3">
-              <button type="button" className="btn btn-danger" onClick={() => void leave()}>마을 나가기</button>
+              <button type="button" className="btn btn-danger" onClick={() => void leave()}>마을 떠나기</button>
               <button type="button" className="btn btn-danger" onClick={() => void deleteAccount()}>계정 삭제</button>
             </div>
           </div>

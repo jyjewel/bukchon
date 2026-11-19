@@ -894,6 +894,13 @@ await t("대문 빗장: 마을장만 걸 수 있고, 걸면 초대 링크가 없
   code = ok(await a.c.rpc("create_invite", { p_village: village }));
 });
 
+await t("내 마을 순서: 내 것만 저장하고 읽는다", async () => {
+  ok(await m1.c.from("user_prefs").upsert({ village_order: [village] }, { onConflict: "user_id" }));
+  assert.equal(ok(await m1.c.from("user_prefs").select("village_order")).length, 1);
+  assert.equal(ok(await m2.c.from("user_prefs").select("village_order")).length, 0);          // 남의 설정은 안 보인다
+  assert.ok((await m2.c.from("user_prefs").insert({ user_id: m1.id, village_order: [] })).error);   // 남의 이름으로는 못 만든다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));
