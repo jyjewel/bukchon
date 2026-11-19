@@ -432,7 +432,8 @@ await t("기록 보호: 수정 번호·이력·삭제 복구, 일지 마을 공�
   assert.equal((await m2.c.from("daily_logs").update({ body: "남이 고침" }).eq("user_id", m1.id).select()).data.length, 0);  // 읽기만 된다
   ok(await m1.c.from("daily_logs").insert({ user_id: m1.id, log_date: "2026-11-21", body: "공개 안 한 일지" }));
   assert.equal(ok(await m2.c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 1);           // 비공개 일지는 여전히 안 보인다
-  assert.ok((await m1.c.from("daily_logs").update({ shared_villages: [outside[0].id] }).eq("user_id", m1.id).eq("log_date", day)).error); // 내가 살지 않는 마을은 못 고른다
+  ok(await m1.c.from("daily_logs").update({ shared_villages: [outside[0].id] }).eq("user_id", m1.id).eq("log_date", day));   // 내가 살지 않는 마을은 오류 없이 빠진다(저장이 막히지 않게)
+  assert.deepEqual(ok(await m1.c.from("daily_logs").select("shared_villages").eq("user_id", m1.id).eq("log_date", day).single()).shared_villages, []);
   ok(await m1.c.from("daily_logs").update({ shared_villages: [] }).eq("user_id", m1.id).eq("log_date", day));
   assert.equal(ok(await m2.c.from("daily_logs").select("*").eq("user_id", m1.id)).length, 0);           // 공개를 끄면 바로 사라진다
   // 충돌을 풀 때 쓰는 이력 저장 함수: 내 글만 남길 수 있고, 남의 글은 건드릴 수 없다
