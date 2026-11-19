@@ -17,6 +17,7 @@ export function supabase(): SupabaseClient {
 }
 
 const ERRORS: Record<string, string> = {
+  village_locked: "이 마을은 지금 대문이 잠겨 있어서 새 주민을 받지 않아요. 마을장에게 문의해 보세요.",
   village_full: "이 마을은 이미 6명이 모두 살고 있어요.",
   invalid_invite: "초대 링크가 올바르지 않거나 만료되었어요. 마을 관리자에게 새 링크를 부탁해 보세요.",
   already_in_village: "이미 다른 마을에 살고 있어요.",

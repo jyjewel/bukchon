@@ -85,6 +85,16 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
           <h3 className="label">비밀번호 바꾸기</h3>
           <PasswordForm />
         </section>
+        <section className="dotted space-y-2 pt-3" aria-label="대문 빗장">
+          <h3 className="label">대문 빗장 <span className="text-ink-soft">(마을장만 걸 수 있어요)</span></h3>
+          <p className="text-sm text-ink-soft">
+            {village.gate_locked ? "빗장이 걸려 있어요. 초대 링크가 있어도 새 주민이 들어올 수 없어요. 이미 사는 주민은 그대로예요." : "빗장을 걸면 초대 링크를 없애고, 풀 때까지 새 주민을 받지 않아요. 이미 사는 주민은 그대로예요."}
+          </p>
+          <button type="button" className={`btn btn-sm ${village.gate_locked ? "" : "btn-danger"}`} disabled={busy} aria-pressed={Boolean(village.gate_locked)}
+            onClick={() => void act(() => supabase().rpc("set_village_gate", { p_village: village.id, p_locked: !village.gate_locked }), village.gate_locked ? "대문 빗장을 풀었어요. 초대 링크를 새로 만들 수 있어요." : "대문 빗장을 걸었어요. 이제 새 주민은 들어올 수 없어요.")}>
+            {village.gate_locked ? "빗장 풀기" : "대문 빗장 걸기"}
+          </button>
+        </section>
         <section className="dotted pt-3">
           <h3 className="label">초대 링크 <span className="text-ink-soft">(주민 {residents.length}/{VILLAGE_CAPACITY}명)</span></h3>
           {invite ? (
@@ -99,7 +109,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
           )}
           <div className="mt-2 flex flex-wrap gap-2">
             {invite && !expired && <button type="button" className="btn btn-mint btn-sm" onClick={copy}>링크 복사</button>}
-            <button type="button" className="btn btn-sm" disabled={busy} onClick={() => act(() => supabase().rpc("create_invite", { p_village: village.id }), invite ? "새 링크를 발급했어요. 이전 링크는 더 이상 쓸 수 없어요." : "초대 링크를 만들었어요.")}>
+            <button type="button" className="btn btn-sm" disabled={busy || Boolean(village.gate_locked)} onClick={() => act(() => supabase().rpc("create_invite", { p_village: village.id }), invite ? "새 링크를 발급했어요. 이전 링크는 더 이상 쓸 수 없어요." : "초대 링크를 만들었어요.")}>
               {invite ? "새로 발급" : "초대 링크 만들기"}
             </button>
             {invite && <button type="button" className="btn btn-sm btn-danger" disabled={busy} onClick={() => act(() => supabase().rpc("revoke_invite", { p_village: village.id }), "초대 링크를 없앴어요.")}>링크 없애기</button>}

@@ -10,6 +10,8 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-19-gate", date: "11월 19일", title: "마을장이 대문 빗장을 걸 수 있어요", body: "" },
+  { id: "2026-11-19-leave", date: "11월 19일", title: "홈에서 바로 마을 나가기", body: "" },
   { id: "2026-11-19-room-news", date: "11월 19일", title: "[소원] 새 글이 올라오면 지붕에 새가 앉아요", body: "" },
   { id: "2026-11-18-gift-send", date: "11월 18일", title: "[소원] 선물은 ‘보내기’를 눌러야 가요", body: "건넬 것을 고르고 한마디를 쓴 다음 보내기를 누르면 전해져요." },
   { id: "2026-11-18-password", date: "11월 18일", title: "비밀번호를 바꾸거나, 잊었을 때 다시 정할 수 있어요", body: "설정에서 바꾸고, 로그인 화면의 ‘비밀번호를 잊었어요’로 메일을 받아요." },

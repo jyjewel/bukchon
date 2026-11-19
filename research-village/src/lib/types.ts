@@ -67,6 +67,7 @@ export interface Village {
   name: string;
   theme: string;
   library_style: "classic" | "bicheondang";
+  gate_locked?: boolean;
 }
 
 export interface StatusRow {

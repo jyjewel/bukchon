@@ -59,7 +59,7 @@ export function useVillage(userId: string | null, accessToken: string | null) {
     } catch {}
     const vid = [currentRef.current, stored].find((x): x is string => !!x && ids.includes(x)) ?? ids[0];
     currentRef.current = vid;
-    const vs = await sb.from("villages").select("id, name, theme, library_style").in("id", ids);
+    const vs = await sb.from("villages").select("id, name, theme, library_style, gate_locked").in("id", ids);
     if (vs.error || !vs.data) return;
     setVillages(
       mine.data!.flatMap((x) => {

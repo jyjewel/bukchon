@@ -884,6 +884,16 @@ await t("연구실 새 글 표시: 새 글이 있으면 집이 반짝, 보고 �
   assert.equal((await m1.c.from("room_seen").select("*").eq("viewer_id", a.id)).data.length, 0);   // 남의 확인 기록은 못 본다
 });
 
+await t("대문 빗장: 마을장만 걸 수 있고, 걸면 초대 링크가 없어져 새 주민이 못 들어온다", async () => {
+  assert.match((await m1.c.rpc("set_village_gate", { p_village: village, p_locked: true })).error?.message ?? "", /not_admin/);   // 마을장이 아니면 못 건다
+  ok(await a.c.rpc("set_village_gate", { p_village: village, p_locked: true }));
+  assert.equal(ok(await a.c.from("village_invites").select("code").eq("village_id", village)).length, 0);   // 남은 초대 링크 삭제
+  assert.match((await a.c.rpc("create_invite", { p_village: village })).error?.message ?? "", /village_locked/);
+  assert.match((await outside[0].c.rpc("join_village", { p_code: code })).error?.message ?? "", /invalid_invite|village_locked/);
+  ok(await a.c.rpc("set_village_gate", { p_village: village, p_locked: false }));                 // 풀면 다시 초대 가능
+  code = ok(await a.c.rpc("create_invite", { p_village: village }));
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));
