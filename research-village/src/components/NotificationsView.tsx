@@ -21,7 +21,12 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
   if (n.kind === "gesture") return `${actor}님이 ${gestureOf(n.summary)?.hit ?? "던지기를 했어요!"}`;
   if (n.kind === "gift") { const i = n.summary.indexOf(":"); const k = i < 0 ? n.summary : n.summary.slice(0, i); const note = i < 0 ? "" : n.summary.slice(i + 1); return `${actor}님이 ${giftOf(k)?.label ?? "선물"}을(를) 건넸어요${note ? ` — “${note}”` : ""}`; }
   if (n.kind === "book_tip") return `${actor}님이 책 《${n.summary}》을(를) 추천해 책장에 꽂아 두었어요`;
-  if (n.kind === "journal_reaction") return `${actor}님이 ${n.room_owner_id === myId ? "내" : `${nameOf(n.room_owner_id) ?? ""}님의`} 공개 일지에 ‘${reactionOf(n.summary.split(":")[0])?.label ?? "반응"}’을 남겼어요`;
+  if (n.kind === "journal_reaction") {
+    const [emoji, day] = n.summary.split(":");
+    const m = day?.match(/^\d{4}-(\d{2})-(\d{2})$/);
+    const when = m ? `${Number(m[1])}월 ${Number(m[2])}일 ` : "";
+    return `${actor}님이 ${n.room_owner_id === myId ? "내" : `${nameOf(n.room_owner_id) ?? ""}님의`} ${when}공개 일지에 ‘${reactionOf(emoji)?.label ?? "반응"}’을 눌렀어요`;
+  }
   if (n.kind === "journal_comment") return `${actor}님이 ${n.room_owner_id === myId ? "내" : `${nameOf(n.room_owner_id) ?? ""}님의`} 공개 일지에 댓글을 남겼어요`;
   if (n.kind === "cheer") return `${actor}님이 내 마감 ‘${n.summary}’을(를) 응원해요. 파이팅!`;
   if (n.kind === "nudge") { const [title, due] = n.summary.split("|"); return due ? `${actor}님이 마감을 챙겨 보래요: ${title} (${due})` : `${actor}님이 요즘 어떻게 지내는지 궁금해해요. 마감 잘 챙기고 계시죠?`; }
