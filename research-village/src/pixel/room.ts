@@ -265,6 +265,23 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     };
     sock(14, "#d9303a", "#ff8088"); sock(25, "#2e8a4c", "#8ad06a"); sock(36, "#d9303a", "#ffffff");
   }
+  if (st.extras.includes("luckycharm")) {
+    // 행운의 부적: 빨간 끈에 매달린 노란 종이 부적(책장 오른쪽 벽). 붉은 테두리와 도장, 가운데 초록 네잎클로버
+    const cx = 139, top = 12;   // 종이: 세로 17칸 (top+1 ~ top+15)
+    rect(g, cx, 6, 1, 6, "#d9303a"); px(g, cx - 1, 6, "#d9303a"); px(g, cx + 1, 6, "#d9303a"); px(g, cx, 5, "#ffd23f");   // 걸린 끈과 매듭
+    rect(g, cx - 4, top, 9, 17, "#b8242b");                                                                              // 붉은 테두리
+    rect(g, cx - 3, top + 1, 7, 15, "#ffe9a0"); rect(g, cx - 3, top + 1, 7, 1, "#fff6cf");                               // 노란 종이
+    rect(g, cx - 2, top + 2, 5, 1, "#d9303a"); rect(g, cx - 2, top + 14, 5, 1, "#d9303a");                               // 위아래 붉은 줄
+    // 네잎클로버: 가운데를 비워 잎 넷이 또렷하게 보이게 하고, 줄기를 늘어뜨린다
+    const ly = top + 6;
+    for (const [lx, lyy] of [[cx - 3, ly], [cx + 1, ly], [cx - 3, ly + 4], [cx + 1, ly + 4]] as [number, number][]) {
+      rect(g, lx, lyy, 3, 3, "#2f8f4a"); px(g, lx, lyy, "#6fe080"); px(g, lx + 1, lyy, "#4fbf66");
+      px(g, lx + (lx < cx ? 0 : 2), lyy + (lyy < ly + 2 ? 0 : 2), "#ffe9a0");                       // 바깥 모서리를 깎아 하트 느낌
+    }
+    px(g, cx, ly + 3, "#1f6b3a"); px(g, cx - 1, ly + 3, "#1f6b3a"); px(g, cx + 1, ly + 3, "#1f6b3a"); rect(g, cx, ly + 2, 1, 3, "#1f6b3a");
+    rect(g, cx, ly + 7, 1, 2, "#1f6b3a"); px(g, cx + 1, ly + 8, "#1f6b3a");
+    rect(g, cx - 3, top + 17, 1, 3, "#d9303a"); rect(g, cx, top + 17, 1, 4, "#d9303a"); rect(g, cx + 3, top + 17, 1, 3, "#d9303a");   // 꼬리 장식
+  }
   if (st.extras.includes("wreath")) {
     // 크리스마스 리스: 창문 가운데 걸린 초록 고리에 빨간 열매와 리본
     const cx = 29, cy = 24;

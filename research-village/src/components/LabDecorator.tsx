@@ -1,6 +1,6 @@
 "use client";
 import { useChristmas } from "@/hooks/useChristmas";
-import { XMAS_EXTRAS } from "@/lib/constants";
+import { GIFT_EXTRAS, XMAS_EXTRAS } from "@/lib/constants";
 import { useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import {
@@ -45,7 +45,7 @@ export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: (
       <Choices label="창밖 풍경" options={[...LAB_VIEWS]} value={style.view} onChange={(view) => void change({ view })} />
       <Choices label="반려동물" options={[...LAB_PETS]} value={style.pet} onChange={(pet) => void change({ pet })} />
       <Toggles
-        label="소품" options={LAB_EXTRAS.filter((x) => !XMAS_EXTRAS.includes(x.id) || xmas.hasAny || style.extras.includes(x.id))} values={style.extras}
+        label="소품" options={LAB_EXTRAS.filter((x) => (!XMAS_EXTRAS.includes(x.id) || xmas.hasAny || style.extras.includes(x.id)) && (!GIFT_EXTRAS.includes(x.id) || style.extras.includes(x.id)))} values={style.extras}
         onToggle={(id) => void change({ extras: style.extras.includes(id) ? style.extras.filter((x) => x !== id) : [...style.extras, id] })}
       />
     </div>

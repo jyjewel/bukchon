@@ -97,6 +97,8 @@ export const HATS = [
 export const XMAS_HATS = ["santa"];
 export const XMAS_ACCESSORIES = ["rudolph", "goldnose"];
 export const XMAS_EXTRAS = ["xmassocks", "wreath"];
+/** 선물로만 생기는 소품: 받은 사람의 소품 목록에 직접 넣어 주며, 고르는 목록에는 받은 사람에게만 보인다 */
+export const GIFT_EXTRAS = ["luckycharm"];
 /** 여러 개를 동시에 쓸 수 있다. 안경류(glasses·square·sunglasses)는 하나만 고를 수 있다. */
 export const ACCESSORIES = [
   { id: "glasses", label: "동그란 안경" },
