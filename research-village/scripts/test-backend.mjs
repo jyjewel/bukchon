@@ -868,7 +868,7 @@ await t("연구실 새 글 표시: 새 글이 있으면 집이 반짝, 보고 �
   ok(await a.c.from("whiteboard_items").insert({ body: "새 고민" }));
   assert.ok((await news(m1)).includes(a.id));                     // 이웃에게 반짝
   assert.ok(!(await news(a)).includes(a.id));                     // 내 집은 아님
-  ok(await m1.c.from("room_seen").upsert({ owner_id: a.id, seen_at: new Date().toISOString() }, { onConflict: "viewer_id,owner_id" }));
+  ok(await m1.c.rpc("mark_room_seen", { p_owner: a.id }));
   assert.ok(!(await news(m1)).includes(a.id));                    // 보고 나면 꺼짐
   ok(await m1.c.from("postits").insert({ owner_id: a.id, body: "내가 붙임" }));
   assert.ok(!(await news(m1)).includes(a.id));                    // 내가 쓴 글은 새 글이 아님

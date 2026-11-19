@@ -92,6 +92,13 @@ const me = v.me!;
   const alarmSeen = useRef(new Set<string>());
   const newsBadge = useNewsBadge(village.id, me.user_id);
   const roomNews = useRoomNews(village.id);
+  // 이웃 연구실에서 나올 때도 '본 것'으로 친다(보는 동안 올라온 글까지)
+  const lastVisited = useRef<string | null>(null);
+  const { markSeen: markRoomSeen } = roomNews;
+  useEffect(() => {
+    if (view === "visit") { lastVisited.current = visitId; return; }
+    if (lastVisited.current) { markRoomSeen(lastVisited.current); lastVisited.current = null; }
+  }, [view, visitId, markRoomSeen]);
   const monument = useMonument(village.id);
   // 크리스마스 이브 밤: 산타와 루돌프가 돌아다니고, 놓친 사람은 25일 아침에 선물을 받는다
   const xmas = useChristmas(me.user_id);
