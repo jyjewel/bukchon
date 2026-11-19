@@ -218,7 +218,7 @@ export default function SettingsView({
               <button type="button" className="btn" onClick={async () => { await detachPush(); await supabase().auth.signOut(); }}>로그아웃</button>
             </div>
             <div className="dotted flex flex-wrap gap-2 pt-3">
-              <button type="button" className="btn btn-danger" onClick={() => void leave()}>마을 떠나기</button>
+              <button type="button" className="btn btn-danger" onClick={() => void leave()}>마을 나가기</button>
               <button type="button" className="btn btn-danger" onClick={() => void deleteAccount()}>계정 삭제</button>
             </div>
           </div>

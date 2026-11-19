@@ -437,6 +437,13 @@ const me = v.me!;
                   {me.role === "admin" ? <button type="button" className="underline" onClick={() => setView("settings")}>초대 링크 만들기</button> : "관리자가 초대 링크를 보낼 수 있어요."}
                 </p>
               )}
+              <p className="border-t-2 border-dotted border-line px-3 py-2 text-right">
+                <button type="button" className="text-xs text-ink-soft underline" onClick={async () => {
+                  if (!window.confirm(`정말 ‘${village.name}’ 마을을 나갈까요? 이 마을의 집이 비고 이 마을의 대화 기록이 지워져요. 내 연구실·다이어리·일지는 그대로 남아요.`)) return;
+                  const { error } = await supabase().rpc("leave_village", { p_village: village.id });
+                  if (error) setNotice(errorMessage(error)); else await v.reload();
+                }}>마을 나가기</button>
+              </p>
             </Window>
           </div>
         </main>
