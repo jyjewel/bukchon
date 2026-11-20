@@ -2,7 +2,7 @@ import { disc, grid, outline, px, rect, shade, type Grid } from "./core";
 
 export const SNACK_W = 18;
 export const SNACK_H = 15;
-export type SnackId = "mochi" | "yakgwa" | "tangerine" | "apple" | "minishell" | "haribo";
+export type SnackId = "mochi" | "yakgwa" | "tangerine" | "apple" | "minishell" | "bungeoppang" | "cupbokki" | "haribo";
 
 /** 건네기 간식 도트 그림 (고르는 카드에 쓴다) */
 export function snackGrid(kind: SnackId): Grid {
@@ -40,6 +40,21 @@ export function snackGrid(kind: SnackId): Grid {
       px(g, cx - 2, cy - 2, "#f6d79b"); px(g, cx + 1, cy - 3, "#f6d79b"); rect(g, cx - 1, cy + 3, 3, 1, "#fff0c4");
     };
     shell(6, 7); shell(12, 10);
+  } else if (kind === "bungeoppang") {
+    // 붕어빵: 노릇노릇한 물고기 모양 빵 두 마리(비늘 무늬, 꼬리지느러미)
+    const fish = (cx: number, cy: number, r: number) => {
+      disc(g, cx, cy, r, r * 0.62, "#a8641f"); disc(g, cx, cy - 0.3, r - 0.4, r * 0.62 - 0.5, "#e8a64a"); disc(g, cx - 1, cy - 1.2, r * 0.45, r * 0.22, "#f6c878");
+      rect(g, cx - r - 2, cy - 2, 3, 5, "#d98a30"); px(g, cx - r - 3, cy - 3, "#d98a30"); px(g, cx - r - 3, cy + 3, "#d98a30"); px(g, cx - r - 1, cy, "#a8641f");
+      for (let i = -1; i <= 3; i++) for (const dy of [-1, 1]) px(g, Math.round(cx - 1 + i * 1.5), Math.round(cy + dy), "#c98a3a");
+      px(g, Math.round(cx + r - 2), Math.round(cy - 1), "#3a2a33");
+    };
+    fish(11, 4, 4.4); fish(10, 10.5, 4.2);
+  } else if (kind === "cupbokki") {
+    // 컵볶이: 종이컵 가득 빨간 떡볶이 떡과 꼬치
+    for (let y = 6; y <= 13; y++) { const inset = Math.floor((y - 6) / 3); rect(g, 4 + inset, y, 10 - inset * 2, 1, y === 9 || y === 10 ? "#e0383f" : "#fffdf8"); px(g, 4 + inset, y, "#d8d0c4"); px(g, 13 - inset, y, "#d8d0c4"); }
+    rect(g, 4, 6, 10, 1, "#d8d0c4");
+    for (const [x, y] of [[5, 3], [8, 2], [11, 3], [6, 5], [10, 5]] as [number, number][]) { rect(g, x, y, 3, 3, "#d4421f"); rect(g, x, y, 3, 1, "#f2683a"); px(g, x + 1, y + 1, "#8a1f12"); }
+    rect(g, 13, 0, 1, 6, "#c9a24e"); px(g, 13, 0, "#e8c870"); rect(g, 12, 1, 3, 2, "#e8b567"); px(g, 13, 1, "#c98a40");
   } else {
     // 하리보: 빨강·초록·주황 곰 젤리
     const bear = (x: number, y: number, c: string) => {

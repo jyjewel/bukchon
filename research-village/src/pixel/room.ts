@@ -464,6 +464,17 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     } else if (k === "songpyeon") {
       rect(g, x, 45, 7, 1, "#ffffff"); rect(g, x, 44, 7, 1, "#4f9a54");
       disc(g, x + 2, 43, 1.6, 1.2, "#ffffff"); disc(g, x + 5, 43, 1.6, 1.2, "#bfe8b0"); px(g, x + 3, 41, "#ffc9d6");
+    } else if (k === "vanillalatte") {
+      // 아이스 바닐라 라떼: 투명 컵에 우유색과 진한 커피 층, 위에 크림, 빨대
+      rect(g, x, 41, 4, 5, "#e9f2f7"); rect(g, x, 42, 4, 3, "#f3e3c3"); rect(g, x, 44, 4, 1, "#8a5a3a"); rect(g, x, 41, 4, 1, "#fffdf8"); px(g, x + 1, 43, "#ffffff"); rect(g, x + 2, 38, 1, 4, "#e0605a");
+    } else if (k === "cappuccino") {
+      // 핫 카푸치노: 도자기 잔에 거품, 김
+      rect(g, x, 42, 5, 4, "#ffffff"); rect(g, x, 42, 5, 1, "#f1e3c8"); px(g, x + 2, 42, "#b87a45"); px(g, x + 5, 43, "#ffffff"); px(g, x + 5, 44, "#ffffff"); rect(g, x - 1, 46, 7, 1, "#e6dfd0");
+      px(g, x + 1, 40, "#ffffff"); px(g, x + 3, 39, "#f0f0f6");
+    } else if (k === "bungeoppang") {
+      rect(g, x, 45, 7, 1, "#ffffff"); disc(g, x + 3.5, 43, 3, 1.8, "#e8a64a"); px(g, x, 42, "#d98a30"); px(g, x, 44, "#d98a30"); px(g, x + 5, 42, "#3a2a33"); px(g, x + 3, 43, "#c98a3a"); px(g, x + 2, 42, "#f6c878");
+    } else if (k === "cupbokki") {
+      rect(g, x + 1, 43, 5, 3, "#fffdf8"); rect(g, x + 1, 44, 5, 1, "#e0383f"); rect(g, x + 1, 42, 5, 1, "#d4421f"); px(g, x + 2, 41, "#f2683a"); px(g, x + 4, 41, "#f2683a"); px(g, x + 3, 40, "#d4421f"); rect(g, x + 5, 39, 1, 3, "#c9a24e");
     } else if (k === "americano") {
       rect(g, x, 41, 4, 5, "#e9f2f7"); rect(g, x, 42, 4, 3, "#4a2c1c"); px(g, x + 1, 43, "#f4fbff"); rect(g, x + 2, 38, 1, 4, "#2f2a3a");
     } else {

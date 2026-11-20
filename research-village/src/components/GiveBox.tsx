@@ -46,7 +46,7 @@ export function GiftBox({ name, onGift, onDone }: { name: string; onGift: (kind:
   return (
     <section aria-label={`${name}님 책상에 건네기`} className="space-y-2">
       <p className="text-sm text-ink-soft">책상 위에 하루 동안 올라가요. 보낸 사람과 한마디는 {name}님에게만 보여요.</p>
-      <p className="label">마실 것</p>
+      <p className="label">음료</p>
       <div className="flex flex-wrap items-center gap-1.5">
         {drinks.map((g) => (
           <button key={g.id} type="button" className={`btn btn-sm btn-mint ${pick === g.id ? "ring-2 ring-ink" : ""}`} aria-pressed={pick === g.id} onClick={() => setPick(g.id)}>{g.label}</button>
