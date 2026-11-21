@@ -24,6 +24,13 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
       .then(({ data }) => { if (alive) setRows(((data as Row[]) ?? []).filter((r) => now - new Date(r.created_at).getTime() < KEEP_MS)); });
     return () => { alive = false; };
   }, [myId, now]);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const eat = async (r: Row) => {
+    const { error } = await supabase().rpc("eat_gift", { p_gift: r.id });
+    if (error) return setMsg({ ok: false, text: "먹지 못했어요. 이미 사라졌을 수 있어요." });
+    setRows((cur) => cur?.filter((x) => x.id !== r.id) ?? cur);
+    setMsg({ ok: true, text: `${giftOf(r.kind)?.label ?? "간식"}을(를) 냠냠! 한 시간 동안 지도에서 먹는 모습이 보여요.` });
+  };
   const who = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민";
   const counts = new Map<string, number>();
   rows?.forEach((r) => counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1));
@@ -32,6 +39,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
     <section aria-label="간식 상자">
       <div className="space-y-3 p-3">
         <p className="text-sm text-ink-soft">이웃이 건네 준 커피와 간식이 여기 모여요. 받은 지 3일이 지나면 저절로 사라져요. 보낸 사람과 한마디는 나에게만 보여요.</p>
+        {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "" : "text-[#c0392b]"}`}>{msg.text}</p>}
         {rows === null && <p className="text-sm text-ink-soft">상자를 여는 중…</p>}
         {rows?.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 간식이 없어요.</p>}
         {rows && rows.length > 0 && (
@@ -48,6 +56,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                     <span className="block break-words text-sm">{r.note.startsWith("🎅") ? <>🎅 산타{r.note.slice(2) ? <>: “{r.note.slice(2).trim()}”</> : ""}</> : <>{who(r.from_user)}님{r.note ? <>: “{r.note}”</> : ""}</>}</span>
                   </span>
                   <span className="shrink-0 text-xs text-ink-soft">{relativeTime(r.created_at)}</span>
+                  <button type="button" className="btn btn-sm btn-mint shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"} 먹기`} onClick={() => void eat(r)}>먹기</button>
                 </li>
               ))}
             </ul>

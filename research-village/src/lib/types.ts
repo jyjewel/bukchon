@@ -84,6 +84,9 @@ export interface StatusRow {
   /** 광장에서 쉬는 중일 때 지도에서 누른 자리 (없으면 기본 자리) */
   pos_x?: number | null;
   pos_y?: number | null;
+  /** 방금 먹은 간식(한 시간 동안 지도에서 먹는 모습이 보인다) */
+  snack_kind?: string | null;
+  snack_until?: string | null;
 }
 
 export interface House {

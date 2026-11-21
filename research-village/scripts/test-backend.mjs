@@ -902,6 +902,17 @@ await t("내 마을 순서: 내 것만 저장하고 읽는다", async () => {
   assert.ok((await m2.c.from("user_prefs").insert({ user_id: m1.id, village_order: [] })).error);   // 남의 이름으로는 못 만든다
 });
 
+await t("간식 먹기: 내 간식만 먹고, 먹으면 사라지며 한 시간 동안 먹는 모습이 기록된다", async () => {
+  ok(await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "bungeoppang", p_note: "" }));
+  const gid = ok(await m2.c.from("gifts").select("id").eq("kind", "bungeoppang").eq("to_user", m2.id).limit(1))[0].id;
+  assert.match((await m1.c.rpc("eat_gift", { p_gift: gid })).error?.message ?? "", /no_gift/);   // 남의 간식은 못 먹는다
+  assert.equal(ok(await m2.c.rpc("eat_gift", { p_gift: gid })), "bungeoppang");
+  assert.equal(ok(await m2.c.from("gifts").select("id").eq("id", gid)).length, 0);                // 먹으면 사라진다
+  const st = ok(await m2.c.from("research_status").select("snack_kind, snack_until").eq("user_id", m2.id).eq("village_id", village).single());
+  assert.equal(st.snack_kind, "bungeoppang"); assert.ok(new Date(st.snack_until) > new Date());
+  assert.match((await m2.c.rpc("eat_gift", { p_gift: gid })).error?.message ?? "", /no_gift/);   // 두 번은 못 먹는다
+});
+
 await t("관리자가 주민을 내보내면 집이 비고 기록이 사라진다", async () => {
   assert.ok((await m2.c.rpc("remove_member", { p_village: village, p_user: m3.id })).error);
   ok(await a.c.rpc("remove_member", { p_village: village, p_user: m3.id }));

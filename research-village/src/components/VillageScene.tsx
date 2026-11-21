@@ -11,6 +11,7 @@ import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
+import { eatGrid } from "@/pixel/eat";
 import { ORB_H, ORB_POS, ORB_W, newMarkGrid, orbPedestalGrid, orbSphereGrid } from "@/pixel/orb";
 import { RACCOON_POS, TRUCK_AWNING_Y, TRUCK_H, TRUCK_POS, TRUCK_REST_SPOTS, TRUCK_W, TRUCK_WINDOW, ladleGrid, raccoonGrid, truckGrid } from "@/pixel/truck";
 import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
@@ -428,6 +429,18 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.restore();
             } else b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
             if (!w.moving && !r.say) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
+            // 간식을 먹는 중: 머리 옆에 간식이 떠서 콕콕 움직이고 별빛이 반짝인다 (먹고 한 시간 동안)
+            const eat = r.status.snack_kind;
+            if (eat && r.status.snack_until && Date.parse(r.status.snack_until) > Date.now()) {
+              const art = sp(`eat${eat}`, () => eatGrid(eat) ?? newMarkGrid());
+              const ex = x + 6, ey = y - AV_H - 6 + Math.round(Math.sin(tick * 0.16 + r.slot) * 1.5);
+              b.drawImage(art, ex, ey);
+              const ph = (Math.floor(tick / 6) + r.slot) % 4;
+              const star = (sx: number, sy: number, big: boolean) => { b.fillStyle = "#fff6b0"; b.fillRect(sx, sy, 1, 1); if (big) { b.fillStyle = "#ffffff"; b.fillRect(sx - 1, sy, 1, 1); b.fillRect(sx + 1, sy, 1, 1); b.fillRect(sx, sy - 1, 1, 1); b.fillRect(sx, sy + 1, 1, 1); } };
+              if (ph !== 1) star(ex - 2, ey + 1, ph === 0);
+              if (ph !== 3) star(ex + art.width + 1, ey + 2, ph === 2);
+              if (ph !== 2) star(ex + 3, ey - 3, ph === 1);
+            }
           },
         });
       }
