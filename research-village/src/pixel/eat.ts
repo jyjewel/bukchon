@@ -44,9 +44,9 @@ function drinkGrid(kind: string): Grid {
 function tinySnack(kind: string): Grid | null {
   const g = grid(11, 9);
   if (kind === "bungeoppang") {
-    disc(g, 6, 4, 4, 2.6, "#e8a64a"); disc(g, 5, 3, 2.2, 1.1, "#f6c878");
-    rect(g, 0, 2, 3, 5, "#d98a30"); px(g, 0, 1, "#d98a30"); px(g, 0, 7, "#d98a30"); px(g, 1, 4, "#e8a64a");        // 꼬리지느러미
-    for (const [x, y] of [[5, 5], [7, 5], [6, 6], [8, 4]] as [number, number][]) px(g, x, y, "#c98a3a");           // 비늘
+    disc(g, 6, 4, 3.2, 2.1, "#e8a64a"); disc(g, 5, 3.4, 1.8, 0.9, "#f6c878");
+    rect(g, 1, 3, 2, 3, "#d98a30"); px(g, 1, 2, "#d98a30"); px(g, 1, 6, "#d98a30");                                  // 꼬리지느러미
+    for (const [x, y] of [[5, 5], [7, 5], [6, 6]] as [number, number][]) px(g, x, y, "#c98a3a");                    // 비늘
     px(g, 8, 3, "#3a2a33");
   } else if (kind === "cupbokki") {
     rect(g, 2, 4, 6, 5, "#fffdf8"); rect(g, 2, 6, 6, 1, "#e0383f"); rect(g, 3, 8, 4, 1, "#d8d0c4");
@@ -66,12 +66,22 @@ function tinySnack(kind: string): Grid | null {
   return outline(g);
 }
 
+/** 그림이 차지한 부분만 남기고 둘레 빈칸을 자른다 */
+function crop(g: Grid): Grid {
+  let x0 = g.w, y0 = g.h, x1 = -1, y1 = -1;
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (g.d[y * g.w + x]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 < 0) return g;
+  const out = grid(x1 - x0 + 1, y1 - y0 + 1);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) px(out, x - x0, y - y0, g.d[y * g.w + x]);
+  return out;
+}
+
 /** 먹는 중인 간식·음료를 머리 옆에 띄울 작은 그림 (모르는 종류는 null) */
 export function eatGrid(kind: string): Grid | null {
   const tiny = tinySnack(kind);
-  if (tiny) return tiny;
-  if (SNACKS.includes(kind)) return outline(halve(snackGrid(kind as SnackId)));
-  if (TTEOK.includes(kind)) return outline(halve(tteokGrid(kind as TteokId)));
-  if (["coffee", "americano", "vanillalatte", "cappuccino", "tea", "beer"].includes(kind)) return drinkGrid(kind);
+  if (tiny) return crop(tiny);
+  if (SNACKS.includes(kind)) return crop(outline(halve(snackGrid(kind as SnackId))));
+  if (TTEOK.includes(kind)) return crop(outline(halve(tteokGrid(kind as TteokId))));
+  if (["coffee", "americano", "vanillalatte", "cappuccino", "tea", "beer"].includes(kind)) return crop(drinkGrid(kind));
   return null;
 }

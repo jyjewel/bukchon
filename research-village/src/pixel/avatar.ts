@@ -1,3 +1,4 @@
+import { eatGrid } from "./eat";
 import { HAIR_COLORS, OUTFITS, SKINS } from "@/lib/constants";
 import type { Avatar } from "@/lib/types";
 import { grid, outline, px, rect, shade, stamp, type Grid } from "./core";
@@ -164,7 +165,7 @@ function drawFocusFlames(g: Grid) {
  * 도트 캐릭터 한 프레임. 발끝 가운데가 (AV_CX, 24).
  * frame 0 = 서 있음, 1·2 = 걷는 동작. seated 면 다리를 그리지 않는다.
  */
-export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false): Grid {
+export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false, eat?: { kind: string; up: boolean }): Grid {
   const f = normalizeAvatar(avatar);
   const { skin, hairColor: hair, hair: style, accent, hat } = f;
   const has = (id: string) => f.accessories.includes(id);
@@ -432,7 +433,15 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false)
   stamp(out, g, OX, 0);
   if (f.props.includes("ecobag")) drawEcoBag(out, accent);
   if (f.props.includes("briefcase")) drawBriefcase(out);
-  for (const p of f.props) drawHandProp(out, p, accent);
+  const food = eat ? eatGrid(eat.kind) : null;
+  if (eat && food) {
+    // 먹는 동작: 평소엔 손에 들고 있다가(up=false), 입 쪽으로 들어 올려 한 입 먹는다(up=true)
+    if (eat.up) {
+      rect(out, 15, 13, 2, 6, skinD);                                                   // 들어 올린 팔
+      px(out, 16, 12, skin);
+      stamp(out, food, Math.min(AV_W - food.w, 15), 14 - food.h);
+    } else stamp(out, food, Math.min(AV_W - food.w, 15), 21 - food.h);
+  } else for (const p of f.props) drawHandProp(out, p, accent);
   return outline(out);
 }
 

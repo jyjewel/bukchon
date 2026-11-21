@@ -11,7 +11,6 @@ import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
-import { eatGrid } from "@/pixel/eat";
 import { ORB_H, ORB_POS, ORB_W, newMarkGrid, orbPedestalGrid, orbSphereGrid } from "@/pixel/orb";
 import { RACCOON_POS, TRUCK_AWNING_Y, TRUCK_H, TRUCK_POS, TRUCK_REST_SPOTS, TRUCK_W, TRUCK_WINDOW, ladleGrid, raccoonGrid, truckGrid } from "@/pixel/truck";
 import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
@@ -413,7 +412,10 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         if (!w.visible) continue;
         const seated = r.shown === "open" && !w.moving;
         const f = w.moving ? ((Math.floor(tick / 4) % 2) + 1) as 1 | 2 : 0;
-        const av = sp(`a${JSON.stringify(r.profile.avatar)}${f}${seated ? "s" : ""}`, () => avatarGrid(r.profile.avatar, f, seated));
+        // 간식을 먹는 중(먹고 한 시간): 손에 들고 있다가 가끔 입으로 들어 올려 한 입 먹는다
+        const eatK = r.status.snack_kind && r.status.snack_until && Date.parse(r.status.snack_until) > Date.now() ? r.status.snack_kind : null;
+        const eatUp = Boolean(eatK) && !w.moving && Math.floor((tick + r.slot * 17) / 22) % 3 === 1;
+        const av = sp(`a${JSON.stringify(r.profile.avatar)}${f}${seated ? "s" : ""}${eatK ? `e${eatK}${eatUp ? "u" : "d"}` : ""}`, () => avatarGrid(r.profile.avatar, f, seated, eatK ? { kind: eatK, up: eatUp } : undefined));
         const pa = partyRef.current, dancing = Boolean(pa && pa.members.includes(r.user_id) && !w.moving && (performance.now() - pa.start) / 1000 > 3);
         const bob = dancing ? -Math.round(Math.abs(Math.sin(tick * 0.28 + r.slot)) * 6) : !w.moving && (slow + r.slot) % 4 === 0 ? 1 : 0;
         items.push({
@@ -429,17 +431,11 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
               b.restore();
             } else b.drawImage(av, x - AV_CX, y - AV_H + 1 + bob);
             if (!w.moving && !r.say) b.drawImage(sp(`b${r.shown}`, () => bubbleGrid(r.shown)), x - 6, y - AV_H - 13 - ((slow + r.slot) % 2));
-            // 간식을 먹는 중: 머리 옆에 간식이 떠서 콕콕 움직이고 별빛이 반짝인다 (먹고 한 시간 동안)
-            const eat = r.status.snack_kind;
-            if (eat && r.status.snack_until && Date.parse(r.status.snack_until) > Date.now()) {
-              const art = sp(`eat${eat}`, () => eatGrid(eat) ?? newMarkGrid());
-              const ex = x + 6, ey = y - AV_H - 6 + Math.round(Math.sin(tick * 0.16 + r.slot) * 1.5);
-              b.drawImage(art, ex, ey);
-              const ph = (Math.floor(tick / 6) + r.slot) % 4;
-              const star = (sx: number, sy: number, big: boolean) => { b.fillStyle = "#fff6b0"; b.fillRect(sx, sy, 1, 1); if (big) { b.fillStyle = "#ffffff"; b.fillRect(sx - 1, sy, 1, 1); b.fillRect(sx + 1, sy, 1, 1); b.fillRect(sx, sy - 1, 1, 1); b.fillRect(sx, sy + 1, 1, 1); } };
-              if (ph !== 1) star(ex - 2, ey + 1, ph === 0);
-              if (ph !== 3) star(ex + art.width + 1, ey + 2, ph === 2);
-              if (ph !== 2) star(ex + 3, ey - 3, ph === 1);
+            if (eatUp) {
+              // 한 입 먹는 순간: 입가에 작은 별빛이 반짝인다
+              const ex = x + 3, ey = y - AV_H + 11;
+              b.fillStyle = "#fff6b0"; b.fillRect(ex, ey, 1, 1); b.fillRect(ex + 3, ey - 2, 1, 1);
+              b.fillStyle = "#ffffff"; b.fillRect(ex + 1, ey + 1, 1, 1);
             }
           },
         });
