@@ -42,6 +42,8 @@
 html {
   color-scheme: light;
   font-size: 15px;
+  -webkit-text-size-adjust: 100%;   /* 아이폰이 앱·브라우저마다 글자를 제멋대로 키우거나 줄이지 않게 */
+  text-size-adjust: 100%;
 }
 
 body {
