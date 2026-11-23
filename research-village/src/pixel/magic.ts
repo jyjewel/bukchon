@@ -163,67 +163,100 @@ export function drawLibraryXmas(b: CanvasRenderingContext2D, lib: { x: number; y
   }
 }
 
-/** 마법의 성 도서관 (고딕 탑 셋 + 뾰족 지붕). 크기·문 위치는 기존 도서관과 같다 */
+export const CASTLE_W = 124;
+export const CASTLE_H = 96;
+
+/** 마법의 성 도서관: 높낮이가 다른 뾰족 탑 여럿, 긴 대강당 벽, 문루. 바닥 가운데는 (62, 94) */
 export function castleGrid(lit: boolean): Grid {
-  const g = grid(LIB_W, LIB_H);
-  const st = "#b3adc4", stL = "#cfc9de", stD = "#8d86a6", roof = "#5b4a9e", roofL = "#8572cf", roofD = "#40337a", gold = "#ffd65c";
-  const brick = (x0: number, y0: number, w: number, h: number) => {
+  const g = grid(CASTLE_W, CASTLE_H);
+  const INKC = "#3a2a33", gold = "#ffd65c";
+  const pal = {
+    front: { st: "#b8b2c9", stL: "#d4cee4", stD: "#8f88a9", roof: "#5b4a9e", roofL: "#8572cf", roofD: "#40337a" },
+    back: { st: "#9d97b6", stL: "#b5afcb", stD: "#7a7494", roof: "#4a3c88", roofL: "#6c5cb5", roofD: "#352a6a" },
+  };
+  type P = typeof pal.front;
+  const brick = (c: P, x0: number, y0: number, w: number, h: number) => {
     for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
       const row = y - y0, off = (Math.floor(row / 4) % 2) * 4;
-      let c = st;
-      if (row % 4 === 3 || (x + off) % 8 === 0) c = stD;
-      else if (row % 4 === 0 && (x + off) % 8 === 3) c = stL;
-      px(g, x, y, c);
+      let col = c.st;
+      if (row % 4 === 3 || (x + off) % 8 === 0) col = c.stD;
+      else if (row % 4 === 0 && (x + off) % 8 === 3) col = c.stL;
+      if (x === x0) col = c.stL; else if (x === x0 + w - 1) col = c.stD;
+      px(g, x, y, col);
     }
   };
-  const cone = (cx: number, top: number, base: number, half: number) => {
+  const cone = (c: P, cx: number, top: number, base: number, half: number) => {
     for (let y = top; y <= base; y++) {
-      const t = (y - top) / (base - top), hw = Math.max(0, Math.round(half * t));
+      const t = (y - top) / Math.max(1, base - top), hw = Math.max(0, Math.round(half * t * (0.55 + 0.45 * t)));
       for (let x = cx - hw; x <= cx + hw; x++) {
-        let c = roof;
-        if (x <= cx - hw + 1) c = roofL; else if (x >= cx + hw - 1) c = roofD;
-        else if ((y + Math.floor(x / 3)) % 5 === 0) c = roofD;
-        px(g, x, y, c);
+        let col = c.roof;
+        if (x <= cx - hw + 1) col = c.roofL; else if (x >= cx + hw - 1) col = c.roofD;
+        else if ((y + Math.floor(x / 3)) % 5 === 0) col = c.roofD;
+        px(g, x, y, col);
       }
     }
-    rect(g, cx - half - 2, base, half * 2 + 5, 2, roofD);
+    rect(g, cx - half - 1, base, half * 2 + 3, 2, c.roofD);
   };
-  const star = (x: number, y: number) => { px(g, x, y, gold); px(g, x, y - 1, gold); px(g, x, y + 1, gold); px(g, x - 1, y, gold); px(g, x + 1, y, gold); };
-  const win = (x: number, y: number, w: number, h: number) => {   // 뾰족 아치 창
-    rect(g, x, y + 2, w, h - 2, "#3a2a33");
-    for (let i = 0; i < Math.ceil(w / 2) + 1; i++) { rect(g, x + i, y + 2 - Math.min(2, i < 2 ? 2 - i : 0), 1, 1, "#3a2a33"); }
-    rect(g, x + 1, y + 2, w - 2, h - 3, lit ? "#ffe07a" : "#5f6a95");
+  const star = (x: number, y: number) => { px(g, x, y, gold); px(g, x, y - 1, gold); px(g, x - 1, y, gold); px(g, x + 1, y, gold); px(g, x, y + 1, gold); };
+  const flag = (x: number, y: number, col: string) => { rect(g, x, y - 5, 1, 6, INKC); rect(g, x + 1, y - 5, 4, 2, col); px(g, x + 5, y - 4, col); };
+  const win = (x: number, y: number, w: number, h: number) => {
+    rect(g, x, y + 2, w, h - 2, INKC);
+    rect(g, x + 1, y, w - 2, 2, INKC); rect(g, x + 2, y - 1, Math.max(1, w - 4), 1, INKC);
+    rect(g, x + 1, y + 1, w - 2, h - 1, lit ? "#ffe07a" : "#5f6a95");
     if (lit) rect(g, x + 1, y + 3, 1, Math.max(1, h - 6), "#fff4bf");
-    rect(g, x + Math.floor(w / 2), y + 2, 1, h - 3, "#3a2a33");
+    rect(g, x + Math.floor(w / 2), y + 1, 1, h - 1, INKC);
+    if (h > 12) rect(g, x + 1, y + Math.floor(h / 2), w - 2, 1, INKC);
   };
-  // 가운데 본탑
-  brick(34, 28, 36, 48);
-  cone(52, 2, 28, 22);
-  star(52, 1);
-  rect(g, 33, 27, 38, 2, stL); rect(g, 33, 29, 38, 1, stD);
-  win(42, 33, 6, 12); win(56, 33, 6, 12);
-  disc(g, 51.5, 51, 5, 5, "#3a2a33"); disc(g, 51.5, 51, 3.4, 3.4, lit ? "#ffe07a" : "#5f6a95"); rect(g, 51, 47, 1, 8, "#3a2a33"); rect(g, 47, 51, 9, 1, "#3a2a33");
-  // 양옆 탑
-  for (const cx of [14, 90]) {
-    brick(cx - 11, 40, 22, 36);
-    cone(cx, 16, 40, 15);
-    star(cx, 15);
-    rect(g, cx - 12, 39, 24, 2, stL); rect(g, cx - 12, 41, 24, 1, stD);
-    win(cx - 3, 46, 6, 14);
+  const tower = (c: P, cx: number, w: number, tip: number, bodyTop: number, bottom: number, wins: number[]) => {
+    const x0 = cx - Math.floor(w / 2);
+    brick(c, x0, bodyTop, w, bottom - bodyTop);
+    rect(g, x0 - 1, bodyTop - 1, w + 2, 2, c.stL); rect(g, x0 - 1, bodyTop + 1, w + 2, 1, c.stD);
+    cone(c, cx, tip, bodyTop - 1, Math.floor(w / 2) + 3);
+    for (const wy of wins) win(cx - 2, wy, 5, 10);
+  };
+
+  // 뒤줄(어둡게): 먼 탑들
+  tower(pal.back, 18, 14, 22, 40, 70, [46]);
+  tower(pal.back, 106, 14, 18, 38, 70, [44]);
+  tower(pal.back, 38, 10, 8, 30, 70, [36]);
+  tower(pal.back, 86, 10, 12, 32, 70, [38]);
+  tower(pal.back, 62, 20, -2, 20, 70, [28]);
+  star(62, -1 + 1); star(38, 8); star(86, 12); star(18, 22); star(106, 18);
+  flag(62, 3, "#e0605a");
+  // 중앙 탑의 시계
+  disc(g, 62, 35, 5, 5, INKC); disc(g, 62, 35, 3.6, 3.6, "#fff4d6"); rect(g, 62, 32, 1, 4, INKC); rect(g, 62, 35, 3, 1, INKC);
+
+  const f = pal.front;
+  // 대강당 긴 벽 + 총안
+  brick(f, 12, 62, 100, 28);
+  for (let x = 12; x < 112; x += 8) { rect(g, x, 58, 5, 4, f.st); rect(g, x, 58, 5, 1, f.stL); rect(g, x + 4, 58, 1, 4, f.stD); }
+  rect(g, 12, 62, 100, 1, f.stL);
+  // 부축 기둥 + 높은 창
+  for (const bx of [22, 40, 84, 102]) {
+    rect(g, bx - 2, 62, 4, 28, f.stL); rect(g, bx + 1, 62, 1, 28, f.stD);
+    px(g, bx - 1, 61, f.stL); px(g, bx, 61, f.stL);
   }
-  // 가운데 성벽 + 총안
-  brick(24, 58, 56, 18);
-  for (let x = 24; x < 80; x += 8) { rect(g, x, 54, 5, 4, st); rect(g, x, 54, 5, 1, stL); }
-  // 문 (기존 도서관과 같은 위치)
-  rect(g, 41, 56, 22, 20, "#3a2a33"); rect(g, 42, 53, 20, 3, "#3a2a33"); rect(g, 45, 51, 14, 2, "#3a2a33");
-  rect(g, 42, 57, 20, 19, "#7a4a2c"); rect(g, 43, 54, 18, 3, "#7a4a2c"); rect(g, 46, 52, 12, 2, "#7a4a2c");
-  rect(g, 51, 52, 2, 24, "#3a2a33");
-  for (const y of [60, 68]) rect(g, 42, y, 20, 1, "#5a3a22");
-  px(g, 49, 66, gold); px(g, 54, 66, gold);
-  // 깃발
-  rect(g, 52, 0, 1, 3, "#3a2a33");
+  for (const wx of [27, 33, 89, 95]) win(wx - 2, 66, 5, 14);
+  // 문루(가운데) + 작은 첨탑 둘
+  brick(f, 46, 44, 32, 46);
+  rect(g, 45, 43, 34, 2, f.stL); rect(g, 45, 45, 34, 1, f.stD);
+  for (let x = 46; x < 78; x += 8) { rect(g, x, 40, 5, 4, f.st); rect(g, x, 40, 5, 1, f.stL); }
+  tower(f, 50, 8, 28, 40, 60, []); tower(f, 74, 8, 28, 40, 60, []);
+  star(50, 27); star(74, 27);
+  win(54, 48, 5, 10); win(65, 48, 5, 10);
+  disc(g, 61.5, 54, 0.1, 0.1, INKC);
+  // 문 (기존 도서관과 같은 위치·크기)
+  rect(g, 50, 66, 24, 24, INKC); rect(g, 51, 63, 22, 3, INKC); rect(g, 54, 61, 14, 2, INKC);
+  rect(g, 51, 67, 22, 23, "#7a4a2c"); rect(g, 52, 64, 20, 3, "#7a4a2c"); rect(g, 55, 62, 12, 2, "#7a4a2c");
+  rect(g, 61, 62, 2, 28, INKC);
+  for (const y of [70, 78]) rect(g, 51, y, 22, 1, "#5a3a22");
+  px(g, 59, 76, gold); px(g, 64, 76, gold);
+  // 앞쪽 모서리 둥근 탑
+  tower(f, 10, 16, 40, 56, 90, [62]); tower(f, 114, 16, 36, 54, 90, [60]);
+  star(10, 40); star(114, 36);
+  flag(114, 37, "#5aa0e0");
   // 계단
-  rect(g, 4, 76, 96, 3, "#cfc9de"); rect(g, 4, 78, 96, 1, stD);
-  rect(g, 30, 79, 44, 3, "#e6e1f0"); rect(g, 30, 81, 44, 1, stD);
+  rect(g, 8, 90, 108, 3, "#cfc9de"); rect(g, 8, 92, 108, 1, "#8f88a9");
+  rect(g, 40, 93, 44, 1, "#e6e1f0");
   return outline(g);
 }

@@ -9,7 +9,7 @@ import { fxGrid } from "@/pixel/fx";
 import { nearestWalkable } from "@/lib/walk";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, isChristmasSeason } from "@/pixel/christmas";
-import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, drawLibraryXmas, castleGrid, treeAura, snowCap } from "@/pixel/magic";
+import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap } from "@/pixel/magic";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
 import { eatGrid } from "@/pixel/eat";
@@ -347,7 +347,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         });
       }
       const libLit = night || residents.some((r) => r.shown === "library");
-      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? snowCap(castleGrid(libLit), 0.6, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 2) });
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? snowCap(castleGrid(libLit), 0.6, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - (xmas ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (xmas ? CASTLE_H : LIB_H) + 2) });
 
       if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
       if (xmas && !reduced) { items.push({ y: 401, draw: () => drawOwl(b, tick, W) }); items.push({ y: 402, draw: () => drawSnowfall(b, tick, W, H, night) }); }
