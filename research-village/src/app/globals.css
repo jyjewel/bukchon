@@ -265,7 +265,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   transform: translateX(-50%);
   width: max-content;
   max-width: 150px;
-  padding: 4px 9px 8px; /* 아래 4px 는 꼬리 자리 */
+  padding: 3px 8px 7px; /* 아래 4px 는 꼬리 자리 */
   isolation: isolate;
   font-family: var(--font-small);
   font-size: 11px;
@@ -277,26 +277,28 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 .scene-say-text { position: relative; z-index: 1; }
 .scene-say::before, .scene-say::after { content: ""; position: absolute; inset: 0; }
-/* 바깥 테두리(잉크색) */
+/* 바깥 테두리(잉크색): 1px 두께 */
 .scene-say::before {
   background: var(--color-ink);
   clip-path: polygon(
-    4px 0, calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px,
-    100% calc(100% - 8px), calc(100% - 2px) calc(100% - 8px), calc(100% - 2px) calc(100% - 6px), calc(100% - 4px) calc(100% - 6px), calc(100% - 4px) calc(100% - 4px),
-    calc(50% + 4px) calc(100% - 4px), calc(50% + 4px) calc(100% - 2px), calc(50% + 2px) calc(100% - 2px), calc(50% + 2px) 100%,
-    calc(50% - 2px) 100%, calc(50% - 2px) calc(100% - 2px), calc(50% - 4px) calc(100% - 2px), calc(50% - 4px) calc(100% - 4px),
-    4px calc(100% - 4px), 4px calc(100% - 6px), 2px calc(100% - 6px), 2px calc(100% - 8px), 0 calc(100% - 8px),
-    0 4px, 2px 4px, 2px 2px, 4px 2px
+    3px 0, calc(100% - 3px) 0, calc(100% - 3px) 1px, calc(100% - 1px) 1px, calc(100% - 1px) 3px, 100% 3px,
+    100% calc(100% - 7px), calc(100% - 1px) calc(100% - 7px), calc(100% - 1px) calc(100% - 5px), calc(100% - 3px) calc(100% - 5px), calc(100% - 3px) calc(100% - 4px),
+    calc(50% + 3px) calc(100% - 4px), calc(50% + 3px) calc(100% - 2px), calc(50% + 2px) calc(100% - 2px), calc(50% + 2px) 100%,
+    calc(50% - 2px) 100%, calc(50% - 2px) calc(100% - 2px), calc(50% - 3px) calc(100% - 2px), calc(50% - 3px) calc(100% - 4px),
+    3px calc(100% - 4px), 3px calc(100% - 5px), 1px calc(100% - 5px), 1px calc(100% - 7px), 0 calc(100% - 7px),
+    0 3px, 1px 3px, 1px 1px, 3px 1px
   );
 }
 /* 안쪽 바탕 */
 .scene-say::after {
   background: var(--fill);
   clip-path: polygon(
-    4px 2px, calc(100% - 4px) 2px, calc(100% - 4px) 4px, calc(100% - 2px) 4px,
-    calc(100% - 2px) calc(100% - 8px), calc(100% - 4px) calc(100% - 8px), calc(100% - 4px) calc(100% - 6px),
-    calc(50% + 2px) calc(100% - 6px), calc(50% + 2px) calc(100% - 2px), calc(50% - 2px) calc(100% - 2px), calc(50% - 2px) calc(100% - 6px),
-    4px calc(100% - 6px), 4px calc(100% - 8px), 2px calc(100% - 8px), 2px 4px, 4px 4px
+    3px 1px, calc(100% - 3px) 1px, calc(100% - 3px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 3px, calc(100% - 1px) 3px,
+    calc(100% - 1px) calc(100% - 7px), calc(100% - 2px) calc(100% - 7px), calc(100% - 2px) calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 5px),
+    calc(50% + 2px) calc(100% - 5px), calc(50% + 2px) calc(100% - 3px), calc(50% + 1px) calc(100% - 3px), calc(50% + 1px) calc(100% - 1px),
+    calc(50% - 1px) calc(100% - 1px), calc(50% - 1px) calc(100% - 3px), calc(50% - 2px) calc(100% - 3px), calc(50% - 2px) calc(100% - 5px),
+    3px calc(100% - 5px), 3px calc(100% - 6px), 2px calc(100% - 6px), 2px calc(100% - 7px), 1px calc(100% - 7px),
+    1px 3px, 2px 3px, 2px 2px, 3px 2px
   );
 }
 .scene-say-mine { --fill: #ffe9ef; }
