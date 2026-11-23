@@ -374,7 +374,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 @media (max-width: 1023px) {
   /* 아이폰은 16px 보다 작은 입력칸을 누르면 화면이 저절로 확대된다 */
   .input, select, textarea, input { font-size: 16px; }
-  .lab-main textarea.big-write { min-height: 52vh; }
+  .lab-main textarea.big-write { min-height: 52vh; font-size: 15px; line-height: 1.7; }
 }
 @media (pointer: coarse) {
   .btn { min-height: 44px; }
