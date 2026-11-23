@@ -66,3 +66,42 @@ export function candleGlow(b: CanvasRenderingContext2D, c: { x: number; y: numbe
   b.fillStyle = gr;
   b.fillRect(x - rad, y - rad, rad * 2, rad * 2);
 }
+
+/** 소복소복 내리는 눈. 매 프레임 tick 으로 위치를 계산한다 (reduced motion 이면 호출하지 않는다) */
+export function drawSnowfall(b: CanvasRenderingContext2D, tick: number, w: number, h: number, night: boolean) {
+  for (let i = 0; i < 110; i++) {
+    const speed = 0.25 + ((i * 37) % 10) / 22;
+    const x = ((i * 61) % w) + Math.sin(tick * 0.02 + i) * 4;
+    const y = (((i * 83) % h) + tick * speed) % h;
+    const big = i % 3 === 0;
+    b.fillStyle = night ? "rgb(255 255 255 / 0.9)" : "rgb(255 255 255 / 0.95)";
+    b.fillRect(Math.round((x + w) % w), Math.round(y), big ? 3 : 2, big ? 3 : 2);
+    if (!night) { b.fillStyle = "rgb(150 185 210 / 0.35)"; b.fillRect(Math.round((x + w) % w) + 1, Math.round(y) + 1, 1, 1); }
+  }
+}
+
+/** 편지를 물고 날아가는 올빼미: 약 25초마다 한 마리가 지도를 가로지른다 */
+export function drawOwl(b: CanvasRenderingContext2D, tick: number, w: number) {
+  const period = 1500, span = 520, t = (tick + 1450) % period;
+  if (t > span) return;
+  const k = Math.floor((tick + 1450) / period);
+  const dir = k % 2 === 0 ? 1 : -1;
+  const p = t / span;
+  const x = Math.round(dir === 1 ? -14 + p * (w + 28) : w + 14 - p * (w + 28));
+  const y = Math.round((k % 3 === 0 ? 40 : k % 3 === 1 ? 84 : 120) + Math.sin(p * Math.PI * 4) * 6);
+  const up = Math.floor(tick / 6) % 2 === 0;
+  const body = "#b98f62", light = "#f1dcb4", dark = "#3a2a33";
+  b.save();
+  b.translate(x, y);
+  b.scale(dir * 1.6, 1.6);
+  b.fillStyle = dark; b.fillRect(-4, -3, 9, 7);
+  b.fillStyle = body; b.fillRect(-3, -2, 7, 5);
+  b.fillStyle = light; b.fillRect(0, 0, 3, 3);
+  b.fillStyle = "#ffe27a"; b.fillRect(2, -2, 1, 1); b.fillStyle = "#ff9a3c"; b.fillRect(5, -1, 2, 1);
+  b.fillStyle = dark; b.fillRect(-4, -5, 2, 2); b.fillRect(2, -5, 2, 2);
+  b.fillStyle = body;
+  if (up) { b.fillRect(-7, -9, 5, 7); b.fillStyle = dark; b.fillRect(-8, -10, 1, 8); }
+  else { b.fillRect(-7, 0, 5, 6); b.fillStyle = dark; b.fillRect(-8, 0, 1, 7); }
+  b.fillStyle = "#fff"; b.fillRect(-6, 6, 4, 3); b.fillStyle = "#e55"; b.fillRect(-5, 7, 1, 1);
+  b.restore();
+}
