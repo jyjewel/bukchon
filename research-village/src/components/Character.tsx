@@ -18,7 +18,7 @@ export function CharacterIcon({ avatar, size = 50, className = "", headOnly = fa
   }, [key]);
   // headOnly: 크기는 그대로 두고 머리와 어깨 위쪽만 보이게 자른다(몸과 다리는 가린다)
   if (headOnly) return (
-    <span className={`inline-block shrink-0 overflow-hidden ${className}`} style={{ width: 18 * k, height: 16 * k }} aria-hidden>
+    <span className={`inline-block shrink-0 overflow-hidden ${className}`} style={{ width: 18 * k, height: 14 * k }} aria-hidden>
       <canvas ref={ref} width={AV_W} height={AV_H} className="pixelated block" style={{ width: AV_W * k, height: AV_H * k, marginLeft: -3 * k }} />
     </span>
   );

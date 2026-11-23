@@ -47,11 +47,12 @@ export default function ShoutBoard({
           const who = residents.find((r) => r.user_id === s.author_id);
           const mine = s.author_id === myId;
           return (
-            <li key={s.id} className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : ""}`}>
+            <li key={s.id} className={`flex items-end gap-2 max-lg:items-center ${mine ? "flex-row-reverse" : ""}`}>
               {who ? <><span className="shrink-0 lg:hidden"><CharacterIcon avatar={who.profile.avatar} size={36} headOnly /></span><span className="hidden shrink-0 lg:inline"><CharacterIcon avatar={who.profile.avatar} size={36} /></span></> : <span className="w-[27px]" />}
               <div className={`min-w-0 max-w-[80%] ${mine ? "text-right" : ""}`}>
-                <p className="text-xs text-ink-soft max-lg:text-[10px] max-lg:leading-[14px]">{who?.profile.display_name ?? "떠난 주민"} · {relativeTime(s.created_at)}</p>
+                <p className="text-xs text-ink-soft max-lg:hidden">{who?.profile.display_name ?? "떠난 주민"} · {relativeTime(s.created_at)}</p>
                 <p className="px-box inline-block break-words px-2 py-1 text-left text-sm max-lg:px-1.5 max-lg:py-0.5 max-lg:text-[13px] max-lg:leading-[18px]" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{s.body}</p>
+                <span className="ml-1 text-[10px] text-ink-soft lg:hidden">{who?.profile.display_name ?? "떠난 주민"} · {relativeTime(s.created_at)}</span>
                 {(mine || isAdmin) && <button type="button" className="ml-1 text-xs text-ink-soft underline max-lg:text-[10px]" onClick={() => void remove(s.id)}>삭제</button>}
               </div>
             </li>
