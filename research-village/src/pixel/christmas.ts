@@ -1,10 +1,10 @@
 import { disc, grid, hash, outline, px, rect, type Grid } from "./core";
 
-/** 11월 24일 0시(한국 시간)부터 12월 25일 끝까지 크리스마스 꾸밈이 켜진다. 어느 나라에서 접속해도 한국 날짜 기준 */
+/** 11월 25일 0시(한국 시간)부터 12월 25일 끝까지 크리스마스 꾸밈이 켜진다. 어느 나라에서 접속해도 한국 날짜 기준 */
 export function isChristmasSeason(d = new Date()): boolean {
   const k = new Date(d.getTime() + 9 * 3600_000);
   const m = k.getUTCMonth() + 1, day = k.getUTCDate();
-  return (m === 11 && day >= 24) || (m === 12 && day <= 25);
+  return (m === 11 && day >= 25) || (m === 12 && day <= 25);
 }
 
 export const TREE_W = 70;
