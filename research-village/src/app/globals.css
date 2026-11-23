@@ -59,7 +59,7 @@ body {
 
 /* 도트 그림은 각지게, 창·버튼·카드는 둥글게 */
 canvas, .pixelated, img[src*="data:"] { border-radius: 0; }
-:root { --r-win: 20px; --r-btn: 12px; --r-card: 14px; }
+:root { --r-win: 8px; --r-btn: 5px; --r-card: 6px; }
 
 .text-xs { font-family: var(--font-small); }
 .text-xl, .text-3xl, .text-4xl { font-family: var(--font-small); font-weight: 700; }
@@ -81,12 +81,12 @@ canvas, .pixelated, img[src*="data:"] { border-radius: 0; }
   --bd: var(--color-ink);
   background: var(--color-paper);
   margin: 1px;
-  border: 2px solid var(--bd);
+  border: 1px solid var(--bd);
   border-radius: var(--r-win);
-  box-shadow: 0 4px 0 0 rgb(58 42 51 / 0.2);
+  box-shadow: 0 4px 0 0 rgb(58 42 51 / 0.22);
 }
 .window:not(dialog) { overflow: clip; }
-dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
+dialog.window { border: 1px solid var(--bd); overflow: visible; margin: auto; }
 .space-y-4 > .window:not(:last-child), .space-y-5 > .window:not(:last-child), .space-y-4 > header.window, .space-y-5 > header.window { margin-bottom: 22px; }
 .space-y-4 > :where(div, main, form):not(:last-child) { margin-bottom: 22px; }
 .titlebar {
@@ -94,9 +94,9 @@ dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 2px 10px;
-  border-bottom: 2px solid var(--color-ink);
-  border-radius: calc(var(--r-win) - 3px) calc(var(--r-win) - 3px) 0 0;
+  padding: 2.5px 10px;
+  border-bottom: 1px solid var(--color-ink);
+  border-radius: calc(var(--r-win) - 1px) calc(var(--r-win) - 1px) 0 0;
   background: color-mix(in srgb, var(--tb, #ff9fb6) 42%, #fffcf3);   /* 창 종류별 색을 아주 연하게 푼 파스텔 */
   box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 0 rgb(58 42 51 / 0.12);
 }
@@ -151,13 +151,13 @@ dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
   padding: 3px 12px 6px;
   background: var(--color-paper);
   line-height: 18px;
-  border: 2px solid var(--bd);
+  border: 1px solid var(--bd);
   border-radius: var(--r-btn);
-  box-shadow: inset 0 -3px 0 0 rgb(58 42 51 / 0.14), inset 0 2px 0 0 rgb(255 255 255 / 0.55), 0 2px 0 0 rgb(58 42 51 / 0.16);
+  box-shadow: inset 0 -2px 0 0 rgb(58 42 51 / 0.2), inset 0 1px 0 0 rgb(255 255 255 / 0.5);
 }
 .btn:hover:not(:disabled) { background: var(--color-butter); }
 .btn:active:not(:disabled) {
-  padding: 5px 12px 4px;
+  padding: 6px 12px 3px;
   box-shadow: inset 0 2px 0 0 rgb(58 42 51 / 0.2);
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -172,12 +172,12 @@ dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
   font-size: 12px;
   --px: 1px;
   margin: 1px;
-  border-radius: 10px;
-  box-shadow: inset 0 -2px 0 0 rgb(58 42 51 / 0.14), 0 1px 0 0 rgb(58 42 51 / 0.14);
+  border-radius: 4px;
+  box-shadow: inset 0 -1px 0 0 rgb(58 42 51 / 0.2);
 }
 .btn-sm:active:not(:disabled) { padding: 2px 8px 1px; }
 /* 제목줄 안에 들어가는 작은 버튼 */
-.btn-xs { min-height: 22px; padding: 0 8px 2px; font-size: 11px; border-radius: 9px; margin: 0; }
+.btn-xs { min-height: 22px; padding: 0 8px 2px; font-size: 11px; border-radius: 4px; margin: 0; }
 
 .input {
   display: block;
@@ -186,9 +186,9 @@ dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
   background: #fffdf6;
   padding: 5px 8px;
   --bd: var(--color-line);
-  border: 2px solid var(--bd);
+  border: 1px solid var(--bd);
   border-radius: var(--r-btn);
-  box-shadow: inset 0 2px 0 0 rgb(58 42 51 / 0.05);
+  box-shadow: inset 0 1px 0 0 rgb(58 42 51 / 0.07);
 }
 .input:focus { --bd: var(--color-ink); outline: none; }
 .input::placeholder { color: #b5a48f; }
@@ -207,15 +207,15 @@ dialog.window { border: 2px solid var(--bd); overflow: visible; margin: auto; }
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
-  border: 1.5px solid var(--color-line);
-  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
 }
 .dotted { border-top: 1px dotted var(--color-line); }
 .card {
   margin: 1px;
   background: #fffdf6;
   --bd: var(--color-line);
-  border: 1.5px solid var(--bd);
+  border: 1px solid var(--bd);
   border-radius: var(--r-card);
 }
 .card-on { --bd: var(--color-ink); background: var(--color-butter); }
