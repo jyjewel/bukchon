@@ -447,3 +447,8 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 .book-spine:hover { filter: brightness(1.06); }
 .book-spine-on { transform: translateY(-6px); outline: 2px solid #fff8e4; outline-offset: 0; }
+
+/* 폰 앱에서 지도 창만 다른 창보다 넓게 삐져나오는 것을 막는다: 어떤 칸도 화면 폭을 넘지 못하게 하고, 넘치는 부분은 잘라 낸다 */
+html, body { max-width: 100%; overflow-x: clip; }
+.window { max-width: 100%; min-width: 0; }
+.scene { max-width: 100%; contain: layout paint; }
