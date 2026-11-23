@@ -10,7 +10,6 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
-  { id: "2026-11-25-xmas-magic", date: "11월 25일", title: "마법학교 크리스마스! 눈 덮인 마을과 마법의 성 도서관", body: "" },
   { id: "2026-11-23-nice-throw", date: "11월 23일", title: "[소원] 영감 전구, 응원 박수, 칭찬 별을 던질 수 있어요", body: "" },
   { id: "2026-11-23-notif-link", date: "11월 23일", title: "[소원] 알림을 누르면 해당 내용으로 바로 가요", body: "" },
   { id: "2026-11-21-eat", date: "11월 21일", title: "[소원] 받은 간식을 먹을 수 있어요", body: "" },
