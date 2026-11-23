@@ -258,10 +258,11 @@ const me = v.me!;
     <div className="mx-auto max-w-[1500px] space-y-4 p-3 pb-16 sm:p-4 sm:pb-16 lg:space-y-5 lg:pb-4">
       <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff6d9" }}>
         <div className="flex items-baseline gap-2">
-          {/* 마을 바꾸기: 제목 앞에 두고, 이름 바로 옆에 화살표가 붙는다(보이는 건 글자, 실제 선택창은 그 위에 투명하게 겹쳐 있다) */}
+          <h1 className="font-display text-xl">연구자 마을</h1>
+          {/* 마을 바꾸기: 화살표를 이름 앞에 붙인다(보이는 건 글자, 실제 선택창은 그 위에 투명하게 겹쳐 있다) */}
           <span className="relative inline-flex items-center gap-1">
-            <span aria-hidden className="font-display text-sm text-rose-deep">{village.name}</span>
             <span aria-hidden className="pointer-events-none flex flex-col text-[8px] leading-[8px] text-rose-deep"><span>▲</span><span>▼</span></span>
+            <span aria-hidden className="font-display text-sm text-rose-deep">{village.name}</span>
             <select
               aria-label="마을 바꾸기" value={village.id}
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
@@ -271,7 +272,6 @@ const me = v.me!;
               <option value="__add">＋ 다른 마을 추가</option>
             </select>
           </span>
-          <h1 className="font-display text-xl">연구자 마을</h1>
         </div>
         <nav aria-label="주 메뉴" className="flex basis-full flex-wrap gap-2 max-lg:hidden sm:flex-1 sm:basis-auto">
           {NAV.map((n) => (
