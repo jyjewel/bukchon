@@ -53,7 +53,7 @@ export default function ShoutBoard({
                 <p className="text-xs text-ink-soft max-lg:hidden">{who?.profile.display_name ?? "떠난 주민"}<span className="max-lg:hidden"> · {relativeTime(s.created_at)}</span></p>
                 <p className="px-box inline-block break-words px-2 py-1 text-left text-sm max-lg:inline-flex max-lg:min-h-[28px] max-lg:items-center max-lg:px-1.5 max-lg:py-0.5 max-lg:text-[13px] max-lg:leading-[18px]" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{s.body}</p>
                 {(mine || isAdmin) && <button type="button" className="ml-1 text-xs text-ink-soft underline max-lg:hidden" onClick={() => void remove(s.id)}>삭제</button>}
-                <p className="text-[10px] leading-[14px] text-ink-soft lg:hidden">{relativeTime(s.created_at)}{(mine || isAdmin) && <button type="button" className="ml-1.5 underline" onClick={() => void remove(s.id)}>삭제</button>}</p>
+                <p className="mt-[3px] text-[10px] leading-[14px] text-ink-soft lg:hidden">{relativeTime(s.created_at)}{(mine || isAdmin) && <button type="button" className="ml-1.5 underline" onClick={() => void remove(s.id)}>삭제</button>}</p>
               </div>
             </li>
           );
