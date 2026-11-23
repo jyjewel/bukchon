@@ -256,7 +256,7 @@ const me = v.me!;
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4 p-3 pb-16 sm:p-4 sm:pb-16 lg:space-y-5 lg:pb-4">
-      <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fffdf7" }}>
+      <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff6d9" }}>
         <div className="flex items-baseline gap-2">
           <h1 className="font-display text-xl">연구자 마을</h1>
           <span className="relative inline-flex items-center">
