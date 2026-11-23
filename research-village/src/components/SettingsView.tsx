@@ -241,6 +241,7 @@ export default function SettingsView({
           <div className="space-y-3 p-3 text-sm">
             <div className="flex flex-wrap gap-2">
               <button type="button" className="btn" onClick={() => void exportData()}>내 데이터 내려받기</button>
+              <button type="button" className="btn" onClick={() => window.location.reload()}>앱 새로고침</button>
               <button type="button" className="btn" onClick={async () => { await detachPush(); await supabase().auth.signOut(); }}>로그아웃</button>
             </div>
             <div className="dotted flex flex-wrap gap-2 pt-3">

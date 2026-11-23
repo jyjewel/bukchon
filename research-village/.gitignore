@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 빌드마다 새로 만드는 버전 번호
+/public/version.json
