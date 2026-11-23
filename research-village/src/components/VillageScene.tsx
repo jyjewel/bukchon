@@ -9,6 +9,7 @@ import { fxGrid } from "@/pixel/fx";
 import { nearestWalkable } from "@/lib/walk";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, drawTreeGlow, isChristmasSeason } from "@/pixel/christmas";
+import { CANDLES, candleGlow, candleGrid, drawCandle, snowCap } from "@/pixel/magic";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
 import { eatGrid } from "@/pixel/eat";
@@ -118,10 +119,12 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       if (!c) cache.set(key, (c = bake(build())));
       return c;
     };
-    const ground = bake(groundGrid(season));
-    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(treeGrid(pal.leaves[(v + i) % pal.leaves.length], v + i, season)) }));
+    const vSeason: Season = xmas ? "winter" : season;
+    const ground = bake(groundGrid(vSeason));
+    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(treeGrid(SEASONS[vSeason].leaves[(v + i) % pal.leaves.length], v + i, vSeason)) }));
     const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
     const fountain = [0, 1, 2, 3].map((f) => bake(fountainGrid(f)));
+    const candleImg = bake(candleGrid());
     const xtree = xmas ? [0, 1, 2, 3].map((f) => bake(christmasTreeGrid(f))) : [];
     const monSrc = monFont ? bake(monumentGrid()) : null;
     const board = bake(boardGrid()), bench = bake(benchGrid()), lamp = bake(lampGrid(night || phase === "dusk"));
@@ -344,13 +347,14 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         });
       }
       const libLit = night || residents.some((r) => r.shown === "library");
-      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}`, () => libraryGrid(libLit, libraryStyle)), LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 2) });
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? snowCap(libraryGrid(libLit, libraryStyle), 0.4) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 2) });
 
+      if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
       for (const h of houses) {
         const pos = HOUSE_POS[h.slot], r = bySlot.get(h.slot);
         const lit = Boolean(r?.online), empty = !h.owner_id, mine = h.owner_id === data.current.myId;
         const meta = HOUSE_META[houseTypeOf(h.style)];
-        const c = sp(`h${houseTypeOf(h.style)}${lit}${empty}${mine}`, () => houseGrid(h.style, { lit, empty, mine }));
+        const c = sp(`h${houseTypeOf(h.style)}${lit}${empty}${mine}`, () => xmas ? snowCap(houseGrid(h.style, { lit, empty, mine })) : houseGrid(h.style, { lit, empty, mine }));
         items.push({
           y: pos.y,
           draw: () => {
@@ -489,6 +493,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           };
           const a = night ? 0.5 : 0.22;
           for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
+          if (xmas) for (const c of CANDLES) candleGlow(b, c, tick, night ? 0.5 : 0.16);
           if (xmas) drawTreeGlow(b, { x: PLAZA.x, y: PLAZA.y + 6 }, tick, a * 1.2);
           if (truck) glow(TRUCK_POS.x - 9, TRUCK_POS.y - 17, 26, a + 0.15);
           for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
