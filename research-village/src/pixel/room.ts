@@ -5,7 +5,7 @@ import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { SPINE_COLORS, type SpineColor } from "./shelf";
 import { avatarGrid } from "./avatar";
 import { petSprite, wichuSprite } from "./pets";
-import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
+import { disc, get, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const PORTAL_HOLE = { x: 34, y: 52 };
 export const ROOM_W = 144;
@@ -184,7 +184,7 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
         rect(g, 4 + i * 3, yb - h, 2, h, col); px(g, 4 + i * 3, yb - h, shade(col, 40)); px(g, 5 + i * 3, yb - 2, shade(col, -40));
       });
     }
-    rect(g, 2, 79, 20, 1, "#00000022");
+    for (let x = 2; x < 22; x++) { const c = get(g, x, 79); if (c) px(g, x, 79, shade(c, -38)); }   // 바닥에 드리운 그림자: 바닥 색을 어둡게(반투명 색을 쓰면 뒤 배경 색이 비쳐 줄무늬처럼 보인다)
   }
   // 소품 (꾸미기에서 고른 것)
   if (st.extras.includes("plant")) {
