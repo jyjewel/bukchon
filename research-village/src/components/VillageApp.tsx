@@ -380,7 +380,7 @@ const me = v.me!;
           </WindowColumn>
 
           <WindowColumn col="home-center" userId={me.user_id} className="order-1 min-w-0 space-y-4 lg:order-2">
-            <Window key="map" title={village.name} icon="" tone="sky">
+            <section key="map" className="window">   {/* 마을 이름은 위 제목 상자에 있으니 지도에는 제목줄을 두지 않는다 */}
               <div>
                 <div>
                   <VillageScene party={party} onWalk={(x, y) => { if (me.shown === "focus" || me.shown === "offline") { setNotice("집중 연구 중이거나 오프라인일 때는 걸어 다닐 수 없어요. ‘지금 나는’에서 상태를 바꿔 보세요."); return; } setNotice(""); void v.walkTo(x, y); }} santa={phase === "eve"} onSanta={() => setGiftOpen("eve")}
@@ -413,7 +413,7 @@ const me = v.me!;
                   />
                 </div>
               </div>
-            </Window>
+            </section>
             <ShoutBoard key="shout" villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
           </WindowColumn>
 
