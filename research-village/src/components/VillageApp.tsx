@@ -261,8 +261,8 @@ const me = v.me!;
           <h1 className="font-display text-xl">연구자 마을</h1>
           {/* 마을 바꾸기: 화살표를 이름 앞에 붙인다(보이는 건 글자, 실제 선택창은 그 위에 투명하게 겹쳐 있다) */}
           <span className="relative inline-flex items-center gap-1">
-            <span aria-hidden className="pointer-events-none flex flex-col text-[8px] leading-[8px] text-rose-deep"><span>▲</span><span>▼</span></span>
-            <span aria-hidden className="font-display text-sm text-rose-deep">{village.name}</span>
+            <span aria-hidden className="pointer-events-none text-[9px] leading-none text-[#7a5a3a]">▼</span>
+            <span aria-hidden className="font-display text-sm text-[#7a5a3a]">{village.name}</span>
             <select
               aria-label="마을 바꾸기" value={village.id}
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
