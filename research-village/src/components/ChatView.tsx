@@ -1,4 +1,5 @@
 "use client";
+import ChatInput from "./ChatInput";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
@@ -127,7 +128,7 @@ function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Residen
             {conv.status === "active" ? (
               <form onSubmit={send} className="flex items-start gap-1 border-t border-ink p-2">
                 <label className="sr-only" htmlFor="chat-input">메시지</label>
-                <input id="chat-input" className="input" autoComplete="off" maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder={`${name}님에게 보낼 말`} />
+                <ChatInput id="chat-input" maxLength={1000} value={text} onChange={setText} placeholder={`${name}님에게 보낼 말`} />
                 <button type="submit" className="btn btn-primary shrink-0 whitespace-nowrap" disabled={!text.trim()}>보내기</button>
               </form>
             ) : <p className="border-t border-ink p-3 text-center text-sm text-ink-soft">대화가 끝났어요.</p>}

@@ -1,4 +1,5 @@
 "use client";
+import ChatInput from "./ChatInput";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
@@ -63,7 +64,7 @@ export default function ShoutBoard({
       {inPlaza ? (
         <form onSubmit={send} className="flex items-start gap-1 border-t border-ink p-2">
           <label className="sr-only" htmlFor="shout-input">모두에게 외치기</label>
-          <input id="shout-input" className="input" maxLength={100} autoComplete="off" value={text} onChange={(e) => setText(e.target.value)} placeholder="광장에서 모두에게 외치기" />
+          <ChatInput id="shout-input" maxLength={100} value={text} onChange={setText} placeholder="광장에서 모두에게 외치기" />
           <button type="submit" className="btn btn-primary shrink-0 whitespace-nowrap" disabled={!text.trim()}>외치기</button>
         </form>
       ) : (
