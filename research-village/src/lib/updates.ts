@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-23-notif-link", date: "11월 23일", title: "[소원] 알림을 누르면 해당 내용으로 바로 가요", body: "" },
   { id: "2026-11-21-eat", date: "11월 21일", title: "[소원] 받은 간식을 먹을 수 있어요", body: "" },
   { id: "2026-11-20-menu", date: "11월 20일", title: "건네기 메뉴가 바뀌었어요: 바닐라 라떼, 카푸치노, 붕어빵, 컵볶이", body: "" },
   { id: "2026-11-19-order", date: "11월 19일", title: "[소원] 내 마을 순서를 바꿀 수 있어요", body: "" },

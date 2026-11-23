@@ -24,7 +24,7 @@ import { SantaCard } from "./ChristmasGift";
 import { useChristmas } from "@/hooks/useChristmas";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
-type Section = "journal" | "notes" | "diary" | "boards" | "results" | "shelf" | "archive" | "drawer" | "snacks";
+export type Section = "journal" | "notes" | "diary" | "boards" | "results" | "shelf" | "archive" | "drawer" | "snacks";
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "journal", label: "오늘의 일지" },
   { id: "notes", label: "연구노트" },
@@ -39,10 +39,10 @@ const SECTIONS: { id: Section; label: string }[] = [
 
 /** 내 연구실(작업 화면): 글쓰기 창이 가운데에 크게, 왼쪽엔 작은 연구실 그림과 항목 목록, 오른쪽엔 마감·할 일. 집중 모드는 가운데만 남긴다. */
 export default function StudyRoomWork({
-  me, residents, villages, tab, onTab, onProfileSaved, onVisit, villageId,
-}: { me: Resident; residents: Resident[]; villages: VillageInfo[]; tab: BoardTab; onTab: (t: BoardTab) => void; onProfileSaved: () => Promise<void>; onVisit: (userId: string, villageId: string) => void; villageId: string }) {
+  me, residents, villages, tab, onTab, onProfileSaved, onVisit, villageId, initialSection,
+}: { me: Resident; residents: Resident[]; villages: VillageInfo[]; tab: BoardTab; onTab: (t: BoardTab) => void; onProfileSaved: () => Promise<void>; onVisit: (userId: string, villageId: string) => void; villageId: string; initialSection?: Section | null }) {
   const [roomView, setRoomView] = useState<"view" | "decorate" | null>(null);
-  const [section, setSection] = useState<Section>("journal");
+  const [section, setSection] = useState<Section>(initialSection ?? "journal");   // 알림을 눌러 들어오면 그 알림이 가리키는 항목을 바로 연다
   const [focus, setFocus] = useState(false);
   const [letter, setLetter] = useState(false);
   const [portal, setPortal] = useState(false);

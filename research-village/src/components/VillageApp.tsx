@@ -19,7 +19,7 @@ import NotificationsView, { notifText, showsSummary } from "./NotificationsView"
 import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
 import VillageScene from "./VillageScene";
-import StudyRoom from "./StudyRoomWork";
+import StudyRoom, { type Section as LabSection } from "./StudyRoomWork";
 import SayBox from "./SayBox";
 import PlazaNews from "./PlazaNews";
 import { useRoomNews } from "@/hooks/useRoomNews";
@@ -166,7 +166,9 @@ const me = v.me!;
   const byId = new Map(v.residents.map((r) => [r.user_id, r]));
 
   /** 내 연구실 화면으로 간다. 지도에서 내 집을 눌러 들어갈 때(study)만 '집중 연구'가 된다. */
-  const enterRoom = (study = false) => {
+  const [labSection, setLabSection] = useState<LabSection | null>(null);
+  const enterRoom = (study = false, section: LabSection | null = null) => {
+    setLabSection(section);
     if (study && me.status.status !== "focus" && me.status.status !== "offline") void v.setStatus("focus");
     setView("room");
   };
@@ -195,6 +197,8 @@ const me = v.me!;
     setSelected(null);
     setView("chat");
   };
+  /** 알림이 가리키는 내 연구실 항목을 바로 연다 */
+  const openMyRoom = (section: LabSection) => enterRoom(false, section);
   const openNotification = (n: AppNotification) => {
     if (!n.id.startsWith("portal-")) void notifs.markRead([n.id]);
     setToast(null);
@@ -203,10 +207,11 @@ const me = v.me!;
     if (n.kind === "study_alarm") return setAlarm(n);
     if (n.kind === "study_goal") return setView(n.summary.endsWith("|done") ? "home" : "library");
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
-    if (n.kind === "gift") return visit(me.user_id, "whiteboard");
+    if (n.kind === "gift" || n.kind === "moving_cake") return openMyRoom("snacks");                       // 받은 선물·이사 떡 → 간식 상자
+    if (n.room_owner_id === me.user_id && (n.kind === "journal_reaction" || n.kind === "journal_comment" || n.kind === "postit" || n.kind === "comment")) return openMyRoom("boards");   // 내 일지 반응·댓글, 내 화이트보드의 포스트잇·댓글 → 화이트보드
     if (n.kind === "journal_reaction" || n.kind === "journal_comment") return visit(n.room_owner_id, "whiteboard");
     if (n.kind === "gesture" || n.kind === "cheer" || n.kind === "nudge") return setView("home");
-    if (n.kind === "book_tip") return visit(me.user_id, "shelf");
+    if (n.kind === "book_tip") return openMyRoom("results");                                               // 추천받은 책 → 연구 성과(책장)
     visit(n.room_owner_id, "whiteboard");
   };
   /** 이웃에게 마음 전하기 (던지기·선물·책 추천·독촉). 오류 문구를 돌려주고 성공이면 null */
@@ -444,7 +449,7 @@ const me = v.me!;
         </main>
       )}
 
-      {view === "room" && <main><StudyRoom key={me.user_id} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} onVisit={goPortal} villageId={village.id} /></main>}
+      {view === "room" && <main><StudyRoom key={`${me.user_id}:${labSection ?? ""}`} initialSection={labSection} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} onVisit={goPortal} villageId={village.id} /></main>}
       {view === "visit" && (() => {
         const owner = v.residents.find((r) => r.user_id === visitId);
         return owner ? (
