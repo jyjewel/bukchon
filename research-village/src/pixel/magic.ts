@@ -1,4 +1,5 @@
-import { get, px, rect, type Grid } from "./core";
+import { disc, get, grid, outline, px, rect, type Grid } from "./core";
+import { LIB_H, LIB_W } from "./village";
 
 /** 크리스마스 시즌 "마법학교" 분위기: 지붕에 눈, 처마 전구, 둥둥 떠다니는 초 */
 
@@ -136,7 +137,7 @@ export function treeAura(b: CanvasRenderingContext2D, tree: { x: number; y: numb
 /** 도서관 처마에 반짝이는 전구줄과 문 위 리스, 창가 불빛 */
 export function drawLibraryXmas(b: CanvasRenderingContext2D, lib: { x: number; y: number }, tick: number, night: boolean, mode: "deco" | "glow") {
   const cols = ["#ff6b6b", "#ffd65c", "#7fd6a0", "#8fb8ff"];
-  for (let i = 0; i < 17; i++) {
+  for (let i = 0; i < 0; i++) {
     const x = lib.x - 48 + i * 6, y = lib.y - 51 + (Math.abs(i - 8) > 5 ? 0 : 0) + Math.round(Math.sin(i * 0.9) * 1.2);
     const on = (Math.floor(tick / 14) + i) % 3 !== 0;
     if (mode === "deco") { b.fillStyle = "#3a2a33"; b.fillRect(x, y - 1, 1, 1); b.fillStyle = on ? cols[i % 4] : "#8a7a6a"; b.fillRect(x, y, 2, 2); }
@@ -160,4 +161,69 @@ export function drawLibraryXmas(b: CanvasRenderingContext2D, lib: { x: number; y
     g.addColorStop(0, "rgb(255 220 140 / 0.35)"); g.addColorStop(1, "rgb(255 220 140 / 0)");
     b.fillStyle = g; b.fillRect(lib.x - 42, lib.y - 50, 88, 88);
   }
+}
+
+/** 마법의 성 도서관 (고딕 탑 셋 + 뾰족 지붕). 크기·문 위치는 기존 도서관과 같다 */
+export function castleGrid(lit: boolean): Grid {
+  const g = grid(LIB_W, LIB_H);
+  const st = "#b3adc4", stL = "#cfc9de", stD = "#8d86a6", roof = "#5b4a9e", roofL = "#8572cf", roofD = "#40337a", gold = "#ffd65c";
+  const brick = (x0: number, y0: number, w: number, h: number) => {
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+      const row = y - y0, off = (Math.floor(row / 4) % 2) * 4;
+      let c = st;
+      if (row % 4 === 3 || (x + off) % 8 === 0) c = stD;
+      else if (row % 4 === 0 && (x + off) % 8 === 3) c = stL;
+      px(g, x, y, c);
+    }
+  };
+  const cone = (cx: number, top: number, base: number, half: number) => {
+    for (let y = top; y <= base; y++) {
+      const t = (y - top) / (base - top), hw = Math.max(0, Math.round(half * t));
+      for (let x = cx - hw; x <= cx + hw; x++) {
+        let c = roof;
+        if (x <= cx - hw + 1) c = roofL; else if (x >= cx + hw - 1) c = roofD;
+        else if ((y + Math.floor(x / 3)) % 5 === 0) c = roofD;
+        px(g, x, y, c);
+      }
+    }
+    rect(g, cx - half - 2, base, half * 2 + 5, 2, roofD);
+  };
+  const star = (x: number, y: number) => { px(g, x, y, gold); px(g, x, y - 1, gold); px(g, x, y + 1, gold); px(g, x - 1, y, gold); px(g, x + 1, y, gold); };
+  const win = (x: number, y: number, w: number, h: number) => {   // 뾰족 아치 창
+    rect(g, x, y + 2, w, h - 2, "#3a2a33");
+    for (let i = 0; i < Math.ceil(w / 2) + 1; i++) { rect(g, x + i, y + 2 - Math.min(2, i < 2 ? 2 - i : 0), 1, 1, "#3a2a33"); }
+    rect(g, x + 1, y + 2, w - 2, h - 3, lit ? "#ffe07a" : "#5f6a95");
+    if (lit) rect(g, x + 1, y + 3, 1, Math.max(1, h - 6), "#fff4bf");
+    rect(g, x + Math.floor(w / 2), y + 2, 1, h - 3, "#3a2a33");
+  };
+  // 가운데 본탑
+  brick(34, 28, 36, 48);
+  cone(52, 2, 28, 22);
+  star(52, 1);
+  rect(g, 33, 27, 38, 2, stL); rect(g, 33, 29, 38, 1, stD);
+  win(42, 33, 6, 12); win(56, 33, 6, 12);
+  disc(g, 51.5, 51, 5, 5, "#3a2a33"); disc(g, 51.5, 51, 3.4, 3.4, lit ? "#ffe07a" : "#5f6a95"); rect(g, 51, 47, 1, 8, "#3a2a33"); rect(g, 47, 51, 9, 1, "#3a2a33");
+  // 양옆 탑
+  for (const cx of [14, 90]) {
+    brick(cx - 11, 40, 22, 36);
+    cone(cx, 16, 40, 15);
+    star(cx, 15);
+    rect(g, cx - 12, 39, 24, 2, stL); rect(g, cx - 12, 41, 24, 1, stD);
+    win(cx - 3, 46, 6, 14);
+  }
+  // 가운데 성벽 + 총안
+  brick(24, 58, 56, 18);
+  for (let x = 24; x < 80; x += 8) { rect(g, x, 54, 5, 4, st); rect(g, x, 54, 5, 1, stL); }
+  // 문 (기존 도서관과 같은 위치)
+  rect(g, 41, 56, 22, 20, "#3a2a33"); rect(g, 42, 53, 20, 3, "#3a2a33"); rect(g, 45, 51, 14, 2, "#3a2a33");
+  rect(g, 42, 57, 20, 19, "#7a4a2c"); rect(g, 43, 54, 18, 3, "#7a4a2c"); rect(g, 46, 52, 12, 2, "#7a4a2c");
+  rect(g, 51, 52, 2, 24, "#3a2a33");
+  for (const y of [60, 68]) rect(g, 42, y, 20, 1, "#5a3a22");
+  px(g, 49, 66, gold); px(g, 54, 66, gold);
+  // 깃발
+  rect(g, 52, 0, 1, 3, "#3a2a33");
+  // 계단
+  rect(g, 4, 76, 96, 3, "#cfc9de"); rect(g, 4, 78, 96, 1, stD);
+  rect(g, 30, 79, 44, 3, "#e6e1f0"); rect(g, 30, 81, 44, 1, stD);
+  return outline(g);
 }
