@@ -247,7 +247,7 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   }
   if (st.extras.includes("yunhoemae")) {
     // 윤회매: 붉은 매화(뜨개 꽃) 가지를 갈색 뜨개 화분에 꽂은 것. 책장 맨 위 칸에 놓인다.
-    const x0 = 119, y0 = 8, BR = "#4a3426", R = "#d9232d", RD = "#a8161f", Y = "#ffe14a";
+    const x0 = 119, y0 = 9, BR = "#4a3426", R = "#d9232d", RD = "#a8161f", Y = "#ffe14a";
     rect(g, x0 + 2, y0 + 6, 7, 3, "#c98a3a"); rect(g, x0 + 1, y0 + 5, 9, 2, "#e0a85a"); rect(g, x0 + 2, y0 + 5, 7, 1, "#8a5a2a");
     for (const [dx, dy] of [[3, 7], [5, 8], [7, 7], [4, 8]]) px(g, x0 + dx, y0 + dy, "#a8702a");
     px(g, x0 + 5, y0 + 4, BR); px(g, x0 + 5, y0 + 3, BR); px(g, x0 + 4, y0 + 2, BR); px(g, x0 + 3, y0 + 1, BR); px(g, x0 + 6, y0 + 2, BR); px(g, x0 + 7, y0 + 1, BR); px(g, x0 + 8, y0 + 3, BR); px(g, x0 + 7, y0 + 4, BR);

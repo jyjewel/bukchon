@@ -411,7 +411,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 
 /* ── 함께 쓰는 책장: 나무 틀과 뒷판, 선반 널빤지, 책등 ── */
 .bookcase {
-  padding: 16px 12px 22px;
+  padding: 16px 12px 12px;
   border: 6px solid #8a5a3a;
   border-color: #b8743a #5a3a26 #5a3a26 #a8713f;               /* 위·왼쪽은 밝게, 아래·오른쪽은 어둡게 (입체 테두리) */
   border-radius: 6px;
@@ -427,10 +427,10 @@ button:disabled, .scene-hit:disabled { cursor: default; }
   box-shadow: 0 -1px 0 #3a2a33;
 }
 .bookcase > * { position: relative; z-index: 1; }
-.bookcase > [role="group"] { margin-bottom: 10px; }
+.bookcase .mb-2 { margin-bottom: 0; }   /* 기념주화도 선반 위에 놓이게 */
 .book-spine {
   --spine: #e0605a;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   color: #3a2a33;
   border: 1px solid #3a2a33;
   border-radius: 2px 2px 1px 1px;
@@ -442,7 +442,3 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 .book-spine:hover { filter: brightness(1.06); }
 .book-spine-on { transform: translateY(-6px); outline: 2px solid #fff8e4; outline-offset: 0; }
-.bookcase-note {                                                 /* 비어 있을 때 선반에 붙은 쪽지 */
-  max-width: 11rem; padding: 6px 10px; text-align: center; font-size: 12px; line-height: 17px;
-  color: #3a2a33; background: #fff8e4; border: 1px solid #3a2a33; border-radius: 3px; box-shadow: 0 2px 0 rgb(0 0 0 / 0.25); transform: rotate(-1.5deg);
-}
