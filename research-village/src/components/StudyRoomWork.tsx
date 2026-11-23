@@ -107,7 +107,7 @@ export default function StudyRoomWork({
             ))}
           </nav>
         )}
-        <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
+        <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm btn-xs" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" || section === "results" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
             {section === "snacks" && <SnackBox residents={residents} myId={me.user_id} />}
             {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} cards={xmas.rows} onOpenCard={setCardYear} />}

@@ -37,7 +37,7 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
   }, [initialDate]);
 
   return (
-    <div className="space-y-2 p-3">
+    <div className="space-y-1.5 p-1.5 sm:p-2">
       <div className="flex flex-wrap items-center gap-1">
         <button type="button" className="btn btn-sm" onClick={() => setDate(shift(date, -1))} aria-label="전날">◀</button>
         <button type="button" className="btn btn-sm" disabled={date >= today} onClick={() => setDate(shift(date, 1))} aria-label="다음날">▶</button>
