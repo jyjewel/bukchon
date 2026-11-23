@@ -69,9 +69,9 @@ export default function LibraryView({
         <WindowColumn col="lib-left" userId={me.user_id} className="space-y-5">
           <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
-              <div className="px-box relative flex min-h-[180px] items-end gap-1 p-2" style={{ background: "linear-gradient(#6f4a30 0 0) bottom / 100% 10px no-repeat, #8a5f3c", ["--bd" as string]: "#3a2a33" }}>
+              <div className="bookcase relative flex min-h-[200px] items-end gap-1">
                 <div className="flex min-w-0 flex-1 flex-wrap items-end gap-1 self-stretch" role="group" aria-label="책장">
-                {lib.loaded && lib.books.length === 0 && <p className="w-full pb-4 text-center text-xs text-[#fff8e4]">아직 책이 없어요.</p>}
+                {lib.loaded && lib.books.length === 0 && <p className="bookcase-note mx-auto mb-6 self-center">아직 책이 없어요. 아래에서 첫 책을 만들어 보세요.</p>}
                 {lib.books.length > 1 && <p className="sr-only">책을 끌어서 순서를 바꿀 수 있어요. 키보드는 책에 초점을 두고 스페이스 키를 누른 뒤 화살표로 옮기세요.</p>}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBookDrag}>
                 <SortableContext items={lib.books.map((b) => b.id)} strategy={rectSortingStrategy}>
@@ -80,7 +80,7 @@ export default function LibraryView({
                   return (
                     <SortableItem key={b.id} id={b.id} className="self-end">
                     <button type="button" aria-pressed={bookId === b.id} aria-label={`${b.title} — ${n}편${b.status === "finished" ? ", 완결" : ""}`} onClick={() => setBookId(b.id)}
-                      className="px-box mb-2 flex w-9 items-center justify-center whitespace-nowrap py-2 text-[12px] leading-none" style={{ height: 116 + Math.min(n, 12) * 5, background: spineColor(b.id), color: "#3a2a33", writingMode: "vertical-rl", ["--px" as string]: "1px", ["--bd" as string]: bookId === b.id ? "#fff8e4" : "#3a2a33" }}>
+                      className={`book-spine flex w-9 items-center justify-center whitespace-nowrap py-2 text-[12px] leading-none ${bookId === b.id ? "book-spine-on" : ""}`} style={{ height: 116 + Math.min(n, 12) * 5, ["--spine" as string]: spineColor(b.id), writingMode: "vertical-rl" }}>
                       <span className="max-h-full overflow-hidden">{b.title}</span>
                     </button>
                     </SortableItem>
