@@ -184,7 +184,7 @@ export default function SettingsView({
   const foldData = useFold("settings-data");
   const foldNews = useFold("settings-news");
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
       <div className="space-y-4">
         {error && <Notice kind="error">{error}</Notice>}
         <Window title="내 프로필과 캐릭터" icon="" tone="lilac">

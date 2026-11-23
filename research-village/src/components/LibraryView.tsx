@@ -65,7 +65,7 @@ export default function LibraryView({
   return (
     <div className="space-y-5">
       {error && <Notice kind="error">{error}</Notice>}
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <WindowColumn col="lib-left" userId={me.user_id} className="space-y-5">
           <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">

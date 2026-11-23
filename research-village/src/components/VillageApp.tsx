@@ -323,7 +323,7 @@ const me = v.me!;
       {view === "home" && <MovingCakes villageId={village.id} myId={me.user_id} neighbors={v.residents.length - 1} />}
       {view === "home" && <WelcomeBack prevSeen={v.prevSeen} userId={me.user_id} nudges={notifs.list.filter((n) => n.kind === "nudge" && !n.read_at).length} onGoLab={() => enterRoom(false)} />}
       {view === "home" && (
-        <main className="grid gap-2 lg:grid-cols-[264px_minmax(0,1fr)_276px] lg:gap-5">
+        <main className="grid grid-cols-[minmax(0,1fr)] gap-2 lg:grid-cols-[264px_minmax(0,1fr)_276px] lg:gap-5">
           <WindowColumn col="home-left" userId={me.user_id} className="order-3 space-y-4 lg:order-1">
             <Window key="profile" title="내 프로필" icon="" tone="lilac" as="aside" controls={foldProfile}>
               <div className="flex items-center gap-3 p-3">

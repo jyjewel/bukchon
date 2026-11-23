@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,   // 아이폰이 16px 보다 작은 입력칸을 누를 때 화면을 확대하지 않게(손가락 두 개로 확대하는 건 아이폰에서 그대로 된다)
   viewportFit: "cover",
   themeColor: "#f8f4e8",
 };

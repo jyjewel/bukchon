@@ -39,7 +39,7 @@ export default function ChatView({
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
       <Window title="대화" tone="mint" className="self-start">
         <ul className="p-2">
           {live.length === 0 && <li className="p-3 text-sm text-ink-soft">진행 중인 대화가 없어요.</li>}

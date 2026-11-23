@@ -28,7 +28,7 @@ export default function RoomVisit({
         <button type="button" className="btn" onClick={onBack}>◀ 마을로 돌아가기</button>
         <button type="button" className="btn" onClick={onProfile}>{name}의 프로필</button>
       </div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <div className="space-y-5">
         <Window title={`${name}의 연구실`} tone="butter">
           <RoomCanvas
