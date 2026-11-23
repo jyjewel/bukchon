@@ -3,6 +3,9 @@ export const GESTURES = [
   { id: "thesis", label: "학위논문", icon: "📘", hit: "학위논문(312쪽)으로 때렸어요!" },
   { id: "alarm", label: "마감 알림", icon: "⏰", hit: "마감 알림을 울렸어요!" },
   { id: "snack", label: "학회 하고 남은 과자", icon: "🍪", hit: "학회 하고 남은 과자를 던졌어요!" },
+  { id: "bulb", label: "영감 전구", icon: "💡", hit: "영감 전구를 던졌어요! 좋은 아이디어가 떠오르길 ✨" },
+  { id: "clap", label: "응원 박수", icon: "👏", hit: "응원 박수를 보냈어요! 👏" },
+  { id: "praise", label: "칭찬 별", icon: "⭐", hit: "칭찬 별을 던졌어요! 잘하고 있어요 ⭐" },
 ] as const;
 export type GestureId = (typeof GESTURES)[number]["id"];
 /** 예전에 보낸 알림이 계속 읽히도록 남겨 둔 지금은 보낼 수 없는 던지기 */

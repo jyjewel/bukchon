@@ -452,6 +452,7 @@ await t("상호작용: 장난·선물·책 추천·일지 반응과 댓글·마�
   ok(await m1.c.rpc("send_gesture", { p_village: village, p_target: m2.id, p_kind: "thesis" }));
   const g = await notifOf(m2, "gesture");
   assert.equal(g.length, 1); assert.equal(g[0].actor_id, m1.id); assert.equal(g[0].summary, "thesis");
+  for (const k of ["bulb", "clap", "praise"]) ok(await m1.c.rpc("send_gesture", { p_village: village, p_target: m2.id, p_kind: k }));   // 좋은 것 던지기
   assert.ok((await m1.c.rpc("send_gesture", { p_village: village, p_target: m2.id, p_kind: "bomb" })).error);      // 정해진 종류만
   assert.ok((await m1.c.rpc("send_gesture", { p_village: village, p_target: m2.id, p_kind: "footnote" })).error);  // 없앤 종류는 더 못 보낸다
   ok(await m1.c.rpc("send_gesture", { p_village: village, p_target: m2.id, p_kind: "snack" }));

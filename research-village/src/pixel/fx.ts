@@ -22,6 +22,18 @@ const SPRITES: Record<string, { rows: string[]; pal: Record<string, string> }> =
     rows: ["kkkkkkkkkk", "kqqqqqqqqk", "kqyyyyyyqk", "kqyyccyyqk", "kqycbccyqk", "kqyyccyyqk", "kqqqqqqqqk", "k.kkkkkk.k"],
     pal: { k: "#2a2433", q: "#ff9fb6", y: "#ffe58a", c: "#c98a4e", b: "#6b4226" },
   },
+  bulb: {
+    rows: ["..y.y.y..", "...kkk...", "..kyyyk..", ".kyhyyyk.", ".kyhyyyk.", ".kyyyyyk.", "..kyyyk..", "..kwwwk..", "..kkkkk.."],
+    pal: { k: "#2a2433", y: "#ffe34a", h: "#fffbd0", w: "#b9bdc7" },
+  },
+  clap: {
+    rows: ["..y...y..", ".kkk.kkk.", "kssskkssk", "ksssssssk", "kssssssk.", ".ksssssk.", "..kssskk.", "...kkk..."],
+    pal: { k: "#2a2433", s: "#ffd9a8", y: "#ffe34a" },
+  },
+  praise: {
+    rows: ["...kyk...", "...kyk...", "kkkkyykkk", "kyyyyyyyk", ".kyyhyyk.", "..kyyyk..", ".kyykyyk.", ".kyk.kyk.", "..k...k.."],
+    pal: { k: "#2a2433", y: "#ffd23f", h: "#fff6b0" },
+  },
   star: {
     rows: ["..y..", ".yyy.", "yyyyy", ".yyy.", "..y.."],
     pal: { y: "#ffe34a" },
