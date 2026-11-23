@@ -256,7 +256,7 @@ const me = v.me!;
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4 p-3 pb-16 sm:p-4 sm:pb-16 lg:space-y-5 lg:pb-4">
-      <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fff6d9" }}>
+      <header className="window flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2" style={{ background: "#fffdf7" }}>
         <div className="flex items-baseline gap-2">
           <h1 className="font-display text-xl">연구자 마을</h1>
           <span className="relative inline-flex items-center">
@@ -286,7 +286,7 @@ const me = v.me!;
           <button type="button" aria-current={view === "settings" ? "page" : undefined} className={`btn ${view === "settings" ? "btn-primary" : ""}`} onClick={() => setView("settings")}>설정</button>
         </nav>
       </header>
-      <nav aria-label="하단 메뉴" className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink bg-[#fff6d9] lg:hidden" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) * 0.45)", boxShadow: "0 -2px 0 0 rgb(58 42 51 / 0.12)" }}>
+      <nav aria-label="하단 메뉴" className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink bg-[#fffdf7] lg:hidden" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) * 0.45)", boxShadow: "0 -2px 0 0 rgb(58 42 51 / 0.12)" }}>
         {([
           ["home", "홈", () => go("home"), 0],
           ["room", "연구실", () => go("room"), 0],
