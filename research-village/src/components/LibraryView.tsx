@@ -80,7 +80,7 @@ export default function LibraryView({
                   return (
                     <SortableItem key={b.id} id={b.id} className="self-end">
                     <button type="button" aria-pressed={bookId === b.id} aria-label={`${b.title} — ${n}편${b.status === "finished" ? ", 완결" : ""}`} onClick={() => setBookId(b.id)}
-                      className={`book-spine flex w-9 items-center justify-center whitespace-nowrap py-2 text-[12px] leading-none ${bookId === b.id ? "book-spine-on" : ""}`} style={{ height: 116 + Math.min(n, 12) * 5, ["--spine" as string]: spineColor(b.id), writingMode: "vertical-rl" }}>
+                      className={`book-spine flex w-9 items-center justify-center whitespace-nowrap py-3 leading-none ${bookId === b.id ? "book-spine-on" : ""}`} style={{ height: 136 + Math.min(n, 12) * 5, ["--spine" as string]: spineColor(b.id), writingMode: "vertical-rl" }}>
                       <span className="max-h-full overflow-hidden">{b.title}</span>
                     </button>
                     </SortableItem>
