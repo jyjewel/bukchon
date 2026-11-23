@@ -418,7 +418,7 @@ const me = v.me!;
           </WindowColumn>
 
           <div className="order-2 space-y-4 lg:order-3">
-            <Window title="마을 주민" icon="" tone="rose" as="aside">
+            <Window title="마을 주민" icon="" tone="sky" as="aside">
               <ul className="space-y-1 p-2">
                 {others.map((r) => (
                   <li key={r.user_id} className="flex items-center">
