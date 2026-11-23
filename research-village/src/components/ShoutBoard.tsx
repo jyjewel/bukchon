@@ -48,7 +48,7 @@ export default function ShoutBoard({
           const mine = s.author_id === myId;
           return (
             <li key={s.id} className={`flex items-end gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-              {who ? <span className="shrink-0 max-lg:[zoom:0.62]"><CharacterIcon avatar={who.profile.avatar} size={36} /></span> : <span className="w-[27px]" />}
+              {who ? <><span className="shrink-0 lg:hidden"><CharacterIcon avatar={who.profile.avatar} size={36} headOnly /></span><span className="hidden shrink-0 lg:inline"><CharacterIcon avatar={who.profile.avatar} size={36} /></span></> : <span className="w-[27px]" />}
               <div className={`min-w-0 max-w-[80%] ${mine ? "text-right" : ""}`}>
                 <p className="text-xs text-ink-soft">{who?.profile.display_name ?? "떠난 주민"} · {relativeTime(s.created_at)}</p>
                 <p className="px-box inline-block break-words px-2 py-1 text-left text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{s.body}</p>

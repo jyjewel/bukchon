@@ -6,7 +6,7 @@ import { AV_H, AV_W, avatarGrid } from "@/pixel/avatar";
 import { iconGrid } from "@/pixel/village";
 
 /** 도트 캐릭터. size 는 대략적인 높이(px)이며 도트가 고르게 보이도록 정수 배율로 맞춘다. */
-export function CharacterIcon({ avatar, size = 50, className = "" }: { avatar: Avatar; size?: number; className?: string }) {
+export function CharacterIcon({ avatar, size = 50, className = "", headOnly = false }: { avatar: Avatar; size?: number; className?: string; headOnly?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const k = Math.max(2, Math.round(size / AV_H));
   const key = JSON.stringify(avatar);
@@ -16,6 +16,12 @@ export function CharacterIcon({ avatar, size = 50, className = "" }: { avatar: A
     ctx.clearRect(0, 0, AV_W, AV_H);
     paint(ctx, avatarGrid(JSON.parse(key) as Avatar), 0, 0);
   }, [key]);
+  // headOnly: 크기는 그대로 두고 머리와 어깨 위쪽만 보이게 자른다(몸과 다리는 가린다)
+  if (headOnly) return (
+    <span className={`inline-block shrink-0 overflow-hidden ${className}`} style={{ width: 18 * k, height: 16 * k }} aria-hidden>
+      <canvas ref={ref} width={AV_W} height={AV_H} className="pixelated block" style={{ width: AV_W * k, height: AV_H * k, marginLeft: -3 * k }} />
+    </span>
+  );
   return <canvas ref={ref} width={AV_W} height={AV_H} className={`pixelated shrink-0 ${className}`} style={{ width: AV_W * k, height: AV_H * k, margin: `0 ${-3 * k}px` }} aria-hidden />;
 }
 
