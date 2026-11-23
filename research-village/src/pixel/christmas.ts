@@ -1,9 +1,10 @@
 import { disc, grid, hash, outline, px, rect, type Grid } from "./core";
 
-/** 크리스마스 한 달 전(11월 25일)부터 크리스마스(12월 25일)까지 광장의 분수가 커다란 트리로 바뀐다 */
+/** 11월 24일 0시(한국 시간)부터 12월 25일 끝까지 크리스마스 꾸밈이 켜진다. 어느 나라에서 접속해도 한국 날짜 기준 */
 export function isChristmasSeason(d = new Date()): boolean {
-  const m = d.getMonth() + 1, day = d.getDate();
-  return (m === 11 && day >= 25) || (m === 12 && day <= 25);
+  const k = new Date(d.getTime() + 9 * 3600_000);
+  const m = k.getUTCMonth() + 1, day = k.getUTCDate();
+  return (m === 11 && day >= 24) || (m === 12 && day <= 25);
 }
 
 export const TREE_W = 70;
