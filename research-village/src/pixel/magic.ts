@@ -105,3 +105,59 @@ export function drawOwl(b: CanvasRenderingContext2D, tick: number, w: number) {
   b.fillStyle = "#fff"; b.fillRect(-6, 6, 4, 3); b.fillStyle = "#e55"; b.fillRect(-5, 7, 1, 1);
   b.restore();
 }
+
+/** 트리에서 번지는 오색 빛무리. 낮에도 은은하게, 밤에는 광장 전체를 물들인다 */
+export function treeAura(b: CanvasRenderingContext2D, tree: { x: number; y: number }, tick: number, night: boolean) {
+  const pulse = 0.88 + 0.12 * Math.sin(tick * 0.07);
+  const a = (night ? 0.85 : 0.35) * pulse, cx = tree.x, cy = tree.y - 46;
+  const g = b.createRadialGradient(cx, cy, 6, cx, cy, 82);
+  g.addColorStop(0, `rgb(255 236 160 / ${a})`);
+  g.addColorStop(0.45, `rgb(255 210 130 / ${a * 0.45})`);
+  g.addColorStop(1, "rgb(255 190 120 / 0)");
+  b.fillStyle = g;
+  b.fillRect(cx - 82, cy - 82, 164, 164);
+  const cols = ["255 90 90", "120 220 140", "130 180 255", "255 220 90"];
+  for (let i = 0; i < 12; i++) {
+    const ang = i * 2.4, r = 10 + (i % 4) * 9;
+    const x = cx + Math.cos(ang) * r * 0.9, y = cy + 4 + Math.sin(ang) * r * 1.3 - 6;
+    const tw = 0.5 + 0.5 * Math.sin(tick * 0.12 + i * 1.7);
+    const gl = b.createRadialGradient(x, y, 0, x, y, 9);
+    gl.addColorStop(0, `rgb(${cols[i % 4]} / ${(night ? 0.55 : 0.25) * tw})`);
+    gl.addColorStop(1, `rgb(${cols[i % 4]} / 0)`);
+    b.fillStyle = gl;
+    b.fillRect(x - 9, y - 9, 18, 18);
+  }
+  // 트리 꼭대기 별에서 퍼지는 반짝임
+  const sx = tree.x, sy = tree.y - 96, s = 0.6 + 0.4 * Math.sin(tick * 0.2);
+  b.fillStyle = `rgb(255 250 200 / ${s})`;
+  b.fillRect(sx - 1, sy - 6, 2, 12); b.fillRect(sx - 6, sy - 1, 12, 2);
+}
+
+/** 도서관 처마에 반짝이는 전구줄과 문 위 리스, 창가 불빛 */
+export function drawLibraryXmas(b: CanvasRenderingContext2D, lib: { x: number; y: number }, tick: number, night: boolean, mode: "deco" | "glow") {
+  const cols = ["#ff6b6b", "#ffd65c", "#7fd6a0", "#8fb8ff"];
+  for (let i = 0; i < 17; i++) {
+    const x = lib.x - 48 + i * 6, y = lib.y - 51 + (Math.abs(i - 8) > 5 ? 0 : 0) + Math.round(Math.sin(i * 0.9) * 1.2);
+    const on = (Math.floor(tick / 14) + i) % 3 !== 0;
+    if (mode === "deco") { b.fillStyle = "#3a2a33"; b.fillRect(x, y - 1, 1, 1); b.fillStyle = on ? cols[i % 4] : "#8a7a6a"; b.fillRect(x, y, 2, 2); }
+    if (mode === "glow" && on && night) {
+      const g = b.createRadialGradient(x + 1, y + 1, 0, x + 1, y + 1, 7);
+      g.addColorStop(0, "rgb(255 230 150 / 0.45)"); g.addColorStop(1, "rgb(255 230 150 / 0)");
+      b.fillStyle = g; b.fillRect(x - 6, y - 6, 14, 14);
+    }
+  }
+  if (mode === "deco") {
+  // 문 위 리스
+  const wx = lib.x + 2, wy = lib.y - 33;
+  b.fillStyle = "#3a2a33"; b.fillRect(wx - 5, wy - 1, 11, 9);
+  b.fillStyle = "#2f8f4a"; b.fillRect(wx - 4, wy, 9, 7);
+  b.fillStyle = "#4fb868"; b.fillRect(wx - 3, wy + 1, 3, 2); b.fillRect(wx + 1, wy + 4, 3, 2);
+  b.fillStyle = "#3a2a33"; b.fillRect(wx - 2, wy + 2, 5, 3);
+  b.fillStyle = "#e84c4c"; b.fillRect(wx - 1, wy + 6, 3, 2); b.fillRect(wx - 3, wy + 3, 1, 1); b.fillRect(wx + 3, wy + 1, 1, 1);
+  }
+  if (mode === "glow" && night) {
+    const g = b.createRadialGradient(lib.x + 2, lib.y - 6, 4, lib.x + 2, lib.y - 6, 44);
+    g.addColorStop(0, "rgb(255 220 140 / 0.35)"); g.addColorStop(1, "rgb(255 220 140 / 0)");
+    b.fillStyle = g; b.fillRect(lib.x - 42, lib.y - 50, 88, 88);
+  }
+}
