@@ -457,6 +457,20 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     } else if (k === "haribo") {
       rect(g, x, 45, 7, 1, "#ffffff");
       [["#ff4d5e", 0], ["#5fd36a", 2], ["#ffa63a", 4]].forEach(([c, dx]) => { rect(g, x + (dx as number), 42, 2, 3, c as string); px(g, x + (dx as number), 41, c as string); px(g, x + (dx as number) + 1, 41, c as string); });
+    } else if (k === "vinchaud") {
+      // 뱅쇼: 와인빛 머그에 오렌지 조각과 계피 스틱, 김
+      rect(g, x, 42, 5, 4, "#ffffff"); rect(g, x, 42, 5, 1, "#9b1f3a"); rect(g, x, 43, 5, 1, "#c0392b"); px(g, x + 5, 43, "#ffffff"); px(g, x + 5, 44, "#ffffff");
+      px(g, x + 3, 42, "#ff9a2e"); rect(g, x + 4, 39, 1, 3, "#8a5a3a"); px(g, x + 1, 40, "#ffffff"); px(g, x + 2, 39, "#f0f0f6");
+    } else if (k === "warmmilk") {
+      rect(g, x, 42, 5, 4, "#cfe4f6"); rect(g, x, 42, 5, 1, "#fffaf0"); px(g, x + 5, 43, "#cfe4f6"); px(g, x + 5, 44, "#cfe4f6"); px(g, x + 1, 44, "#b6d2ea");
+      px(g, x + 1, 40, "#ffffff"); px(g, x + 3, 39, "#f0f0f6");
+    } else if (k === "stollen") {
+      rect(g, x, 45, 7, 1, "#ffffff"); disc(g, x + 3, 43.5, 3.2, 1.8, "#f4ead4"); rect(g, x, 42, 6, 1, "#ffffff"); px(g, x + 2, 44, "#c0392b"); px(g, x + 4, 43, "#7a9a3a");
+    } else if (k === "cookie") {
+      rect(g, x, 45, 7, 1, "#ffffff"); disc(g, x + 2, 43.5, 2, 1.8, "#d9a352"); disc(g, x + 5, 43.5, 1.8, 1.6, "#c98a40"); px(g, x + 2, 43, "#5a3420"); px(g, x + 5, 44, "#5a3420"); px(g, x + 3, 44, "#5a3420");
+    } else if (k === "buche") {
+      rect(g, x, 45, 7, 1, "#ffffff"); rect(g, x, 42, 6, 3, "#5a3420"); rect(g, x, 42, 6, 1, "#7a4a2c"); disc(g, x + 6, 43.5, 1.2, 1.6, "#f1dcb0");
+      px(g, x + 2, 41, "#2f8f4a"); px(g, x + 3, 41, "#2f8f4a"); px(g, x + 3, 40, "#e0383f"); px(g, x + 1, 42, "#ffffff"); px(g, x + 4, 42, "#ffffff");
     } else if (k === "siru" || k === "rainbow") {
       // 떡 접시: 겹겹이 쌓인 떡 조각 (팥시루떡은 팥고물, 무지개떡은 색 줄무늬)
       const stripes = k === "siru" ? ["#9b3f45", "#f6ead0", "#9b3f45", "#f6ead0"] : ["#ff9fb6", "#ffe58a", "#a5e3a0", "#fffaf0"];

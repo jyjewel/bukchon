@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-25-xmas-menu", date: "11월 25일", title: "건네기 메뉴에 뱅쇼·따뜻한 우유·슈톨렌·쿠키·부쉬드 노엘이 생겼어요", body: "" },
   { id: "2026-11-25-xmas-items", date: "11월 25일", title: "산타 모자·루돌프 코·벽걸이 양말·리스를 미리 꾸며볼 수 있어요", body: "" },
   { id: "2026-11-24-xmas-notice", date: "11월 24일", title: "마법학교 크리스마스: 11월 25일 ~ 12월 25일(한국 시간)에만 열려요", body: "" },
   { id: "2026-11-24-me-in-list", date: "11월 24일", title: "[소원] PC 주민 목록에 나도 보여요, 폰 알림을 더 빨리 보내요", body: "" },

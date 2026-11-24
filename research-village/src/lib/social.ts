@@ -19,6 +19,8 @@ export const GIFTS = [
   { id: "americano", label: "아이스 아메리카노", icon: "🧊" },
   { id: "vanillalatte", label: "아이스 바닐라 라떼", icon: "🥛" },
   { id: "cappuccino", label: "핫 카푸치노", icon: "☕" },
+  { id: "vinchaud", label: "뱅쇼", icon: "🍷" },
+  { id: "warmmilk", label: "따뜻한 우유", icon: "🥛" },
   { id: "mochi", label: "요거트 찹쌀떡", icon: "🍡" },
   { id: "yakgwa", label: "약과", icon: "🍪" },
   { id: "tangerine", label: "귤", icon: "🍊" },
@@ -26,6 +28,9 @@ export const GIFTS = [
   { id: "bungeoppang", label: "붕어빵", icon: "🐟" },
   { id: "cupbokki", label: "컵볶이", icon: "🥡" },
   { id: "haribo", label: "하리보", icon: "🧸" },
+  { id: "stollen", label: "슈톨렌", icon: "🍞" },
+  { id: "cookie", label: "쿠키", icon: "🍪" },
+  { id: "buche", label: "부쉬드 노엘", icon: "🎂" },
   { id: "tea", label: "따뜻한 차", icon: "🍵" },
   { id: "beer", label: "맥주 한 잔", icon: "🍺" },
 ] as const;
@@ -51,7 +56,7 @@ export type TteokKind = (typeof TTEOK)[number]["id"];
 /** 예전에 건넨 "간식" 선물이 계속 읽히도록 남겨 둔 종류 */
 const OLD_GIFTS = [{ id: "minishell", label: "미니쉘", icon: "🐚" }, { id: "snack", label: "간식", icon: "🍪" }, { id: "makgeolli", label: "막걸리", icon: "🍶" }, { id: "cocoa", label: "핫초코", icon: "☕" }, { id: "gingerbread", label: "진저맨 쿠키", icon: "🍪" }, { id: "stollen", label: "슈톨렌", icon: "🍞" }, { id: "xmascake", label: "딸기 케이크", icon: "🍰" }] as const;
 /** 간식으로 묶이는 선물 (고르는 화면에서 따로 보여 준다) */
-export const SNACK_IDS = ["mochi", "yakgwa", "tangerine", "apple", "bungeoppang", "cupbokki", "haribo"] as const;
+export const SNACK_IDS = ["mochi", "yakgwa", "tangerine", "apple", "bungeoppang", "cupbokki", "haribo", "stollen", "cookie", "buche"] as const;
 export const giftOf = (id: string): { id: string; label: string; icon: string } | undefined => GIFTS.find((g) => g.id === id) ?? TTEOK.find((g) => g.id === id) ?? OLD_GIFTS.find((g) => g.id === id);
 export const reactionOf = (id: string) => REACTIONS.find((g) => g.id === id);
 

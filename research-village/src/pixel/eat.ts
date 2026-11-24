@@ -2,7 +2,7 @@ import { disc, grid, outline, px, rect, type Grid } from "./core";
 import { snackGrid, type SnackId } from "./snacks";
 import { tteokGrid, type TteokId } from "./tteok";
 
-const SNACKS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "bungeoppang", "cupbokki", "haribo"];
+const SNACKS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "bungeoppang", "cupbokki", "haribo", "stollen", "cookie", "buche"];
 const TTEOK = ["siru", "rainbow", "songpyeon"];
 
 /** 2×2 칸을 한 칸으로 줄인다(가장 많이 쓰인 색). 간식 그림을 캐릭터 머리 옆에 작게 띄울 때 쓴다 */
@@ -33,8 +33,8 @@ function drinkGrid(kind: string): Grid {
     if (kind === "vanillalatte") rect(g, 1, 7, 5, 2, "#8a5a3a");
     px(g, 2, 5, "#ffffff"); rect(g, 4, 0, 1, 5, kind === "americano" ? "#2f2a3a" : "#e0605a");
   } else {
-    const c = kind === "tea" ? "#7fbf6a" : kind === "cappuccino" ? "#f1e3c8" : "#7a4a2a";
-    rect(g, 1, 4, 6, 5, "#ffffff"); rect(g, 1, 4, 6, 1, c); px(g, 7, 5, "#ffffff"); px(g, 7, 6, "#ffffff"); rect(g, 0, 9, 8, 1, "#e6dfd0");
+    const c = kind === "tea" ? "#7fbf6a" : kind === "cappuccino" ? "#f1e3c8" : kind === "vinchaud" ? "#9b1f3a" : kind === "warmmilk" ? "#fffaf0" : "#7a4a2a";
+    rect(g, 1, 4, 6, 5, kind === "warmmilk" ? "#cfe4f6" : "#ffffff"); rect(g, 1, 4, 6, 1, c); px(g, 7, 5, "#ffffff"); px(g, 7, 6, "#ffffff"); rect(g, 0, 9, 8, 1, "#e6dfd0");
     px(g, 2, 2, "#ffffff"); px(g, 3, 1, "#f0f0f6"); px(g, 5, 2, "#ffffff");   // 김
   }
   return outline(g);
@@ -62,6 +62,13 @@ function tinySnack(kind: string): Grid | null {
     disc(g, 4, 5, 2.4, 3, "#e0383f"); disc(g, 6, 5, 2.4, 3, "#e0383f"); px(g, 4, 4, "#ff8a8a"); rect(g, 5, 1, 1, 2, "#6b4a30"); rect(g, 6, 1, 2, 1, "#5fae4a");
   } else if (kind === "haribo") {
     [["#ff4d5e", 1], ["#5fd36a", 4], ["#ffa63a", 7]].forEach(([c, x]) => { rect(g, x as number, 3, 2, 5, c as string); px(g, x as number, 2, c as string); px(g, (x as number) + 1, 2, c as string); });
+  } else if (kind === "stollen") {
+    disc(g, 5, 5, 4.5, 2.6, "#f4ead4"); rect(g, 2, 3, 7, 1, "#ffffff"); px(g, 4, 5, "#c0392b"); px(g, 7, 5, "#7a9a3a"); rect(g, 2, 7, 7, 1, "#c99a55");
+  } else if (kind === "cookie") {
+    disc(g, 5, 5, 3.6, 3.2, "#d9a352"); disc(g, 4, 4, 1.6, 1, "#e8bb70"); for (const [x, y] of [[4, 5], [6, 4], [6, 6], [3, 6]] as [number, number][]) px(g, x, y, "#5a3420");
+  } else if (kind === "buche") {
+    rect(g, 1, 3, 7, 4, "#5a3420"); rect(g, 1, 3, 7, 1, "#7a4a2c"); disc(g, 8, 5, 1.8, 2.2, "#f1dcb0"); px(g, 8, 5, "#8a5a38"); rect(g, 2, 2, 3, 1, "#ffffff");
+    px(g, 4, 1, "#2f8f4a"); px(g, 5, 1, "#2f8f4a"); px(g, 5, 2, "#e0383f");
   } else return null;
   return outline(g);
 }
@@ -82,6 +89,6 @@ export function eatGrid(kind: string): Grid | null {
   if (tiny) return crop(tiny);
   if (SNACKS.includes(kind)) return crop(outline(halve(snackGrid(kind as SnackId))));
   if (TTEOK.includes(kind)) return crop(outline(halve(tteokGrid(kind as TteokId))));
-  if (["coffee", "americano", "vanillalatte", "cappuccino", "tea", "beer"].includes(kind)) return crop(drinkGrid(kind));
+  if (["coffee", "americano", "vanillalatte", "cappuccino", "tea", "beer", "vinchaud", "warmmilk"].includes(kind)) return crop(drinkGrid(kind));
   return null;
 }

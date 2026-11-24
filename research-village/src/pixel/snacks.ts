@@ -2,7 +2,7 @@ import { disc, grid, outline, px, rect, shade, type Grid } from "./core";
 
 export const SNACK_W = 18;
 export const SNACK_H = 15;
-export type SnackId = "mochi" | "yakgwa" | "tangerine" | "apple" | "minishell" | "bungeoppang" | "cupbokki" | "haribo";
+export type SnackId = "mochi" | "yakgwa" | "tangerine" | "apple" | "minishell" | "bungeoppang" | "cupbokki" | "haribo" | "stollen" | "cookie" | "buche";
 
 /** 건네기 간식 도트 그림 (고르는 카드에 쓴다) */
 export function snackGrid(kind: SnackId): Grid {
@@ -55,6 +55,26 @@ export function snackGrid(kind: SnackId): Grid {
     rect(g, 4, 6, 10, 1, "#d8d0c4");
     for (const [x, y] of [[5, 3], [8, 2], [11, 3], [6, 5], [10, 5]] as [number, number][]) { rect(g, x, y, 3, 3, "#d4421f"); rect(g, x, y, 3, 1, "#f2683a"); px(g, x + 1, y + 1, "#8a1f12"); }
     rect(g, 13, 0, 1, 6, "#c9a24e"); px(g, 13, 0, "#e8c870"); rect(g, 12, 1, 3, 2, "#e8b567"); px(g, 13, 1, "#c98a40");
+  } else if (kind === "stollen") {
+    // 슈톨렌: 슈거파우더를 듬뿍 뿌린 길쭉한 빵, 단면에 건과일
+    disc(g, 9, 9, 8, 4.6, "#c99a55"); disc(g, 9, 8, 7.6, 4.2, "#f4ead4"); rect(g, 3, 5, 12, 1, "#ffffff"); rect(g, 4, 6, 4, 1, "#ffffff");
+    for (const [x, y] of [[5, 8], [8, 7], [11, 9], [13, 7], [7, 10]] as [number, number][]) px(g, x, y, "#e9dcc0");
+    px(g, 6, 9, "#c0392b"); px(g, 10, 8, "#7a9a3a"); px(g, 12, 10, "#c0392b"); px(g, 9, 10, "#e0a53a");
+    rect(g, 4, 12, 11, 1, "#a07a3e"); px(g, 15, 9, "#c99a55");
+  } else if (kind === "cookie") {
+    // 쿠키: 초코칩 쿠키와 별 모양 설탕 쿠키
+    disc(g, 6, 8, 5.4, 4.8, "#a8742f"); disc(g, 6, 7.6, 5, 4.4, "#d9a352"); disc(g, 5, 6, 2, 1.2, "#e8bb70");
+    for (const [x, y] of [[4, 8], [7, 6], [8, 10], [5, 10], [9, 8]] as [number, number][]) { px(g, x, y, "#5a3420"); px(g, x + 1, y, "#5a3420"); }
+    rect(g, 13, 4, 2, 9, "#c9944a"); rect(g, 10, 7, 8, 2, "#c9944a"); rect(g, 11, 5, 6, 2, "#d9a352"); rect(g, 11, 9, 6, 3, "#d9a352"); rect(g, 12, 7, 4, 2, "#f4d9a0");
+    px(g, 14, 8, "#e0383f"); px(g, 12, 6, "#ffffff"); px(g, 16, 10, "#ffffff");
+  } else if (kind === "buche") {
+    // 부쉬드 노엘: 통나무 모양 초코 롤케이크, 단면 소용돌이, 호랑가시 잎과 열매, 슈거파우더
+    rect(g, 2, 6, 13, 7, "#5a3420"); rect(g, 2, 6, 13, 2, "#7a4a2c"); rect(g, 3, 9, 11, 1, "#6b3f26"); rect(g, 4, 11, 9, 1, "#6b3f26");
+    for (const x of [4, 7, 10, 12]) px(g, x, 7, "#9a6a40");
+    disc(g, 15, 9.5, 3.2, 3.6, "#7a4a2c"); disc(g, 15, 9.5, 2.2, 2.6, "#f1dcb0"); disc(g, 15, 9.5, 1.2, 1.4, "#8a5a38"); px(g, 15, 9, "#f1dcb0");
+    rect(g, 4, 5, 3, 1, "#ffffff"); rect(g, 9, 5, 4, 1, "#ffffff"); px(g, 6, 6, "#ffffff");
+    px(g, 6, 3, "#2f8f4a"); px(g, 7, 2, "#2f8f4a"); px(g, 8, 3, "#2f8f4a"); px(g, 7, 4, "#2f8f4a"); px(g, 9, 3, "#4fb868"); px(g, 10, 4, "#4fb868");
+    px(g, 7, 3, "#e0383f"); px(g, 8, 4, "#e0383f"); px(g, 9, 4, "#c0392b");
   } else {
     // 하리보: 빨강·초록·주황 곰 젤리
     const bear = (x: number, y: number, c: string) => {

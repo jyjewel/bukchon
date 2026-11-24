@@ -8,7 +8,7 @@ import { tteokGrid, type TteokId } from "@/pixel/tteok";
 import type { Resident } from "@/lib/types";
 import PixelArt from "./PixelArt";
 
-const SNACKS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "bungeoppang", "cupbokki", "haribo"];   // 미니쉘은 예전에 받은 것을 보여 주려고 남겨 둔다
+const SNACKS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "bungeoppang", "cupbokki", "haribo", "stollen", "cookie", "buche"];   // 미니쉘은 예전에 받은 것을 보여 주려고 남겨 둔다
 const TTEOKS = ["siru", "rainbow", "songpyeon"];
 const KEEP_MS = 3 * 86400_000;
 interface Row { id: string; kind: string; from_user: string; note: string; created_at: string }
