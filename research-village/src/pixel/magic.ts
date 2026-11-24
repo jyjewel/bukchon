@@ -107,31 +107,33 @@ export function drawOwl(b: CanvasRenderingContext2D, tick: number, w: number) {
   b.restore();
 }
 
-/** 트리에서 번지는 오색 빛무리. 낮에도 은은하게, 밤에는 광장 전체를 물들인다 */
+/** 트리에서 번지는 오색 빛무리. 흰빛은 줄이고 빨강·초록·파랑·노랑 불빛이 알록달록하게 반짝인다 */
 export function treeAura(b: CanvasRenderingContext2D, tree: { x: number; y: number }, tick: number, night: boolean) {
-  const pulse = 0.88 + 0.12 * Math.sin(tick * 0.07);
-  const a = (night ? 0.85 : 0.35) * pulse, cx = tree.x, cy = tree.y - 46;
-  const g = b.createRadialGradient(cx, cy, 6, cx, cy, 82);
-  g.addColorStop(0, `rgb(255 236 160 / ${a})`);
-  g.addColorStop(0.45, `rgb(255 210 130 / ${a * 0.45})`);
-  g.addColorStop(1, "rgb(255 190 120 / 0)");
+  const pulse = 0.9 + 0.1 * Math.sin(tick * 0.07);
+  const cx = tree.x, cy = tree.y - 46, k = night ? 1 : 0.45;
+  // 바닥 빛: 흰색이 아니라 따뜻한 분홍빛
+  const g = b.createRadialGradient(cx, cy, 6, cx, cy, 74);
+  g.addColorStop(0, `rgb(255 170 150 / ${0.2 * k * pulse})`);
+  g.addColorStop(0.5, `rgb(255 140 190 / ${0.14 * k * pulse})`);
+  g.addColorStop(1, "rgb(255 140 190 / 0)");
   b.fillStyle = g;
-  b.fillRect(cx - 82, cy - 82, 164, 164);
-  const cols = ["255 90 90", "120 220 140", "130 180 255", "255 220 90"];
-  for (let i = 0; i < 12; i++) {
-    const ang = i * 2.4, r = 10 + (i % 4) * 9;
-    const x = cx + Math.cos(ang) * r * 0.9, y = cy + 4 + Math.sin(ang) * r * 1.3 - 6;
-    const tw = 0.5 + 0.5 * Math.sin(tick * 0.12 + i * 1.7);
-    const gl = b.createRadialGradient(x, y, 0, x, y, 9);
-    gl.addColorStop(0, `rgb(${cols[i % 4]} / ${(night ? 0.55 : 0.25) * tw})`);
-    gl.addColorStop(1, `rgb(${cols[i % 4]} / 0)`);
+  b.fillRect(cx - 74, cy - 74, 148, 148);
+  const cols = ["255 70 70", "70 220 110", "80 150 255", "255 200 50", "255 110 200", "170 110 255"];
+  for (let i = 0; i < 22; i++) {
+    const ang = i * 2.4, r = 14 + (i % 5) * 9;
+    const x = cx + Math.cos(ang) * r * 0.85, y = cy + 2 + Math.sin(ang) * r * 1.35 - 6;
+    const tw = 0.35 + 0.65 * Math.abs(Math.sin(tick * 0.1 + i * 1.9));
+    const c = cols[i % cols.length], rad = 11;
+    const gl = b.createRadialGradient(x, y, 0, x, y, rad);
+    gl.addColorStop(0, `rgb(${c} / ${0.42 * k * tw})`);
+    gl.addColorStop(1, `rgb(${c} / 0)`);
     b.fillStyle = gl;
-    b.fillRect(x - 9, y - 9, 18, 18);
+    b.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
-  // 트리 꼭대기 별에서 퍼지는 반짝임
-  const sx = tree.x, sy = tree.y - 96, s = 0.6 + 0.4 * Math.sin(tick * 0.2);
-  b.fillStyle = `rgb(255 250 200 / ${s})`;
-  b.fillRect(sx - 1, sy - 6, 2, 12); b.fillRect(sx - 6, sy - 1, 12, 2);
+  // 꼭대기 별: 금빛으로 반짝
+  const sx = tree.x, sy = tree.y - 96, s = 0.5 + 0.5 * Math.sin(tick * 0.2);
+  b.fillStyle = `rgb(255 214 90 / ${0.5 + 0.5 * s})`;
+  b.fillRect(sx - 1, sy - 5, 2, 10); b.fillRect(sx - 5, sy - 1, 10, 2);
 }
 
 /** 도서관 처마에 반짝이는 전구줄과 문 위 리스, 창가 불빛 */
