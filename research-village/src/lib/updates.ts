@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-24-me-in-list", date: "11월 24일", title: "[소원] PC 주민 목록에 나도 보여요, 폰 알림을 더 빨리 보내요", body: "" },
   { id: "2026-11-23-nice-throw", date: "11월 23일", title: "[소원] 영감 전구, 응원 박수, 칭찬 별을 던질 수 있어요", body: "" },
   { id: "2026-11-23-notif-link", date: "11월 23일", title: "[소원] 알림을 누르면 해당 내용으로 바로 가요", body: "" },
   { id: "2026-11-21-eat", date: "11월 21일", title: "[소원] 받은 간식을 먹을 수 있어요", body: "" },
