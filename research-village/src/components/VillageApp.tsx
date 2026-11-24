@@ -259,6 +259,8 @@ const me = v.me!;
   const go = (id: View) => (id === "room" ? enterRoom(false) : setView(id));
   const emptyHouses = VILLAGE_CAPACITY - v.residents.length;
   const others = v.residents.filter((r) => r.user_id !== me.user_id);
+  const meRes = v.residents.find((r) => r.user_id === me.user_id);
+  const listed = meRes ? [meRes, ...others] : others;
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4 p-3 pb-16 sm:p-4 sm:pb-16 lg:space-y-5 lg:pb-4">
@@ -422,12 +424,12 @@ const me = v.me!;
           <div className="order-2 space-y-4 lg:order-3">
             <Window title="마을 주민" icon="" tone="sky" as="aside">
               <ul className="space-y-1 p-2">
-                {others.map((r) => (
+                {listed.map((r) => (
                   <li key={r.user_id} className="flex items-center">
-                    <button type="button" onClick={() => setSelected(r.user_id)} className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left hover:bg-[#fff3c4]">
+                    <button type="button" onClick={() => (r.user_id === me.user_id ? openMyRoom("diary") : setSelected(r.user_id))} className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left hover:bg-[#fff3c4]">
                       <span className={r.online ? "" : "opacity-45 grayscale"}><CharacterIcon avatar={r.profile.avatar} size={44} /></span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-display text-sm">{r.profile.display_name}</span>
+                        <span className="block truncate font-display text-sm">{r.profile.display_name}{r.user_id === me.user_id && <span className="ml-1 text-xs text-ink-soft">(나)</span>}</span>
                         <StatusChip r={r} />
                         {!r.online && (awayDays(r.status.left_at ?? r.status.last_seen_at) >= 2
                           ? <span className="ml-1 text-xs text-ink-soft">{awayDays(r.status.left_at ?? r.status.last_seen_at)}일째 안 와요</span>
@@ -435,7 +437,7 @@ const me = v.me!;
                         {r.online && r.status.topic && <span className="mt-0.5 block truncate text-xs text-ink-soft">{r.status.topic}</span>}
                       </span>
                     </button>
-                    {r.shown === "open" && <button type="button" className="btn btn-sm btn-mint shrink-0" onClick={() => void startChat(r.user_id)}>대화 신청</button>}
+                    {r.user_id !== me.user_id && r.shown === "open" && <button type="button" className="btn btn-sm btn-mint shrink-0" onClick={() => void startChat(r.user_id)}>대화 신청</button>}
                   </li>
                 ))}
                 {others.length === 0 && <li className="p-2 text-sm text-ink-soft">아직 이웃이 없어요.</li>}

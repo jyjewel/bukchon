@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   let sent = 0;
   await Promise.all(subs.map(async (s: { id: string; endpoint: string; p256dh: string; auth: string }) => {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 60 * 60 * 24 });
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 60 * 60 * 24, urgency: "high" });
       sent++;
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode;
