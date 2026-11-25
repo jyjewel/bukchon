@@ -254,26 +254,23 @@ export function hourglassSmall(sand: number, flip = 0): Grid {
 }
 
 // ───────── 열람 탁자의 자리: 캐릭터와 책상 위 물건 ─────────
-export const HALL_TABLE_Y = 94;          // 탁자를 벽 가까이 붙여서, 사람들이 책장 앞에 앉은 모습이 되게 한다
-export const HALL_TABLE_X = 7;
-export const HALL_TABLE_W = 186;
-/** 집 번호(0~5)가 곧 자리 번호: 탁자 위에서 왼쪽부터 */
-export const seatX = (slot: number) => 22 + 30 * slot;
+/** 열람 탁자는 두 줄: 뒤줄(벽 쪽)과 앞줄에 길게 놓이고, 줄마다 3자리가 있다. 집 번호(0~5)가 곧 자리 번호 */
+export const HALL_TABLE_X = 10;
+export const HALL_TABLE_W = 180;
+export const HALL_TABLE_YS = [88, 122] as const;
+/** 앞줄은 뒤줄 사이사이에 앉아서 서로 가리지 않는다 */
+export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 40 : 65) + 50 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
 export type SeatState = "empty" | "seated" | "study" | "done";
 
 const SKIN = "#f6cba6";
 /** 앉은 캐릭터(탁자 뒤에 가려지도록 탁자보다 먼저 그린다). 공부 중엔 고개를 숙이고 가끔 더 숙인다 */
-export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
-  const ty = HALL_TABLE_Y;
+export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, ty: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
   const dy = st === "study" ? 1 + (Math.floor(tick / 40) % 5 === 0 ? 1 : 0) : st === "done" ? -1 : 0;
-  b.fillStyle = "#3a2a33"; b.fillRect(cx - 14, ty - 14, 28, 14);                         // 의자 등받이(어깨 높이, 양옆으로 살짝 보인다)
-  b.fillStyle = "#6e4a2a"; b.fillRect(cx - 13, ty - 13, 26, 13); b.fillStyle = "#8a5f3a"; b.fillRect(cx - 13, ty - 13, 26, 2);
   b.drawImage(avatar, cx - 12, ty - 22 + dy);
 }
 
 /** 탁자 위 물건과 팔·책·펜·독서등·모래시계(탁자 위에 놓인 것은 탁자보다 나중에 그린다) */
-export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: SeatState, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }) {
-  const ty = HALL_TABLE_Y;
+export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, ty: number, st: SeatState, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }) {
   const person = st !== "empty";
   if (st === "done") { b.fillStyle = SKIN; b.fillRect(cx - 14, ty - 28, 3, 12); b.fillRect(cx + 11, ty - 28, 3, 12); b.fillStyle = "#3a2a33"; b.fillRect(cx - 15, ty - 29, 1, 14); b.fillRect(cx + 14, ty - 29, 1, 14); }   // 기지개
   if (st === "study") {

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { bake } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
 import { currentPhase, type DayPhase } from "@/lib/time";
-import { HALL_LOOK, HALL_H, HALL_TABLE_W, HALL_TABLE_X, HALL_TABLE_Y, HALL_W, drawSeatObjects, drawSeatPerson, lampGrid, libraryHall, longTableGrid, seatX, type SeatState } from "@/pixel/libraryRoom";
+import { HALL_LOOK, HALL_H, HALL_TABLE_W, HALL_TABLE_X, HALL_TABLE_YS, HALL_W, drawSeatObjects, drawSeatPerson, lampGrid, libraryHall, longTableGrid, seatPos, type SeatState } from "@/pixel/libraryRoom";
 import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
@@ -67,9 +67,12 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
         const st: SeatState = !r ? "empty" : running ? (sinceSec >= SAND_SECONDS && cycle < 25 ? "done" : "study") : (r.shown === "library" ? "seated" : "empty");
         return { slot, r, st };
       });
-      for (const s of seats) if (s.r && s.st !== "empty") drawSeatPerson(b, seatX(s.slot), avOf(s.r.profile.avatar), s.st, tick);
-      b.drawImage(table, HALL_TABLE_X, HALL_TABLE_Y);
-      for (const s of seats) drawSeatObjects(b, seatX(s.slot), s.st, tick, lamp);
+      for (const row of [0, 1]) {      // 뒤줄 → 앞줄 순서로 그려서 앞줄 사람이 뒤줄 탁자를 가리게 한다
+        const mine = seats.filter((s) => (s.slot < 3 ? 0 : 1) === row);
+        for (const s of mine) if (s.r && s.st !== "empty") { const { cx, ty } = seatPos(s.slot); drawSeatPerson(b, cx, ty, avOf(s.r.profile.avatar), s.st, tick); }
+        b.drawImage(table, HALL_TABLE_X, HALL_TABLE_YS[row]);
+        for (const s of mine) { const { cx, ty } = seatPos(s.slot); drawSeatObjects(b, cx, ty, s.st, tick, lamp); }
+      }
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, cv.width, cv.height);
       ctx.drawImage(buf, 0, 0, cv.width, cv.height);
@@ -102,7 +105,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
         const sec = secondsOf(d, now);
         if (!d && r.shown !== "library") return null;
         return (
-          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatX(r.slot) - 12, HALL_TABLE_Y + 9, 24, 5.5)}>
+          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatPos(r.slot).cx - 12, seatPos(r.slot).ty + 9, 24, 5.5)}>
             <span className="nm">{r.profile.display_name} </span>{clockHM(sec)}
           </span>
         );
