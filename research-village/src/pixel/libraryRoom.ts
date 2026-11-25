@@ -230,3 +230,37 @@ export function hourglassSmall(sand: number, flip = 0): Grid {
   for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) r.d[x * r.w + (o.h - 1 - y)] = o.d[y * o.w + x];
   return r;
 }
+
+// ───────── 열람 탁자의 자리: 캐릭터와 책상 위 물건 ─────────
+export const HALL_TABLE_Y = 104;
+export const HALL_TABLE_X = 7;
+export const HALL_TABLE_W = 186;
+/** 집 번호(0~5)가 곧 자리 번호: 탁자 위에서 왼쪽부터 */
+export const seatX = (slot: number) => 22 + 30 * slot;
+export type SeatState = "empty" | "seated" | "study" | "done";
+
+const SKIN = "#f6cba6";
+/** 앉은 캐릭터(탁자 뒤에 가려지도록 탁자보다 먼저 그린다). 공부 중엔 고개를 숙이고 가끔 더 숙인다 */
+export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
+  const ty = HALL_TABLE_Y;
+  const dy = st === "study" ? 1 + (Math.floor(tick / 40) % 5 === 0 ? 1 : 0) : st === "done" ? -1 : 0;
+  b.drawImage(avatar, cx - 12, ty - 22 + dy);
+}
+
+/** 탁자 위 물건과 팔·책·펜·독서등·모래시계(탁자 위에 놓인 것은 탁자보다 나중에 그린다) */
+export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: SeatState, sand: number, flip: boolean, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }, glass: (s: number, f: number) => CanvasImageSource) {
+  const ty = HALL_TABLE_Y;
+  const person = st !== "empty";
+  if (st === "done") { b.fillStyle = SKIN; b.fillRect(cx - 14, ty - 28, 3, 12); b.fillRect(cx + 11, ty - 28, 3, 12); b.fillStyle = "#3a2a33"; b.fillRect(cx - 15, ty - 29, 1, 14); b.fillRect(cx + 14, ty - 29, 1, 14); }   // 기지개
+  if (st === "study") {
+    b.fillStyle = "#3a2a33"; b.fillRect(cx - 9, ty - 1, 19, 4);                                   // 펼친 책
+    b.fillStyle = "#fff8e4"; b.fillRect(cx - 8, ty - 1, 8, 3); b.fillRect(cx + 1, ty - 1, 8, 3);
+    b.fillStyle = "#d8c9a8"; for (const x of [cx - 7, cx - 6, cx + 2, cx + 3]) b.fillRect(x, ty, 3, 1);
+    b.fillStyle = SKIN; b.fillRect(cx - 7, ty - 3, 3, 2); b.fillRect(cx + 5, ty - 3, 3, 2);       // 책을 짚은 두 손
+    const pen = Math.floor(tick / 8) % 2; b.fillStyle = "#3a5fa8"; b.fillRect(cx + 5 + pen, ty - 4 + pen, 2, 1); b.fillRect(cx + 6 + pen, ty - 5 + pen, 1, 1);   // 글씨 쓰는 펜
+  } else if (person) { b.fillStyle = "#c0504d"; b.fillRect(cx - 5, ty, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 4, ty - 1, 7, 1); }   // 닫힌 책
+  const lit = st === "study";
+  b.drawImage(lit ? lamp.on : lamp.off, cx + 18, ty - 6);
+  if (lit) { const gr = b.createRadialGradient(cx + 22, ty - 3, 1, cx + 22, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx + 2, ty - 25, 44, 34); }
+  b.drawImage(glass(sand, flip ? 1 : 0), cx + 9 - (flip ? 2 : 0), ty - (flip ? 5 : 6));
+}

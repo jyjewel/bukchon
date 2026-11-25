@@ -465,3 +465,16 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 .book-spine:hover { filter: brightness(1.06); }
 .book-spine-on { transform: translateY(-6px); outline: 2px solid #fff8e4; outline-offset: 0; }
 
+
+/* ── 도서관 홀 ── */
+.hall-wrap { container-type: inline-size; container-name: hall; }
+.hall-hit { position: absolute; background: transparent; border: 0; padding: 0; cursor: pointer; }
+.hall-hit:hover { background: rgb(255 240 190 / 0.18); outline: 2px dashed rgb(255 255 255 / 0.65); outline-offset: -2px; }
+.hall-plate {
+  position: absolute; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden;
+  border-radius: 3px; background: rgb(58 42 51 / 0.78); color: #fff3c4; pointer-events: none;
+  font-family: var(--font-small); font-size: clamp(9px, 2.1cqw, 12px); line-height: 1;
+}
+.hall-plate-on { color: #ffe27a; }
+.hall-plate .nm { display: none; }
+@container hall (min-width: 560px) { .hall-plate .nm { display: inline; } }

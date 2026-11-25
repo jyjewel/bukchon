@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactElement } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { clockLabel, relativeTime } from "@/lib/time";
 import type { useLibrary } from "@/hooks/useLibrary";
@@ -10,9 +10,10 @@ import { SortableItem, useSortSensors } from "./Sortable";
 import type { useStudyGoals } from "@/hooks/useStudyGoals";
 import StudyGoals from "./StudyGoals";
 import CoinStack from "./CoinShelf";
-import WindowColumn from "./WindowColumn";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
+import LibraryHall, { type HallPanel } from "./LibraryHall";
+import { clockHM, useLibraryDesk } from "@/hooks/useLibraryDesk";
 
 type Lib = ReturnType<typeof useLibrary>;
 const SPINES = ["#e0605a", "#5f8fd6", "#f2c64e", "#62b866", "#b08ae0", "#f0994a", "#f7a8bf", "#6ccfc2"];
@@ -23,6 +24,10 @@ export default function LibraryView({
   lib, goals, onGoalDone, villageId, me, residents, isAdmin,
 }: { lib: Lib; goals: ReturnType<typeof useStudyGoals>; onGoalDone: () => void; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean }) {
   const [bookId, setBookId] = useState<string | null>(null);
+  const [panel, setPanel] = useState<HallPanel | null>(null);
+  const desk = useLibraryDesk(villageId);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(t); }, []);
   const [nowMs] = useState(() => Date.now());
   const [error, setError] = useState("");
   const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
@@ -62,11 +67,11 @@ export default function LibraryView({
   };
   const upcoming = lib.meetings.filter((m) => new Date(m.starts_at).getTime() > nowMs - 2 * 3600_000);
 
-  return (
-    <div className="space-y-5">
-      {error && <Notice kind="error">{error}</Notice>}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <WindowColumn col="lib-left" userId={me.user_id} className="space-y-5">
+  const hallStarted = Boolean(desk.desks.find((d) => d.user_id === me.user_id)?.running);
+  const mySec = desk.secondsOf(desk.desks.find((d) => d.user_id === me.user_id), nowTick);
+  const turn = async () => { await desk.turn(); };
+  const PANELS: Record<HallPanel, ReactElement> = {
+    books: (
           <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
               <div className="bookcase relative flex min-h-[200px] items-end gap-1">
@@ -100,11 +105,14 @@ export default function LibraryView({
               </form>
             </div>
           </Window>
-        </WindowColumn>
-
-        <WindowColumn col="lib-right" userId={me.user_id} className="space-y-5">
+    ),
+    goals: (
         <StudyGoals key="goals" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} />
+    ),
+    schedules: (
         <StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
+    ),
+    zoom: (
         <Window key="zoom" title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">
             <ul className="space-y-2">
@@ -136,8 +144,35 @@ export default function LibraryView({
             </form>
           </div>
         </Window>
-        </WindowColumn>
-      </div>
+    ),
+  };
+  useEffect(() => {
+    if (!panel) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !bookId) setPanel(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [panel, bookId]);
+
+  return (
+    <div className="space-y-4">
+      {error && <Notice kind="error">{error}</Notice>}
+      {desk.error && <Notice kind="error">{desk.error}</Notice>}
+      <section className="window overflow-hidden" aria-label="도서관">
+        <LibraryHall residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={setPanel} onTurn={turn} />
+        <div className="flex flex-wrap items-center gap-3 border-t border-ink bg-[#fff6d9] px-3 py-2">
+          <button type="button" className={`btn ${hallStarted ? "" : "btn-primary"}`} onClick={turn}>{hallStarted ? "⏳ 모래시계 멈추기" : "⏳ 모래시계 돌려서 공부 시작"}</button>
+          <span className="text-sm">오늘 내 공부 시간 <b className="font-display">{clockHM(mySec)}</b></span>
+          <span className="text-xs text-ink-soft">책장·게시판·칠판·노트북을 누르면 열려요</span>
+        </div>
+      </section>
+      {panel && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/40 p-3 sm:p-6" role="dialog" aria-label="도서관 기능" onClick={(e) => { if (e.target === e.currentTarget) setPanel(null); }}>
+          <div className="mx-auto max-w-3xl space-y-3">
+            <div className="flex justify-end"><button type="button" className="btn btn-sm" onClick={() => setPanel(null)}>닫기 ✕</button></div>
+            {PANELS[panel]}
+          </div>
+        </div>
+      )}
       {book && <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} />}
     </div>
   );
