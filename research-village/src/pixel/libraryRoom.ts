@@ -155,14 +155,10 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   // 천장 들보
   rect(g, 0, 0, HALL_W, 9, "#4a2f1c"); rect(g, 0, 7, HALL_W, 2, "#2f1d10");
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
-  // 가운데 벽시계: 하얀 둥근 시계가 벽에 걸려 있다(바늘은 화면에서 실제 시각으로 그린다)
+  // 가운데 벽시계: 깔끔한 하얀 둥근 시계(바늘은 화면에서 실제 시각으로 그린다)
   const face = phase === "night" ? "#f6f1e0" : "#ffffff";
-  px(g, 100, 16, "#8a7a6a"); px(g, 99, 17, "#8a7a6a"); px(g, 101, 17, "#8a7a6a");               // 걸이
-  disc(g, 100, 30, 13, 13, "#b9b2a4"); disc(g, 100, 30, 12, 12, "#e4dfd2"); disc(g, 100, 30, 11, 11, face);
-  for (let i = 0; i < 12; i++) {
-    const t = (i / 12) * Math.PI * 2 - Math.PI / 2, big = i % 3 === 0;
-    for (let r = big ? 8 : 9; r <= 10; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(30 + Math.sin(t) * r), big ? "#3a2a33" : "#a8a090");
-  }
+  px(g, 100, 16, "#5a3a22"); px(g, 99, 17, "#5a3a22"); px(g, 101, 17, "#5a3a22");               // 걸이
+  disc(g, 100, 30, 12, 12, "#5a3a22"); disc(g, 100, 30, 11, 11, face);
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
   // 오른쪽: 큰 게시판(공동 공부 목표를 써 붙인다. 글씨는 화면 위에 겹쳐 쓴다)
@@ -203,7 +199,7 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   rect(g, 62, 68, 28, 14, WOOD_D); rect(g, 62, 68, 28, 3, WOOD_L);
   rect(g, 66, 52, 20, 14, "#b9bdc7"); rect(g, 67, 53, 18, 12, "#5f8fd6"); rect(g, 69, 55, 7, 3, "#ffffff"); rect(g, 78, 55, 5, 5, "#f2c64e"); rect(g, 69, 60, 12, 1, "#cfe0ff");
   rect(g, 64, 66, 24, 2, "#9aa0ad"); rect(g, 70, 67, 12, 1, "#7a808c");
-  stamp(g, cabinetGrid(medals), 90, 46);                                     // 기념 장식장: 시계 바로 아래
+  stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(오른쪽 게시판 옆 벽)
   return outline(g, "#3a2a33");
 }
 
@@ -258,8 +254,8 @@ export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: Sea
     const pen = Math.floor(tick / 8) % 2; b.fillStyle = "#3a5fa8"; b.fillRect(cx + 5 + pen, ty - 4 + pen, 2, 1); b.fillRect(cx + 6 + pen, ty - 5 + pen, 1, 1);   // 글씨 쓰는 펜
   } else if (person) { b.fillStyle = "#c0504d"; b.fillRect(cx - 5, ty, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 4, ty - 1, 7, 1); }   // 닫힌 책
   const lit = st === "study";
-  b.drawImage(lit ? lamp.on : lamp.off, cx + 18, ty - 6);
-  if (lit) { const gr = b.createRadialGradient(cx + 22, ty - 3, 1, cx + 22, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx + 2, ty - 25, 44, 34); }
+  b.drawImage(lit ? lamp.on : lamp.off, cx + 12, ty - 6);
+  if (lit) { const gr = b.createRadialGradient(cx + 16, ty - 3, 1, cx + 16, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx - 4, ty - 25, 44, 34); }
 }
 
 /** 기념 장식장(홀에 놓인 모습, 20×32): 유리문 안 벨벳 판에 끈 달린 메달이 걸린다. medals 는 0~9 */
