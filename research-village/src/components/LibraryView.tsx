@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type FormEvent, type ReactElement } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { clockLabel, relativeTime } from "@/lib/time";
 import type { useLibrary } from "@/hooks/useLibrary";
@@ -70,7 +70,13 @@ export default function LibraryView({
   const hallStarted = Boolean(desk.desks.find((d) => d.user_id === me.user_id)?.running);
   const mySec = desk.secondsOf(desk.desks.find((d) => d.user_id === me.user_id), nowTick);
   const turn = async () => { await desk.turn(); };
-  const PANELS: Record<HallPanel, ReactElement> = {
+  const goalsRef = useRef<HTMLDivElement>(null), schedRef = useRef<HTMLDivElement>(null);
+  /** 칠판·게시판은 아래에 늘 펼쳐져 있는 창으로 부드럽게 내려가고, 나머지는 창을 띄운다 */
+  const openPanel = (p: HallPanel) => {
+    if (p === "goals" || p === "schedules") (p === "goals" ? goalsRef : schedRef).current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    else setPanel(p);
+  };
+  const PANELS: Partial<Record<HallPanel, ReactElement>> = {
     books: (
           <Window key="books" title="함께 쓰는 책장" tone="butter">
             <div className="space-y-3 p-3">
@@ -104,12 +110,6 @@ export default function LibraryView({
               </form>
             </div>
           </Window>
-    ),
-    goals: (
-        <StudyGoals key="goals" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} />
-    ),
-    schedules: (
-        <StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
     ),
     cabinet: <MedalCabinet key="cabinet" goals={goals.goals} />,
     zoom: (
@@ -158,18 +158,22 @@ export default function LibraryView({
       {error && <Notice kind="error">{error}</Notice>}
       {desk.error && <Notice kind="error">{desk.error}</Notice>}
       <section className="window overflow-hidden" aria-label="도서관">
-        <LibraryHall medals={goals.goals.filter((g) => g.completed_at).length} residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={setPanel} onTurn={turn} />
+        <LibraryHall medals={goals.goals.filter((g) => g.completed_at).length} residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={openPanel} onTurn={turn} />
         <div className="flex flex-wrap items-center gap-3 border-t border-ink bg-[#fff6d9] px-3 py-2">
           <button type="button" className={`btn ${hallStarted ? "" : "btn-primary"}`} onClick={turn}>{hallStarted ? "⏳ 모래시계 멈추기" : "⏳ 모래시계 돌려서 공부 시작"}</button>
           <span className="text-sm">오늘 내 공부 시간 <b className="font-display">{clockHM(mySec)}</b></span>
-          <span className="text-xs text-ink-soft">책장·게시판·칠판·노트북을 누르면 열려요</span>
+          <span className="text-xs text-ink-soft">책장·노트북·장식장은 눌러서 열고, 게시판·칠판은 아래 창으로 가요</span>
         </div>
       </section>
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-2">
+        <div ref={goalsRef} className="scroll-mt-3"><StudyGoals key="goals" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} /></div>
+        <div ref={schedRef} className="scroll-mt-3"><StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} /></div>
+      </div>
       {panel && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/40 p-3 sm:p-6" role="dialog" aria-label="도서관 기능" onClick={(e) => { if (e.target === e.currentTarget) setPanel(null); }}>
           <div className="mx-auto max-w-3xl space-y-3">
             <div className="flex justify-end"><button type="button" className="btn btn-sm" onClick={() => setPanel(null)}>닫기 ✕</button></div>
-            {PANELS[panel]}
+            {panel ? PANELS[panel] : null}
           </div>
         </div>
       )}
