@@ -1,8 +1,8 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { StudyGoal } from "@/hooks/useStudyGoals";
 import { cabinetInterior } from "@/pixel/libraryRoom";
-import PixelArt from "./PixelArt";
+import { bake } from "@/pixel/core";
 import { Window } from "./ui";
 
 const PER = 15, W = 128, H = 100;
@@ -17,11 +17,20 @@ export default function MedalCabinet({ goals }: { goals: StudyGoal[] }) {
   const art = useMemo(() => cabinetInterior(slice.length, sel === null ? -1 : sel - cur * PER), [slice.length, sel, cur]);
   const dateOf = (g: StudyGoal) => { const d = new Date(g.completed_at!); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
   const picked = sel !== null ? done[sel] : null;
+  const cv = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = cv.current;
+    if (!c) return;
+    const ctx = c.getContext("2d")!;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(bake(art), 0, 0, c.width, c.height);
+  }, [art]);
   return (
     <Window title="🏅 기념 장식장" tone="butter">
       <div className="space-y-3 p-3">
         <div className="relative mx-auto w-full max-w-xl">
-          <PixelArt art={art} scale={5} label={`기념 메달 ${done.length}개`} />
+          <canvas ref={cv} width={W * 5} height={H * 5} className="pixelated block h-auto w-full" role="img" aria-label={`기념 메달 ${done.length}개`} />
           {slice.map((g, i) => {
             const r = Math.floor(i / 5), c = i % 5, cx = 16 + c * 24, top = 10 + r * 30;
             return (
