@@ -155,7 +155,7 @@ export default function LibraryView({
   }, [panel, bookId]);
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1040px] space-y-4">
       {error && <Notice kind="error">{error}</Notice>}
       {desk.error && <Notice kind="error">{desk.error}</Notice>}
       <section className="window overflow-hidden" aria-label="도서관">

@@ -195,9 +195,9 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
     if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, "#8a2230");
   }
   // 회의용 노트북 탁자(왼쪽 안쪽): 노트북을 크게
-  rect(g, 62, 68, 28, 14, WOOD_D); rect(g, 62, 68, 28, 3, WOOD_L);
-  rect(g, 66, 52, 20, 14, "#b9bdc7"); rect(g, 67, 53, 18, 12, "#5f8fd6"); rect(g, 69, 55, 7, 3, "#ffffff"); rect(g, 78, 55, 5, 5, "#f2c64e"); rect(g, 69, 60, 12, 1, "#cfe0ff");
-  rect(g, 64, 66, 24, 2, "#9aa0ad"); rect(g, 70, 67, 12, 1, "#7a808c");
+  rect(g, 63, 68, 26, 14, WOOD_D); rect(g, 63, 68, 26, 3, WOOD_L);
+  rect(g, 68, 56, 16, 11, "#b9bdc7"); rect(g, 69, 57, 14, 9, "#5f8fd6"); rect(g, 71, 59, 5, 2, "#ffffff"); rect(g, 77, 59, 4, 4, "#f2c64e"); rect(g, 71, 63, 9, 1, "#cfe0ff");
+  rect(g, 66, 66, 20, 2, "#9aa0ad"); rect(g, 71, 67, 10, 1, "#7a808c");
   stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(오른쪽 게시판 옆 벽)
   return outline(g, "#3a2a33");
 }

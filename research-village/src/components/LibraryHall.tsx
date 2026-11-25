@@ -88,7 +88,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
       {hit("스터디 일정 (게시판)", "schedules", 63, 28, 15, 22)}
       {hit("공동 공부 목표 (큰 게시판)", "goals", 140, 14, 56, 68)}
       {hit("내 공부 시간 (벽시계)", "clock", 86, 16, 28, 28)}
-      {hit("Zoom 회의 (노트북)", "zoom", 62, 50, 28, 32)}
+      {hit("Zoom 회의 (노트북)", "zoom", 63, 54, 26, 28)}
       {hit("기념 장식장 (메달)", "cabinet", 118, 50, 20, 32)}
       <div className="hall-board-title" style={pct(146, 19, 44, 8)} aria-hidden>공동 공부 목표</div>
       <ul className="hall-board" style={pct(144, 30, 48, 48)} aria-hidden>
