@@ -896,6 +896,24 @@ await t("대문 빗장: 마을장만 걸 수 있고, 걸면 초대 링크가 없
   code = ok(await a.c.rpc("create_invite", { p_village: village }));
 });
 
+await t("도서관 모래시계: 돌리면 시간이 재져 마을 모두에게 보이고, 다시 돌리면 멈추며, 남의 마을·표 직접 읽기는 막힌다", async () => {
+  const st1 = ok(await m1.c.rpc("desk_turn", { p_village: village }));
+  assert.equal(st1.running, true);
+  const seen = ok(await m2.c.rpc("library_desks", { p_village: village }));                      // 같은 마을 주민이 본다
+  const row = seen.find((r) => r.user_id === m1.id);
+  assert.ok(row && row.running === true && row.seconds >= 0 && row.since);
+  assert.equal(ok(await m1.c.from("research_status").select("status").eq("village_id", village).eq("user_id", m1.id).single()).status, "library");   // 앉으면 공동 연구 상태
+  await new Promise((r) => setTimeout(r, 1200));
+  const st2 = ok(await m1.c.rpc("desk_turn", { p_village: village }));                           // 다시 돌리면 멈춘다
+  assert.equal(st2.running, false);
+  assert.ok(st2.total >= 1);
+  const after = ok(await m2.c.rpc("library_desks", { p_village: village })).find((r) => r.user_id === m1.id);
+  assert.ok(after && after.running === false && after.seconds >= 1 && after.since === null);
+  assert.match((await outside[0].c.rpc("library_desks", { p_village: village })).error?.message ?? "", /not_member/);   // 남의 마을은 못 본다
+  assert.match((await outside[0].c.rpc("desk_turn", { p_village: village })).error?.message ?? "", /not_member/);
+  assert.equal((await m1.c.from("library_desks").select("*")).data?.length ?? 0, 0);            // 표는 직접 못 읽는다
+});
+
 await t("내 마을 순서: 내 것만 저장하고 읽는다", async () => {
   ok(await m1.c.from("user_prefs").upsert({ village_order: [village] }, { onConflict: "user_id" }));
   assert.equal(ok(await m1.c.from("user_prefs").select("village_order")).length, 1);
