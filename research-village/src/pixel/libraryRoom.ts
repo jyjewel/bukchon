@@ -1,5 +1,4 @@
 import type { DayPhase } from "@/lib/time";
-import { coinGrid as coinGridLocal } from "./coin";
 import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const LROOM_W = 160;

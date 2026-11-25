@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortab
 import { SortableItem, useSortSensors } from "./Sortable";
 import type { useStudyGoals } from "@/hooks/useStudyGoals";
 import StudyGoals from "./StudyGoals";
-import CoinStack from "./CoinShelf";
+import MedalCabinet from "./MedalCabinet";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
 import LibraryHall, { type HallPanel } from "./LibraryHall";
@@ -94,7 +94,6 @@ export default function LibraryView({
                 </SortableContext>
                 </DndContext>
                 </div>
-                <CoinStack goals={goals.goals} />
               </div>
               <form onSubmit={createBook} className="card space-y-1 p-2">
                 <label className="label" htmlFor="nb-title">새 책 만들기</label>
@@ -112,6 +111,7 @@ export default function LibraryView({
     schedules: (
         <StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} />
     ),
+    cabinet: <MedalCabinet key="cabinet" goals={goals.goals} />,
     zoom: (
         <Window key="zoom" title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">
@@ -158,7 +158,7 @@ export default function LibraryView({
       {error && <Notice kind="error">{error}</Notice>}
       {desk.error && <Notice kind="error">{desk.error}</Notice>}
       <section className="window overflow-hidden" aria-label="도서관">
-        <LibraryHall residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={setPanel} onTurn={turn} />
+        <LibraryHall medals={goals.goals.filter((g) => g.completed_at).length} residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={setPanel} onTurn={turn} />
         <div className="flex flex-wrap items-center gap-3 border-t border-ink bg-[#fff6d9] px-3 py-2">
           <button type="button" className={`btn ${hallStarted ? "" : "btn-primary"}`} onClick={turn}>{hallStarted ? "⏳ 모래시계 멈추기" : "⏳ 모래시계 돌려서 공부 시작"}</button>
           <span className="text-sm">오늘 내 공부 시간 <b className="font-display">{clockHM(mySec)}</b></span>

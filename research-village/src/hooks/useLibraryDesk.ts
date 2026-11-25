@@ -9,7 +9,7 @@ export interface Desk { user_id: string; running: boolean; since: string | null;
 export function useLibraryDesk(villageId: string) {
   const [desks, setDesks] = useState<Desk[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const fetchedAt = useRef(Date.now());
+  const fetchedAt = useRef(0);   // 마지막으로 불러온 때(불러오기 전엔 0)
   const [error, setError] = useState("");
   const load = useCallback(async () => {
     const { data, error } = await supabase().rpc("library_desks", { p_village: villageId });
@@ -32,7 +32,7 @@ export function useLibraryDesk(villageId: string) {
     return true;
   }, [villageId, load]);
   /** 화면에 보일 앉은 시간(초): 불러온 값에 그 뒤 흐른 시간을 더한다 */
-  const secondsOf = (d: Desk | undefined, now = Date.now()) => (d ? d.seconds + (d.running ? Math.max(0, Math.floor((now - fetchedAt.current) / 1000)) : 0) : 0);
+  const secondsOf = (d: Desk | undefined, now = Date.now()) => (d ? d.seconds + (d.running && fetchedAt.current > 0 ? Math.max(0, Math.floor((now - fetchedAt.current) / 1000)) : 0) : 0);
   return { desks, loaded, error, turn, reload: load, secondsOf };
 }
 export const clockHM = (sec: number) => { const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return `${h}:${String(m).padStart(2, "0")}`; };

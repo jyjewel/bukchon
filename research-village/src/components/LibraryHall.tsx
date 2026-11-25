@@ -8,17 +8,18 @@ import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
 
-export type HallPanel = "books" | "schedules" | "goals" | "zoom";
+export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet";
 const SAND_SECONDS = 3600;   // 모래가 다 떨어지는 데 1시간. 다 떨어지면 저절로 다시 뒤집힌다
 
 /** 도서관 홀: 뒤쪽 큰 도서관과 앞쪽 열람 탁자. 물건을 누르면 기능이 열리고, 내 모래시계를 누르면 공부가 시작된다. */
-export default function LibraryHall({ residents, myId, desks, secondsOf, onOpen, onTurn }: {
-  residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
+export default function LibraryHall({ medals, residents, myId, desks, secondsOf, onOpen, onTurn }: {
+  medals: number; residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
   onOpen: (p: HallPanel) => void; onTurn: () => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ residents, desks, myId, secondsOf });
+  const hallMedals = Math.min(9, medals);
   const [phase] = useState<DayPhase>(() => currentPhase());
   const [now, setNow] = useState(() => Date.now());
   const flip = useRef<Record<string, number>>({});          // 방금 모래시계를 돌린 사람: 눕는 동작이 끝나는 때
@@ -30,7 +31,7 @@ export default function LibraryHall({ residents, myId, desks, secondsOf, onOpen,
     const cv = canvas.current, box = wrap.current;
     if (!cv || !box) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bg = bake(libraryHall(phase)), table = bake(longTableGrid(HALL_TABLE_W));
+    const bg = bake(libraryHall(phase, hallMedals)), table = bake(longTableGrid(HALL_TABLE_W));
     const lamp = { off: bake(lampGrid(false)), on: bake(lampGrid(true)) };
     const glassCache = new Map<string, HTMLCanvasElement>();
     const glass = (s: number, f: number) => { const key = `${Math.round(s * 3)}-${f}`; let c = glassCache.get(key); if (!c) glassCache.set(key, (c = bake(hourglassSmall(Math.round(s * 3) / 3, f)))); return c; };
@@ -74,7 +75,7 @@ export default function LibraryHall({ residents, myId, desks, secondsOf, onOpen,
     };
     raf = requestAnimationFrame(frame);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
-  }, [phase]);
+  }, [phase, hallMedals]);
 
   const pct = (x: number, y: number, w: number, h: number) => ({ left: `${(x / HALL_W) * 100}%`, top: `${(y / HALL_H) * 100}%`, width: `${(w / HALL_W) * 100}%`, height: `${(h / HALL_H) * 100}%` });
   const hit = (label: string, p: HallPanel, x: number, y: number, w: number, h: number) => (
@@ -90,6 +91,7 @@ export default function LibraryHall({ residents, myId, desks, secondsOf, onOpen,
       {hit("스터디 일정 (게시판)", "schedules", 63, 28, 15, 22)}
       {hit("공동 공부 목표 (칠판)", "goals", 122, 28, 15, 22)}
       {hit("Zoom 회의 (노트북)", "zoom", 63, 60, 18, 22)}
+      {hit("기념 장식장 (메달)", "cabinet", 118, 50, 20, 32)}
       {mySlot >= 0 && (
         <button type="button" className="scene-hit hall-hit" style={pct(seatX(mySlot) + 6, HALL_TABLE_Y - 10, 14, 16)} aria-label={myDesk?.running ? "내 모래시계 멈추기" : "내 모래시계 돌려서 공부 시작"} title={myDesk?.running ? "모래시계 멈추기" : "모래시계 돌리기"} onClick={onTurn} />
       )}
