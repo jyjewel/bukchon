@@ -54,8 +54,8 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
       {   // 벽시계 바늘: 실제 시각
         const d = new Date(ms), sec = d.getSeconds() + d.getMilliseconds() / 1000, min = d.getMinutes() + sec / 60, hr = (d.getHours() % 12) + min / 60;
         const hand = (ang: number, len: number, col: string) => { for (let r = 0; r <= len; r += 0.5) { b.fillStyle = col; b.fillRect(Math.round(100 + Math.sin(ang) * r), Math.round(30 - Math.cos(ang) * r), 1, 1); } };
-        hand((hr / 12) * Math.PI * 2, 5, "#3a2a33"); hand((min / 60) * Math.PI * 2, 8.5, "#3a2a33");
-        b.fillStyle = "#3a2a33"; b.fillRect(100, 29, 2, 2);
+        hand((hr / 12) * Math.PI * 2, 5, "#3a2a33"); hand((min / 60) * Math.PI * 2, 8.5, "#3a2a33"); hand((Math.floor(sec) / 60) * Math.PI * 2, 9.5, "#d9303a");
+        b.fillStyle = "#3a2a33"; b.fillRect(100, 29, 2, 2); b.fillStyle = "#d9303a"; b.fillRect(100, 29, 1, 1);
       }
       const seats = Array.from({ length: 6 }, (_, slot) => {
         const r = residents.find((x) => x.slot === slot);
