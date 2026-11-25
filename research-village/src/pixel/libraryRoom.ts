@@ -154,7 +154,9 @@ const HALL_THEMES: Record<HallTheme, { stone: string; stoneD: string; stoneL: st
   navy: { stone: "#44558a", stoneD: "#35446e", stoneL: "#efe4c8", floorA: "#9aa3c4", floorB: "#f2eadb" },
   sage: { stone: "#e6ecdc", stoneD: "#cdd8c0", stoneL: "#fbf6e6", floorA: "#b7c8a8", floorB: "#f3ead2" },
 };
-export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan"): Grid {
+export type HallFloor = "checker" | "wood" | "stone";
+export type HallCarpet = "red" | "green" | "none";
+export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan", floor: HallFloor = "checker", carpet: HallCarpet = "red"): Grid {
   const g = grid(HALL_W, HALL_H);
   const { stone, stoneD, stoneL, floorA, floorB } = HALL_THEMES[theme];
   rect(g, 0, 0, HALL_W, 84, stone);
@@ -189,17 +191,34 @@ export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan
     rect(g, cx, 7, 1, cy - 7 + 2, "#3a2a33"); rect(g, cx - w / 2, cy + 2, w, 2, "#c9a24e"); rect(g, cx - w / 2 + 1, cy + 4, w - 2, 1, "#8a6a2f");
     for (let x = cx - w / 2 + 1; x < cx + w / 2; x += 3) { rect(g, x, cy - 1, 1, 3, "#fff6c0"); px(g, x, cy - 2, "#ffd65c"); }
   }
-  // 마룻바닥: 체크무늬 대리석
-  for (let y = 84; y < HALL_H; y += 6) for (let x = 0; x < HALL_W; x += 12) {
-    const dark = (x / 12 + (y - 84) / 6) % 2 === 0;
-    rect(g, x, y, 12, 6, dark ? floorA : floorB);
+  // 바닥: 체크무늬 대리석 / 원목 마루 / 단색 석재
+  if (floor === "checker") {
+    for (let y = 84; y < HALL_H; y += 6) for (let x = 0; x < HALL_W; x += 12) rect(g, x, y, 12, 6, (x / 12 + (y - 84) / 6) % 2 === 0 ? floorA : floorB);
+  } else if (floor === "wood") {
+    const tones = ["#b98552", "#c18f5a", "#b07c4a", "#c9965f"];
+    for (let y = 84, row = 0; y < HALL_H; y += 7, row++) {
+      let x = -((row * 23) % 41);
+      while (x < HALL_W) {
+        const w = 34 + ((row * 7 + x) % 3) * 8, t = tones[Math.abs(row * 3 + Math.floor(x / 40)) % tones.length];
+        rect(g, x, y, w, 7, t); rect(g, x, y, w, 1, shade(t, 14)); rect(g, x, y + 6, w, 1, shade(t, -26)); rect(g, x + w - 1, y, 1, 7, shade(t, -26));
+        for (let k = 0; k < 3; k++) px(g, x + 4 + ((k * 13 + row * 5) % (w - 6)), y + 2 + (k % 3), shade(t, -10));   // 나뭇결
+        x += w;
+      }
+    }
+  } else {
+    rect(g, 0, 84, HALL_W, HALL_H - 84, "#e8dfca");
+    for (let y = 84; y < HALL_H; y += 12) rect(g, 0, y, HALL_W, 1, "#d3c8ae");
+    for (let y = 84, row = 0; y < HALL_H; y += 12, row++) for (let x = (row % 2) * 20; x < HALL_W; x += 40) rect(g, x, y, 1, 12, "#d3c8ae");
   }
   rect(g, 0, 83, HALL_W, 2, "#7a5a3a");
-  // 붉은 카펫(아래로 갈수록 넓어짐)
-  for (let y = 85; y < HALL_H; y++) {
-    const hw = 12 + Math.floor((y - 85) * 0.16);
-    rect(g, 100 - hw, y, hw * 2, 1, "#a8303c"); px(g, 100 - hw, y, "#e8c870"); px(g, 100 + hw - 1, y, "#e8c870"); px(g, 100 - hw + 2, y, "#e8c870"); px(g, 100 + hw - 3, y, "#e8c870");
-    if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, "#8a2230");
+  // 카펫(아래로 갈수록 넓어짐)
+  if (carpet !== "none") {
+    const base = carpet === "red" ? "#a8303c" : "#3f6b52", dark = carpet === "red" ? "#8a2230" : "#325643", trim = "#e8c870";
+    for (let y = 85; y < HALL_H; y++) {
+      const hw = 12 + Math.floor((y - 85) * 0.16);
+      rect(g, 100 - hw, y, hw * 2, 1, base); px(g, 100 - hw, y, trim); px(g, 100 + hw - 1, y, trim); px(g, 100 - hw + 2, y, trim); px(g, 100 + hw - 3, y, trim);
+      if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, dark);
+    }
   }
   // 회의용 노트북 탁자(왼쪽 안쪽): 노트북을 크게
   rect(g, 63, 68, 26, 14, WOOD_D); rect(g, 63, 68, 26, 3, WOOD_L);
