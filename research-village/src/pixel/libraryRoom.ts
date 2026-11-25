@@ -147,9 +147,16 @@ export const HALL_H = 140;
 
 /** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 큰 벽시계, 왼쪽 2층 책장과 오른쪽 큰 게시판,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
-export function libraryHall(phase: DayPhase, medals = 0): Grid {
+export type HallTheme = "tan" | "green" | "navy" | "sage";
+const HALL_THEMES: Record<HallTheme, { stone: string; stoneD: string; stoneL: string; floorA: string; floorB: string }> = {
+  tan: { stone: "#d8c4a2", stoneD: "#b59f7c", stoneL: "#ecdcbc", floorA: "#b9a888", floorB: "#eadfc8" },
+  green: { stone: "#4a7a5e", stoneD: "#3a6249", stoneL: "#efe4c8", floorA: "#7d9a82", floorB: "#efe6d0" },
+  navy: { stone: "#44558a", stoneD: "#35446e", stoneL: "#efe4c8", floorA: "#9aa3c4", floorB: "#f2eadb" },
+  sage: { stone: "#e6ecdc", stoneD: "#cdd8c0", stoneL: "#fbf6e6", floorA: "#b7c8a8", floorB: "#f3ead2" },
+};
+export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan"): Grid {
   const g = grid(HALL_W, HALL_H);
-  const stone = "#d8c4a2", stoneD = "#b59f7c", stoneL = "#ecdcbc";
+  const { stone, stoneD, stoneL, floorA, floorB } = HALL_THEMES[theme];
   rect(g, 0, 0, HALL_W, 84, stone);
   for (let y = 0; y < 84; y += 6) for (let x = (Math.floor(y / 6) % 2) * 6; x < HALL_W; x += 12) px(g, x, y, stoneD);    // 벽돌 결
   // 천장 들보
@@ -185,7 +192,7 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   // 마룻바닥: 체크무늬 대리석
   for (let y = 84; y < HALL_H; y += 6) for (let x = 0; x < HALL_W; x += 12) {
     const dark = (x / 12 + (y - 84) / 6) % 2 === 0;
-    rect(g, x, y, 12, 6, dark ? "#b9a888" : "#eadfc8");
+    rect(g, x, y, 12, 6, dark ? floorA : floorB);
   }
   rect(g, 0, 83, HALL_W, 2, "#7a5a3a");
   // 붉은 카펫(아래로 갈수록 넓어짐)
