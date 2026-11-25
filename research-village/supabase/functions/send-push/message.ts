@@ -16,6 +16,7 @@ const TEXT: Record<string, string> = {
   study_alarm: "스터디 시간이에요",
   study_goal: "공동 공부 목표 소식을 남겼어요",
   moving_thanks: "이사 떡을 잘 먹겠대요",
+  award: "특별한 선물을 보냈어요 🏅",
 };
 
 export function pushText(kind: string, actor: string): { title: string; body: string; tag: string } {

@@ -11,6 +11,7 @@ export const showsSummary = (n: AppNotification) => ["postit", "comment", "journ
 export function notifText(n: AppNotification, residents: Resident[], myId: string, names: Record<string, string> = {}): string {
   const nameOf = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? names[id];
   const actor = nameOf(n.actor_id) ?? "누군가";
+  if (n.kind === "award") return `🏅 ${actor}님이 ‘${n.summary}’을(를) 선물했어요! 프로필 편집의 소품에서 달 수 있어요`;
   if (n.kind === "chat_request") return `${actor}님이 대화를 신청했어요`;
   if (n.kind === "meeting") return `${actor}님이 Zoom 회의를 열었어요`;
   if (n.kind === "moving_cake") { const i = n.summary.indexOf(":"); const k = i < 0 ? n.summary : n.summary.slice(0, i); const note = i < 0 ? "" : n.summary.slice(i + 1); return `${actor}님이 이사 떡(${giftOf(k)?.label ?? "떡"})을 돌렸어요${note ? ` — “${note}”` : ""}`; }

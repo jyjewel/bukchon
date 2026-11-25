@@ -204,6 +204,7 @@ const me = v.me!;
     if (!n.id.startsWith("portal-")) void notifs.markRead([n.id]);
     setToast(null);
     if (n.village_id !== village.id && v.villages.some((x) => x.id === n.village_id)) return onOpenInOtherVillage(n);
+    if (n.kind === "award") return setView("settings");
     if (n.kind === "meeting") return setView("library");
     if (n.kind === "study_alarm") return setAlarm(n);
     if (n.kind === "study_goal") return setView(n.summary.endsWith("|done") ? "home" : "library");
