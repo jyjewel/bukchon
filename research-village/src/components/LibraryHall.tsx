@@ -30,7 +30,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
     const cv = canvas.current, box = wrap.current;
     if (!cv || !box) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bg = bake(libraryHall(phase, hallMedals, look.theme, look.floor, look.carpet)), desk = bake(deskGrid());
+    const bg = bake(libraryHall(phase, hallMedals, look.theme, look.floor, look.carpet, look.floorColor)), desk = bake(deskGrid());
     const lamp = { off: bake(lampGrid(false)), on: bake(lampGrid(true)) };
     const avCache = new Map<string, HTMLCanvasElement>();
     const avOf = (a: Avatar) => { const k = JSON.stringify(a); let c = avCache.get(k); if (!c) avCache.set(k, (c = bake(avatarGrid(a, 0, true)))); return c; };
