@@ -89,6 +89,17 @@ export function longTableGrid(w: number): Grid {
   return outline(g, "#3a2a33");
 }
 
+/** 1인 책상(36×18): 짙은 호두색 상판과 서랍 하나, 양쪽 다리 */
+export function deskGrid(): Grid {
+  const g = grid(DESK_W, 18);
+  const top = "#7a4a2a", topL = "#93603a", front = "#5e3a22", frontD = "#47291a";
+  rect(g, 0, 0, DESK_W, 5, top); rect(g, 0, 0, DESK_W, 1, topL); rect(g, 0, 4, DESK_W, 1, front);
+  rect(g, 1, 5, DESK_W - 2, 9, front); rect(g, 1, 5, DESK_W - 2, 1, frontD);
+  rect(g, 9, 7, 18, 5, frontD); rect(g, 9, 7, 18, 1, "#33200f"); rect(g, 17, 9, 2, 1, "#e8c870");   // 서랍
+  rect(g, 1, 14, 4, 4, frontD); rect(g, DESK_W - 5, 14, 4, 4, frontD);
+  return outline(g, "#3a2a33");
+}
+
 /** 자리마다 놓인 독서등(초록 갓) */
 export function lampGrid(lit = false): Grid {
   const g = grid(8, 9);
@@ -255,11 +266,10 @@ export function hourglassSmall(sand: number, flip = 0): Grid {
 
 // ───────── 열람 탁자의 자리: 캐릭터와 책상 위 물건 ─────────
 /** 열람 탁자는 두 줄: 뒤줄(벽 쪽)과 앞줄에 길게 놓이고, 줄마다 3자리가 있다. 집 번호(0~5)가 곧 자리 번호 */
-export const HALL_TABLE_X = 10;
-export const HALL_TABLE_W = 180;
+export const DESK_W = 36;
 export const HALL_TABLE_YS = [88, 122] as const;
-/** 앞줄은 뒤줄 사이사이에 앉아서 서로 가리지 않는다 */
-export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 40 : 65) + 50 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
+/** 한 사람에 책상 하나(라운지형 열람석): 뒷줄 3개와, 그 사이사이에 놓인 앞줄 3개. 집 번호(0~5)가 곧 자리 번호 */
+export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 35 : 62) + 55 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
 export type SeatState = "empty" | "seated" | "study" | "done";
 
 const SKIN = "#f6cba6";
@@ -281,8 +291,8 @@ export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, ty: num
     const pen = Math.floor(tick / 8) % 2; b.fillStyle = "#3a5fa8"; b.fillRect(cx + 5 + pen, ty - 4 + pen, 2, 1); b.fillRect(cx + 6 + pen, ty - 5 + pen, 1, 1);   // 글씨 쓰는 펜
   } else if (person) { b.fillStyle = "#c0504d"; b.fillRect(cx - 5, ty, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 4, ty - 1, 7, 1); }   // 닫힌 책
   const lit = st === "study";
-  if (person) b.drawImage(lit ? lamp.on : lamp.off, cx + 12, ty - 6);
-  if (lit) { const gr = b.createRadialGradient(cx + 16, ty - 3, 1, cx + 16, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx - 4, ty - 25, 44, 34); }
+  if (person) b.drawImage(lit ? lamp.on : lamp.off, cx + 9, ty - 6);
+  if (lit) { const gr = b.createRadialGradient(cx + 13, ty - 3, 1, cx + 13, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx - 7, ty - 25, 44, 34); }
 }
 
 /** 기념 장식장(홀에 놓인 모습, 20×32): 유리문 안 벨벳 판에 끈 달린 메달이 걸린다. medals 는 0~9 */
