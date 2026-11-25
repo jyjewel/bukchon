@@ -912,6 +912,8 @@ await t("도서관 모래시계: 돌리면 시간이 재져 마을 모두에게 
   assert.match((await outside[0].c.rpc("library_desks", { p_village: village })).error?.message ?? "", /not_member/);   // 남의 마을은 못 본다
   assert.match((await outside[0].c.rpc("desk_turn", { p_village: village })).error?.message ?? "", /not_member/);
   assert.equal((await m1.c.from("library_desks").select("*")).data?.length ?? 0, 0);            // 표는 직접 못 읽는다
+});
+
 await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 목록·소개만 보이며, 새 코드를 받으면 이전 링크는 못 쓴다", async () => {
   const code1 = ok(await outside[0].c.rpc("my_friend_code"));
   assert.match(code1, /^[a-z0-9]{12}$/);
@@ -934,6 +936,14 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.notEqual(code2, code1);
   assert.equal(ok(await m1.c.rpc("preview_friend", { p_code: code1 })), null);                    // 이전 링크는 못 쓴다
   assert.ok(ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 이미 된 친구는 그대로
+  // 친구는 마을이 달라도 연구실을 구경하고 포스트잇을 남긴다
+  ok(await outside[0].c.from("whiteboard_items").insert({ body: "친구에게 보이는 고민" }));
+  assert.ok(ok(await a.c.from("whiteboard_items").select("body").eq("owner_id", outside[0].id)).length >= 1);       // 친구는 본다
+  assert.equal(ok(await m1.c.from("whiteboard_items").select("body").eq("owner_id", outside[0].id)).length, 0);       // 친구가 아닌 이웃은 못 본다
+  assert.equal(ok(await a.c.from("profiles").select("id").eq("id", outside[0].id)).length, 1);                        // 친구의 프로필(꾸밈 포함)
+  ok(await a.c.from("postits").insert({ owner_id: outside[0].id, body: "친구가 붙임" }));
+  assert.ok(ok(await outside[0].c.from("notifications").select("kind").eq("kind", "postit").eq("actor_id", a.id)).length >= 1);   // 받은 사람에게 알림이 간다
+  assert.ok((await m1.c.from("postits").insert({ owner_id: outside[0].id, body: "남이 붙임" })).error);                // 친구가 아니면 못 붙인다
   ok(await a.c.rpc("remove_friend", { p_friend: outside[0].id }));
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
