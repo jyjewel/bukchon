@@ -80,11 +80,12 @@ export function libraryBackground(phase: DayPhase, tick = 0): Grid {
 /** 도서관 긴 열람 탁자: 여럿이 나란히 앉는다. 위 윗면, 아래 앞면 널빤지와 다리 */
 export function longTableGrid(w: number): Grid {
   const g = grid(w, 18);
-  rect(g, 0, 0, w, 5, WOOD_L); rect(g, 0, 4, w, 1, WOOD);
-  for (let x = 6; x < w - 4; x += 17) rect(g, x, 1, 7, 1, shade(WOOD_L, 14));   // 윗면 결
-  rect(g, 1, 5, w - 2, 9, WOOD); rect(g, 1, 5, w - 2, 1, WOOD_D);
-  for (let x = 3; x < w - 8; x += 20) { rect(g, x, 7, 17, 5, shade(WOOD, -14)); rect(g, x, 7, 17, 1, shade(WOOD, -30)); }
-  rect(g, 1, 14, 5, 4, WOOD_D); rect(g, w - 6, 14, 5, 4, WOOD_D); rect(g, Math.floor(w / 2) - 2, 14, 5, 4, WOOD_D);
+  const top = "#7a4a2a", topL = "#93603a", front = "#5e3a22", frontD = "#47291a";                  // 짙은 호두나무색: 원목 마루 위에서 또렷하다
+  rect(g, 0, 0, w, 5, top); rect(g, 0, 0, w, 1, topL); rect(g, 0, 4, w, 1, front);
+  for (let x = 6; x < w - 4; x += 17) rect(g, x, 1, 7, 1, topL);                                  // 윗면 결
+  rect(g, 1, 5, w - 2, 9, front); rect(g, 1, 5, w - 2, 1, frontD);
+  for (let x = 3; x < w - 8; x += 20) { rect(g, x, 7, 17, 5, frontD); rect(g, x, 7, 17, 1, "#33200f"); }
+  rect(g, 1, 14, 5, 4, frontD); rect(g, w - 6, 14, 5, 4, frontD); rect(g, Math.floor(w / 2) - 2, 14, 5, 4, frontD);
   return outline(g, "#3a2a33");
 }
 
@@ -147,12 +148,14 @@ export const HALL_H = 140;
 
 /** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 큰 벽시계, 왼쪽 2층 책장과 오른쪽 큰 게시판,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
-export type HallTheme = "tan" | "green" | "navy" | "sage";
+export type HallTheme = "tan" | "green" | "navy" | "sage" | "cream" | "slate";
 const HALL_THEMES: Record<HallTheme, { stone: string; stoneD: string; stoneL: string; floorA: string; floorB: string }> = {
   tan: { stone: "#d8c4a2", stoneD: "#b59f7c", stoneL: "#ecdcbc", floorA: "#b9a888", floorB: "#eadfc8" },
   green: { stone: "#4a7a5e", stoneD: "#3a6249", stoneL: "#efe4c8", floorA: "#7d9a82", floorB: "#efe6d0" },
   navy: { stone: "#44558a", stoneD: "#35446e", stoneL: "#efe4c8", floorA: "#9aa3c4", floorB: "#f2eadb" },
   sage: { stone: "#e6ecdc", stoneD: "#cdd8c0", stoneL: "#fbf6e6", floorA: "#b7c8a8", floorB: "#f3ead2" },
+  cream: { stone: "#f1e6cb", stoneD: "#e0d2b0", stoneL: "#fffaf0", floorA: "#b9a888", floorB: "#eadfc8" },
+  slate: { stone: "#8fa3b8", stoneD: "#7b90a6", stoneL: "#f3ecdc", floorA: "#9aa3c4", floorB: "#f2eadb" },
 };
 export type HallFloor = "checker" | "wood" | "stone";
 export type HallCarpet = "red" | "green" | "none";
@@ -346,3 +349,6 @@ export function cabinetInterior(medals: number, sel = -1): Grid {
   for (let i = 0; i < 6; i++) rect(g, 18 + i * 18, 4, 6, 2, "#fff0b0");                              // 위 조명
   return outline(g, "#3a2a33");
 }
+
+/** 도서관 홀의 지금 모습(벽 색·바닥·카펫) */
+export const HALL_LOOK: { theme: HallTheme; floor: HallFloor; carpet: HallCarpet } = { theme: "cream", floor: "wood", carpet: "none" };

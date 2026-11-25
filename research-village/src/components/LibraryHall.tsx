@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { bake } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
 import { currentPhase, type DayPhase } from "@/lib/time";
-import { HALL_H, HALL_TABLE_W, HALL_TABLE_X, HALL_TABLE_Y, HALL_W, drawSeatObjects, drawSeatPerson, lampGrid, libraryHall, longTableGrid, seatX, type SeatState } from "@/pixel/libraryRoom";
+import { HALL_LOOK, HALL_H, HALL_TABLE_W, HALL_TABLE_X, HALL_TABLE_Y, HALL_W, drawSeatObjects, drawSeatPerson, lampGrid, libraryHall, longTableGrid, seatX, type SeatState } from "@/pixel/libraryRoom";
 import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
@@ -20,6 +20,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ residents, desks, myId, secondsOf });
   const hallMedals = Math.min(9, medals);
+  const look = (typeof window !== "undefined" && (window as unknown as { __hallLook?: typeof HALL_LOOK }).__hallLook) || HALL_LOOK;
   const [phase] = useState<DayPhase>(() => currentPhase());
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { live.current = { residents, desks, myId, secondsOf }; }, [residents, desks, myId, secondsOf]);
@@ -29,7 +30,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
     const cv = canvas.current, box = wrap.current;
     if (!cv || !box) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bg = bake(libraryHall(phase, hallMedals)), table = bake(longTableGrid(HALL_TABLE_W));
+    const bg = bake(libraryHall(phase, hallMedals, look.theme, look.floor, look.carpet)), table = bake(longTableGrid(HALL_TABLE_W));
     const lamp = { off: bake(lampGrid(false)), on: bake(lampGrid(true)) };
     const avCache = new Map<string, HTMLCanvasElement>();
     const avOf = (a: Avatar) => { const k = JSON.stringify(a); let c = avCache.get(k); if (!c) avCache.set(k, (c = bake(avatarGrid(a, 0, true)))); return c; };
