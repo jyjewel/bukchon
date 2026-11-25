@@ -89,9 +89,10 @@ export function longTableGrid(w: number): Grid {
 }
 
 /** 자리마다 놓인 독서등(초록 갓) */
-export function lampGrid(): Grid {
+export function lampGrid(lit = false): Grid {
   const g = grid(8, 9);
-  rect(g, 1, 0, 6, 3, "#2f8f4a"); rect(g, 1, 0, 6, 1, "#4fb868"); rect(g, 3, 3, 1, 4, "#c9a24e"); rect(g, 1, 7, 5, 2, "#8a6a2f");
+  rect(g, 1, 0, 6, 3, lit ? "#3fae5e" : "#2f8f4a"); rect(g, 1, 0, 6, 1, "#4fb868");
+  if (lit) { rect(g, 2, 3, 4, 1, "#fff3b0"); px(g, 3, 3, "#ffffff"); } rect(g, 3, 3, 1, 4, "#c9a24e"); rect(g, 1, 7, 5, 2, "#8a6a2f");
   return outline(g, "#3a2a33");
 }
 
