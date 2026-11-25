@@ -95,7 +95,7 @@ export function groundGrid(season: Season, cover = 1): Grid {
       // 눈이 녹은 곳: 큰 얼룩 모양으로 풀빛 맨땅이 드러나고, 눈 가장자리는 질척한 색
       const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.14;
       const limit = 0.12 + cover * 0.88;
-      if (pat > limit) c = hash(x, y) > 0.8 ? "#8d9a6c" : hash(x, y) < 0.15 ? "#b3bf8f" : "#a1ae7d";
+      if (pat > limit) c = hash(x, y) > 0.8 ? "#8a8c64" : hash(x, y) < 0.15 ? "#b2b48c" : "#9c9f76";
       else if (pat > limit - 0.05) c = "#cdd9d6";
     }
     g.d[y * W + x] = c;
