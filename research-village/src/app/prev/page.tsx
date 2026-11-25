@@ -17,7 +17,7 @@ export default function P() {
   return (
     <div id="prev" style={{ display: "flex", gap: 20, padding: 10, background: "#eee" }}>
       <canvas ref={a} width={500} height={500} />
-      <canvas ref={b} width={640} height={420} />
+      <canvas ref={b} width={640} height={500} />
     </div>
   );
 }
