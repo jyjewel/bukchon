@@ -155,7 +155,7 @@ export function hourglassGrid(sand: number, flip = 0): Grid {
 }
 
 export const HALL_W = 200;
-export const HALL_H = 140;
+export const HALL_H = 150;
 
 /** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 큰 벽시계, 왼쪽 2층 책장과 오른쪽 큰 게시판,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
@@ -275,7 +275,7 @@ export function hourglassSmall(sand: number, flip = 0): Grid {
 // ───────── 열람 탁자의 자리: 캐릭터와 책상 위 물건 ─────────
 /** 열람 탁자는 두 줄: 뒤줄(벽 쪽)과 앞줄에 길게 놓이고, 줄마다 3자리가 있다. 집 번호(0~5)가 곧 자리 번호 */
 export const DESK_W = 36;
-export const HALL_TABLE_YS = [88, 122] as const;
+export const HALL_TABLE_YS = [88, 126] as const;
 /** 한 사람에 책상 하나(라운지형 열람석): 뒷줄 3개와, 그 사이사이에 놓인 앞줄 3개. 집 번호(0~5)가 곧 자리 번호 */
 export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 35 : 62) + 55 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
 export type SeatState = "empty" | "seated" | "study" | "done";
@@ -368,4 +368,13 @@ export function cabinetInterior(medals: number, sel = -1): Grid {
 }
 
 /** 도서관 홀의 지금 모습(벽 색·바닥·카펫) */
-export const HALL_LOOK: { theme: HallTheme; floor: HallFloor; carpet: HallCarpet; floorColor?: string } = { theme: "mint", floor: "carpet", carpet: "none", floorColor: "#6f7f93" };
+export const HALL_LOOK: { theme: HallTheme; floor: HallFloor; carpet: HallCarpet; floorColor?: string } = { theme: "mint", floor: "stone", carpet: "none" };
+
+/** 밤에 켜진 독서등의 따뜻한 빛(어두워진 홀 위에 덧칠한다) */
+export function drawLampGlow(b: CanvasRenderingContext2D, cx: number, ty: number, alpha: number) {
+  b.globalCompositeOperation = "lighter";
+  const gr = b.createRadialGradient(cx + 13, ty - 4, 1, cx + 13, ty - 4, 30);
+  gr.addColorStop(0, `rgb(255 214 120 / ${alpha})`); gr.addColorStop(1, "rgb(255 214 120 / 0)");
+  b.fillStyle = gr; b.fillRect(cx - 20, ty - 36, 66, 60);
+  b.globalCompositeOperation = "source-over";
+}

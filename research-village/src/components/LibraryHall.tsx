@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { bake } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
 import { currentPhase, type DayPhase } from "@/lib/time";
-import { HALL_LOOK, HALL_H, DESK_W, HALL_W, drawSeatObjects, drawSeatPerson, deskGrid, lampGrid, libraryHall, seatPos, type SeatState } from "@/pixel/libraryRoom";
+import { HALL_LOOK, HALL_H, DESK_W, HALL_W, drawLampGlow, drawSeatObjects, drawSeatPerson, deskGrid, lampGrid, libraryHall, seatPos, type SeatState } from "@/pixel/libraryRoom";
 import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
@@ -20,7 +20,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ residents, desks, myId, secondsOf });
   const hallMedals = Math.min(9, medals);
-  const look = (typeof window !== "undefined" && (window as unknown as { __hallLook?: typeof HALL_LOOK }).__hallLook) || HALL_LOOK;
+  const look = HALL_LOOK;
   const [phase] = useState<DayPhase>(() => currentPhase());
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { live.current = { residents, desks, myId, secondsOf }; }, [residents, desks, myId, secondsOf]);
@@ -74,6 +74,10 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
           b.drawImage(desk, cx - DESK_W / 2, ty);
           drawSeatObjects(b, cx, ty, s.st, tick, lamp);
         }
+      }
+      if (phase === "night" || phase === "dusk") {   // 저녁·밤에는 홀 전체가 은은하게 어두워진다
+        b.globalCompositeOperation = "multiply"; b.fillStyle = phase === "night" ? "#9aa6d4" : "#e0c8c0"; b.fillRect(0, 0, HALL_W, HALL_H); b.globalCompositeOperation = "source-over";
+        for (const s of seats) if (s.st === "study" || s.st === "done") { const { cx, ty } = seatPos(s.slot); drawLampGlow(b, cx, ty, phase === "night" ? 0.38 : 0.22); }
       }
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, cv.width, cv.height);

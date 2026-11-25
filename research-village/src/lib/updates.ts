@@ -10,7 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
-  { id: "2026-11-25-library-clock", date: "11월 25일", title: "도서관에 큰 벽시계(누르면 내 공부 시간)와 공동 공부 목표 게시판이 생겼어요", body: "" },
+  { id: "2026-11-25-library-clock", date: "11월 25일", title: "도서관에 벽시계(누르면 내 공부 시간)와 공동 공부 목표 게시판이 생겼어요", body: "" },
   { id: "2026-11-25-library-hall", date: "11월 25일", title: "[소원] 도서관이 웅장한 홀로 바뀌었어요. 모래시계로 함께 공부하고 기념 메달 장식장이 생겼어요", body: "" },
   { id: "2026-11-25-snow-days", date: "11월 25일", title: "겨울 동안 눈이 오는 날과 안 오는 날이 무작위로 찾아와요", body: "" },
   { id: "2026-11-25-wish-batch", date: "11월 25일", title: "[소원] 일지 수정에도 새가 와요, 채팅에서 프로필 보기, 소식 날짜별로 보기", body: "" },
