@@ -8,12 +8,10 @@ import AuthScreen from "./AuthScreen";
 import ProfileForm from "./ProfileForm";
 import VillageGate from "./VillageGate";
 import VillageApp from "./VillageApp";
-import FriendInvite from "./FriendInvite";
 import type { AppNotification } from "@/lib/types";
 import { Window } from "./ui";
 
 const INVITE_KEY = "rv.invite";
-const FRIEND_KEY = "rv.friend";
 
 /** 주소의 ?invite=코드 를 기억해 두었다가(가입·이메일 인증을 거쳐도 유지) 마을 입구에서 쓴다. */
 function useInviteCode() {
@@ -56,29 +54,6 @@ function Splash({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 주소의 ?friend=코드 도 같은 방식으로 기억해 두었다가, 로그인한 뒤 "친구 추가" 화면을 보여 준다. */
-function useFriendCode() {
-  const [code, setCode] = useState("");
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const fromUrl = url.searchParams.get("friend");
-    if (fromUrl) {
-      try { localStorage.setItem(FRIEND_KEY, fromUrl); } catch {}
-      url.searchParams.delete("friend");
-      window.history.replaceState(null, "", url.toString());
-    }
-    let stored = fromUrl ?? "";
-    try { stored = stored || localStorage.getItem(FRIEND_KEY) || ""; } catch {}
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 브라우저 주소·저장소는 마운트 후에만 읽을 수 있다
-    setCode(stored);
-  }, []);
-  const clear = () => {
-    try { localStorage.removeItem(FRIEND_KEY); } catch {}
-    setCode("");
-  };
-  return { code, clear };
-}
-
 function Loading() {
   return <Splash><p className="text-center text-sm text-ink-soft" role="status">마을로 가는 길을 찾는 중…</p></Splash>;
 }
@@ -103,13 +78,12 @@ export default function App() {
 function Configured() {
   const auth = useAuth();
   const invite = useInviteCode();
-  const friend = useFriendCode();
   const village = useVillage(auth.userId, auth.session?.access_token ?? null);
   const [adding, setAdding] = useState(false); // 다른 마을 추가(입주·만들기) 화면
   const [pendingOpen, setPendingOpen] = useState<AppNotification | null>(null); // 다른 마을의 알림을 열려고 마을을 옮기는 중
 
   if (!auth.ready) return <Loading />;
-  if (!auth.session || !auth.userId) return <Splash><AuthScreen hasInvite={Boolean(invite.code || friend.code)} friend={Boolean(friend.code) && !invite.code} /></Splash>;
+  if (!auth.session || !auth.userId) return <Splash><AuthScreen hasInvite={Boolean(invite.code)} /></Splash>;
   if (auth.recovery) {
     return (
       <Splash>
@@ -134,7 +108,6 @@ function Configured() {
       </Splash>
     );
   }
-  if (friend.code) return <Splash><FriendInvite code={friend.code} onDone={friend.clear} /></Splash>;
   if (village.loading) return <Loading />;
   const inVillage = Boolean(village.village && village.me);
   // 초대 링크로 들어오면(이미 마을이 있어도) 입주 화면을 먼저 보여 준다.
