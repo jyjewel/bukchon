@@ -20,6 +20,7 @@ const TEXT: Record<string, string> = {
 };
 
 export function pushText(kind: string, actor: string): { title: string; body: string; tag: string } {
+  if (kind === "award") return { title: "연구자 마을", body: "🏅 특별한 선물이 도착했어요", tag: kind };
   const who = actor.trim() ? `${actor.trim()}님이` : "누군가";
   const what = TEXT[kind] ?? "새 소식을 보냈어요";
   return { title: "연구자 마을", body: `${who} ${what}`, tag: kind };
