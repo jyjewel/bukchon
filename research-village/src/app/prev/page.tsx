@@ -16,7 +16,22 @@ const DESKS: [number, number, number | null, number, string, number][] = [
   [34, 72, 0, 0.7, "0:42", 0], [80, 72, 1, 0.35, "1:18", 0], [126, 72, null, 1, "", 0],
   [34, 100, null, 1, "", 0], [80, 100, 2, 0.9, "0:09", 1], [126, 100, 3, 0.15, "2:05", 0],
 ];
+function Sheet() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const items: [number, number, string][] = [[1, 0, "막 뒤집음"], [0.75, 0, "공부 중"], [0.5, 0, "절반"], [0.2, 0, "거의 끝"], [0, 0, "다 떨어짐"], [0.6, 1, "뒤집는 중"]];
+  useEffect(() => {
+    const c = ref.current!, ctx = c.getContext("2d")!; ctx.imageSmoothingEnabled = false; ctx.fillStyle = "#f6e9cf"; ctx.fillRect(0, 0, c.width, c.height);
+    items.forEach(([sand, flip], i) => { const g = bake(hourglassGrid(sand, flip)); ctx.drawImage(g, 30 + i * 165, 30 + (flip ? 40 : 0), g.width * 10, g.height * 10); });
+  });
+  return (
+    <div id="prev" style={{ position: "relative" }}>
+      <canvas ref={ref} width={1020} height={260} />
+      {items.map(([, , t], i) => <span key={i} style={{ position: "absolute", left: 30 + i * 165, top: 225, width: 130, textAlign: "center", font: "14px Galmuri11, sans-serif" }}>{t}</span>)}
+    </div>
+  );
+}
 export default function P() {
+  if (typeof window !== "undefined" && window.location.search.includes("sheet")) return <Sheet />;
   const ref = useRef<HTMLCanvasElement>(null);
   const labels = typeof window !== "undefined" && window.location.search.includes("labels");
   useEffect(() => {
@@ -31,7 +46,7 @@ export default function P() {
       for (const [cx, ty, who] of seats) if (who !== null) b.drawImage(bake(avatarGrid(AV[who] as never, 0, true)), cx - 12, ty - 22);
       b.drawImage(table, 8, row);
       for (const [cx, ty, who, sand, , flip] of seats) {
-        b.drawImage(bake(hourglassGrid(sand, flip)), cx - 14, ty - 11);
+        b.drawImage(bake(hourglassGrid(sand, flip)), cx - (flip ? 30 : 17), ty - (flip ? 12 : 16));
         b.drawImage(lamp, cx + 10, ty - 8);
         if (who !== null) { b.fillStyle = "#c0504d"; b.fillRect(cx - 4, ty - 2, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 3, ty - 3, 7, 1); }
       }
