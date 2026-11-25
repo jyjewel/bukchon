@@ -14,7 +14,7 @@ import { useStudyGoals } from "@/hooks/useStudyGoals";
 import { useNotifications } from "@/hooks/useNotifications";
 import { STATUS_META, STATUS_ORDER, VILLAGE_CAPACITY } from "@/lib/constants";
 import { errorMessage, supabase } from "@/lib/supabase";
-import type { AppNotification, BoardTab, Conversation, ResearchState, Resident } from "@/lib/types";
+import type { AppNotification, BoardTab, Conversation, Profile, ResearchState, Resident } from "@/lib/types";
 import NotificationsView, { notifText, showsSummary } from "./NotificationsView";
 import RoomVisit from "./RoomVisit";
 import { CharacterIcon, StatusIcon } from "./Character";
@@ -86,6 +86,7 @@ const me = v.me!;
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<BoardTab>("whiteboard");
   const [visitId, setVisitId] = useState<string | null>(null);
+  const [guest, setGuest] = useState<Resident | null>(null);   // 마을이 다른 친구의 연구실을 구경하는 손님 방문
   const [toast, setToast] = useState<Toast | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
   const [newsOpen, setNewsOpen] = useState(false);
@@ -189,7 +190,22 @@ const me = v.me!;
     roomNews.markSeen(userId);
   };
   /** 포탈로 건너가기: 다른 마을 주민이면 그 마을로 옮긴 뒤 연구실을 연다 */
+  const goFriend = async (userId: string) => {
+    const { data } = await supabase().from("profiles").select("*").eq("id", userId).maybeSingle();
+    if (!data) return setNotice("친구의 연구실을 열 수 없어요.");
+    const prof = data as Profile;
+    const now = new Date().toISOString();
+    setGuest({
+      user_id: userId, role: "member", joined_at: now, slot: 0, profile: prof, say: "", shown: "offline", online: false,
+      house: { village_id: village.id, slot: 0, owner_id: userId, style: {} },
+      status: { village_id: village.id, user_id: userId, status: "offline", topic: "", reading: "", last_seen_at: now, left_at: now, updated_at: now, message: "", message_at: null },
+    });
+    setSelected(null);
+    setVisitId(userId);
+    setView("visit");
+  };
   const goPortal = (userId: string, villageId: string) => {
+    if (villageId === "friend") { void goFriend(userId); return; }
     if (villageId === village.id || !v.villages.some((x) => x.id === villageId)) return visit(userId);
     onOpenInOtherVillage({ id: `portal-${userId}`, user_id: me.user_id, village_id: villageId, actor_id: userId, kind: "postit", room_owner_id: userId, summary: "", created_at: new Date().toISOString(), read_at: null });
   };
@@ -460,9 +476,10 @@ const me = v.me!;
 
       {view === "room" && <main><StudyRoom key={`${me.user_id}:${labSection ?? ""}`} initialSection={labSection} me={me} residents={v.residents} villages={v.villages} tab={tab} onTab={setTab} onProfileSaved={async () => { await auth.reloadProfile(); await v.reload(); }} onVisit={goPortal} villageId={village.id} /></main>}
       {view === "visit" && (() => {
-        const owner = v.residents.find((r) => r.user_id === visitId);
+        const owner = v.residents.find((r) => r.user_id === visitId) ?? (guest && guest.user_id === visitId ? guest : undefined);
+        const isGuest = Boolean(owner) && !v.residents.some((r) => r.user_id === visitId);
         return owner ? (
-          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={goPortal} villages={v.villages} villageId={village.id} onProfile={() => setSelected(owner.user_id)} give={give(owner.user_id)} /></main>
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={goPortal} villages={v.villages} villageId={village.id} onProfile={isGuest ? undefined : () => setSelected(owner.user_id)} give={isGuest ? undefined : give(owner.user_id)} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
       {view === "library" && <main><LibraryView lib={lib} goals={goals} onGoalDone={() => setView("home")} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}

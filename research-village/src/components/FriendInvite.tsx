@@ -45,7 +45,7 @@ export default function FriendInvite({ code, onDone }: { code: string; onDone: (
               </div>
             </div>
             {preview.is_self ? <Notice kind="ok">내 친구 링크예요. 다른 사람에게 보내 보세요.</Notice>
-              : added || preview.already ? <Notice kind="ok">{preview.display_name}님과 친구예요! 설정의 “친구”에서 볼 수 있어요.</Notice>
+              : added || preview.already ? <Notice kind="ok">{preview.display_name}님과 친구예요! 연구실 벽의 포탈에서 친구의 연구실로 놀러 갈 수 있어요.</Notice>
               : <p className="text-sm">{preview.display_name}님을 친구로 추가할까요? 서로 친구 목록에 올라가요.</p>}
           </>
         )}

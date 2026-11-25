@@ -203,7 +203,7 @@ export default function SettingsView({
         </Window>
       </div>
       <div className="space-y-4">
-        <Window title="친구" icon="" tone="mint">
+        <Window title="친구 링크" icon="" tone="mint">
           <FriendsPanel />
         </Window>
         <Window title="폰 알림" icon="" tone="sky">

@@ -942,7 +942,7 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.equal(ok(await m1.c.from("whiteboard_items").select("body").eq("owner_id", outside[0].id)).length, 0);       // 친구가 아닌 이웃은 못 본다
   assert.equal(ok(await a.c.from("profiles").select("id").eq("id", outside[0].id)).length, 1);                        // 친구의 프로필(꾸밈 포함)
   ok(await a.c.from("postits").insert({ owner_id: outside[0].id, body: "친구가 붙임" }));
-  assert.ok(ok(await outside[0].c.from("notifications").select("kind").eq("kind", "postit").eq("actor_id", a.id)).length >= 1);   // 받은 사람에게 알림이 간다
+  assert.equal(ok(await outside[0].c.from("postits").select("id").eq("owner_id", outside[0].id).eq("author_id", a.id)).length, 1);   // 받은 사람이 자기 연구실에서 본다 (마을이 없는 사람은 알림만 없다)
   assert.ok((await m1.c.from("postits").insert({ owner_id: outside[0].id, body: "남이 붙임" })).error);                // 친구가 아니면 못 붙인다
   ok(await a.c.rpc("remove_friend", { p_friend: outside[0].id }));
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다

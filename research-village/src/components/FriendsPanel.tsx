@@ -2,26 +2,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { errorMessage, supabase } from "@/lib/supabase";
-import type { Avatar } from "@/lib/types";
-import { CharacterIcon } from "./Character";
 import { Notice } from "./ui";
 
-interface Friend { user_id: string; display_name: string; field: string; bio: string; avatar: Avatar; since: string }
 const linkOf = (code: string) => `${window.location.origin}${window.location.pathname}?friend=${code}`;
 
 /** 설정의 "친구": 내 친구 링크(복사·QR)와 친구 목록 */
 export default function FriendsPanel() {
   const [code, setCode] = useState("");
-  const [friends, setFriends] = useState<Friend[] | null>(null);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const qr = useRef<HTMLCanvasElement>(null);
 
   const load = useCallback(async () => {
-    const [c, f] = await Promise.all([supabase().rpc("my_friend_code"), supabase().rpc("list_friends")]);
+    const c = await supabase().rpc("my_friend_code");
     if (c.error) setErr(errorMessage(c.error)); else setCode(c.data as string);
-    if (!f.error) setFriends((f.data ?? []) as Friend[]);
   }, []);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 처음 한 번 불러온다
@@ -42,11 +37,7 @@ export default function FriendsPanel() {
     setBusy(false);
     if (error) setErr(errorMessage(error)); else { setCode(data as string); setMsg("새 링크로 바꿨어요."); }
   };
-  const remove = async (f: Friend) => {
-    if (!window.confirm(`${f.display_name}님을 친구에서 삭제할까요? 상대 목록에서도 사라져요.`)) return;
-    const { error } = await supabase().rpc("remove_friend", { p_friend: f.user_id });
-    if (error) setErr(errorMessage(error)); else setFriends((l) => (l ?? []).filter((x) => x.user_id !== f.user_id));
-  };
+
 
   return (
     <div className="space-y-3 p-3">
@@ -65,23 +56,7 @@ export default function FriendsPanel() {
           </div>
         </div>
       )}
-      <div className="dotted pt-3">
-        <p className="mb-2 font-display text-sm">내 친구 {friends ? `(${friends.length})` : ""}</p>
-        {friends && friends.length === 0 && <p className="text-sm text-ink-soft">아직 친구가 없어요. 위 링크를 보내 보세요.</p>}
-        <ul className="space-y-1">
-          {(friends ?? []).map((f) => (
-            <li key={f.user_id} className="card flex items-center gap-3 px-2 py-1.5">
-              <CharacterIcon avatar={f.avatar} size={44} headOnly />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-sm">{f.display_name}</p>
-                {f.field && <p className="truncate text-xs text-ink-soft">{f.field}</p>}
-                {f.bio && <p className="truncate text-xs text-ink-soft">{f.bio}</p>}
-              </div>
-              <button type="button" className="btn btn-sm" onClick={() => void remove(f)}>삭제</button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <p className="text-xs text-ink-soft">친구가 되면 서로의 연구실 벽 포탈에 이름이 생겨요. 포탈에서 친구 연구실을 구경하고, 친구 삭제도 포탈에서 해요.</p>
     </div>
   );
 }
