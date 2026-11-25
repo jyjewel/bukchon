@@ -157,8 +157,7 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
   // 가운데 벽시계: 깔끔한 하얀 둥근 시계(바늘은 화면에서 실제 시각으로 그린다)
   const face = phase === "night" ? "#f6f1e0" : "#ffffff";
-  px(g, 100, 16, "#5a3a22"); px(g, 99, 17, "#5a3a22"); px(g, 101, 17, "#5a3a22");               // 걸이
-  disc(g, 100, 30, 12, 12, "#5a3a22"); disc(g, 100, 30, 11, 11, face);
+  disc(g, 100, 30, 11, 11, face);                                                               // 테두리 없이 하얀 둥근 시계만
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
   // 오른쪽: 큰 게시판(공동 공부 목표를 써 붙인다. 글씨는 화면 위에 겹쳐 쓴다)
@@ -179,7 +178,7 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   rect(g, 63, 28, 15, 22, WOOD_D); rect(g, 64, 29, 13, 20, "#c9965e");
   for (const [x, y, c] of [[65, 31, "#fffdf2"], [71, 31, "#ffe58a"], [65, 39, "#cfe8ff"], [71, 40, "#ffd3de"]] as [number, number, string][]) { rect(g, x, y, 5, 6, c); px(g, x + 2, y, "#e0383f"); rect(g, x + 1, y + 2, 3, 1, "#8a7a6a"); }
   // 샹들리에
-  for (const [cx, cy, w] of [[100, 10, 14], [40, 8, 8], [160, 8, 8]] as [number, number, number][]) {
+  for (const [cx, cy, w] of [[40, 8, 8], [160, 8, 8]] as [number, number, number][]) {
     rect(g, cx, 7, 1, cy - 7 + 2, "#3a2a33"); rect(g, cx - w / 2, cy + 2, w, 2, "#c9a24e"); rect(g, cx - w / 2 + 1, cy + 4, w - 2, 1, "#8a6a2f");
     for (let x = cx - w / 2 + 1; x < cx + w / 2; x += 3) { rect(g, x, cy - 1, 1, 3, "#fff6c0"); px(g, x, cy - 2, "#ffd65c"); }
   }
@@ -273,8 +272,7 @@ export function cabinetGrid(medals: number): Grid {
       else px(g, x, y + 1, "#6a3a46");
     }
   }
-  for (let i = 0; i < 8; i++) { px(g, 4 + i, 6 + i * 2, "#c9e8f4"); px(g, 5 + i, 6 + i * 2, "#e8f6fb"); }
-  rect(g, 17, 5, 1, 22, "#9ac7da");
+  rect(g, 15, 5, 2, 22, "#7a4a60");                                                            // 유리에 비친 은은한 빛줄기
   rect(g, 8, 29, 4, 1, "#c9a24e"); rect(g, 2, 30, 16, 2, WOOD);
   return g;
 }

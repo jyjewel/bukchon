@@ -473,7 +473,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 .hall-plate {
   position: absolute; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden;
   border-radius: 3px; background: rgb(58 42 51 / 0.78); color: #fff3c4; pointer-events: none;
-  font-family: var(--font-small); font-size: clamp(8px, 1.7cqw, 11px); line-height: 1;
+  font-family: var(--font-small); font-size: clamp(8px, 1.7cqw, 11px); line-height: 1; gap: 0.35em;
 }
 .hall-plate-on { color: #ffe27a; }
 .hall-plate .nm { display: none; }
