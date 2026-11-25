@@ -157,11 +157,11 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
   // 가운데 벽시계: 하얀 둥근 시계가 벽에 걸려 있다(바늘은 화면에서 실제 시각으로 그린다)
   const face = phase === "night" ? "#f6f1e0" : "#ffffff";
-  px(g, 100, 28, "#8a7a6a"); px(g, 99, 29, "#8a7a6a"); px(g, 101, 29, "#8a7a6a");               // 걸이
-  disc(g, 100, 42, 13, 13, "#b9b2a4"); disc(g, 100, 42, 12, 12, "#e4dfd2"); disc(g, 100, 42, 11, 11, face);
+  px(g, 100, 16, "#8a7a6a"); px(g, 99, 17, "#8a7a6a"); px(g, 101, 17, "#8a7a6a");               // 걸이
+  disc(g, 100, 30, 13, 13, "#b9b2a4"); disc(g, 100, 30, 12, 12, "#e4dfd2"); disc(g, 100, 30, 11, 11, face);
   for (let i = 0; i < 12; i++) {
     const t = (i / 12) * Math.PI * 2 - Math.PI / 2, big = i % 3 === 0;
-    for (let r = big ? 8 : 9; r <= 10; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(42 + Math.sin(t) * r), big ? "#3a2a33" : "#a8a090");
+    for (let r = big ? 8 : 9; r <= 10; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(30 + Math.sin(t) * r), big ? "#3a2a33" : "#a8a090");
   }
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
@@ -199,9 +199,11 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
     rect(g, 100 - hw, y, hw * 2, 1, "#a8303c"); px(g, 100 - hw, y, "#e8c870"); px(g, 100 + hw - 1, y, "#e8c870"); px(g, 100 - hw + 2, y, "#e8c870"); px(g, 100 + hw - 3, y, "#e8c870");
     if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, "#8a2230");
   }
-  // 회의용 노트북 탁자(왼쪽 안쪽)와 지구본(오른쪽)
-  rect(g, 63, 68, 18, 14, WOOD_D); rect(g, 63, 68, 18, 3, WOOD_L); rect(g, 67, 60, 10, 8, "#b9bdc7"); rect(g, 68, 61, 8, 6, "#5f8fd6"); rect(g, 69, 62, 3, 2, "#fff"); rect(g, 73, 62, 2, 3, "#f2c64e");
-  stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(눌러서 주화를 본다)
+  // 회의용 노트북 탁자(왼쪽 안쪽): 노트북을 크게
+  rect(g, 62, 68, 28, 14, WOOD_D); rect(g, 62, 68, 28, 3, WOOD_L);
+  rect(g, 66, 52, 20, 14, "#b9bdc7"); rect(g, 67, 53, 18, 12, "#5f8fd6"); rect(g, 69, 55, 7, 3, "#ffffff"); rect(g, 78, 55, 5, 5, "#f2c64e"); rect(g, 69, 60, 12, 1, "#cfe0ff");
+  rect(g, 64, 66, 24, 2, "#9aa0ad"); rect(g, 70, 67, 12, 1, "#7a808c");
+  stamp(g, cabinetGrid(medals), 90, 46);                                     // 기념 장식장: 시계 바로 아래
   return outline(g, "#3a2a33");
 }
 
@@ -244,7 +246,7 @@ export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, avatar: 
 }
 
 /** 탁자 위 물건과 팔·책·펜·독서등·모래시계(탁자 위에 놓인 것은 탁자보다 나중에 그린다) */
-export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: SeatState, sand: number, flip: boolean, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }, glass: (s: number, f: number) => CanvasImageSource) {
+export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: SeatState, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }) {
   const ty = HALL_TABLE_Y;
   const person = st !== "empty";
   if (st === "done") { b.fillStyle = SKIN; b.fillRect(cx - 14, ty - 28, 3, 12); b.fillRect(cx + 11, ty - 28, 3, 12); b.fillStyle = "#3a2a33"; b.fillRect(cx - 15, ty - 29, 1, 14); b.fillRect(cx + 14, ty - 29, 1, 14); }   // 기지개
@@ -258,7 +260,6 @@ export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: Sea
   const lit = st === "study";
   b.drawImage(lit ? lamp.on : lamp.off, cx + 18, ty - 6);
   if (lit) { const gr = b.createRadialGradient(cx + 22, ty - 3, 1, cx + 22, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx + 2, ty - 25, 44, 34); }
-  b.drawImage(glass(sand, flip ? 1 : 0), cx + 9 - (flip ? 2 : 0), ty - (flip ? 5 : 6));
 }
 
 /** 기념 장식장(홀에 놓인 모습, 20×32): 유리문 안 벨벳 판에 끈 달린 메달이 걸린다. medals 는 0~9 */

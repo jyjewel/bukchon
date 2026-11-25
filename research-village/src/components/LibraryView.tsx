@@ -14,7 +14,7 @@ import StudyClockPanel from "./StudyClockPanel";
 import StudySchedules from "./StudySchedules";
 import { Notice, Window } from "./ui";
 import LibraryHall, { type HallPanel } from "./LibraryHall";
-import { clockHM, useLibraryDesk } from "@/hooks/useLibraryDesk";
+import { useLibraryDesk } from "@/hooks/useLibraryDesk";
 
 type Lib = ReturnType<typeof useLibrary>;
 const SPINES = ["#e0605a", "#5f8fd6", "#f2c64e", "#62b866", "#b08ae0", "#f0994a", "#f7a8bf", "#6ccfc2"];
@@ -68,7 +68,6 @@ export default function LibraryView({
   };
   const upcoming = lib.meetings.filter((m) => new Date(m.starts_at).getTime() > nowMs - 2 * 3600_000);
 
-  const hallStarted = Boolean(desk.desks.find((d) => d.user_id === me.user_id)?.running);
   const mySec = desk.secondsOf(desk.desks.find((d) => d.user_id === me.user_id), nowTick);
   const turn = async () => { await desk.turn(); };
   const goalsRef = useRef<HTMLDivElement>(null), schedRef = useRef<HTMLDivElement>(null);
@@ -160,12 +159,7 @@ export default function LibraryView({
       {error && <Notice kind="error">{error}</Notice>}
       {desk.error && <Notice kind="error">{desk.error}</Notice>}
       <section className="window overflow-hidden" aria-label="도서관">
-        <LibraryHall goalTitles={goals.goals.filter((g) => !g.completed_at).map((g) => g.title)} goalCount={goals.goals.filter((g) => !g.completed_at).length} medals={goals.goals.filter((g) => g.completed_at).length} residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={openPanel} onTurn={turn} />
-        <div className="flex flex-wrap items-center gap-3 border-t border-ink bg-[#fff6d9] px-3 py-2">
-          <button type="button" className={`btn ${hallStarted ? "" : "btn-primary"}`} onClick={turn}>{hallStarted ? "⏳ 모래시계 멈추기" : "⏳ 모래시계 돌려서 공부 시작"}</button>
-          <span className="text-sm">오늘 내 공부 시간 <b className="font-display">{clockHM(mySec)}</b></span>
-          <span className="text-xs text-ink-soft">책장·시계·노트북·장식장은 눌러서 열고, 게시판은 아래 창으로 가요</span>
-        </div>
+        <LibraryHall goalTitles={goals.goals.filter((g) => !g.completed_at).map((g) => g.title)} goalCount={goals.goals.filter((g) => !g.completed_at).length} medals={goals.goals.filter((g) => g.completed_at).length} residents={residents} myId={me.user_id} desks={desk.desks} secondsOf={desk.secondsOf} onOpen={openPanel} />
       </section>
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-2">
         <div ref={goalsRef} className="scroll-mt-3"><StudyGoals key="goals" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} goals={goals.goals} loaded={goals.loaded} reload={goals.reload} onDone={onGoalDone} /></div>
