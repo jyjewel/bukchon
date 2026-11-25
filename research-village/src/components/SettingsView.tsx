@@ -9,6 +9,7 @@ import HousePicker from "./HousePicker";
 import ProfileForm from "./ProfileForm";
 import { useFold } from "@/hooks/useFold";
 import PushSettings from "./PushSettings";
+import FriendsPanel from "./FriendsPanel";
 import MovingCakes from "./MovingCakes";
 import { UPDATES } from "@/lib/updates";
 import UpdateGroups from "./UpdateGroups";
@@ -202,6 +203,9 @@ export default function SettingsView({
         </Window>
       </div>
       <div className="space-y-4">
+        <Window title="친구" icon="" tone="mint">
+          <FriendsPanel />
+        </Window>
         <Window title="폰 알림" icon="" tone="sky">
           <PushSettings />
         </Window>
