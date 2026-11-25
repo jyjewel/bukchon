@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { bake, paint } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
-import { LROOM_H, LROOM_W, deskGrid, hourglassGrid, libraryBackground } from "@/pixel/libraryRoom";
+import { LROOM_H, LROOM_W, hourglassGrid, lampGrid, libraryBackground, longTableGrid } from "@/pixel/libraryRoom";
 
 const K = 6;
 const AV = [
@@ -25,14 +25,15 @@ export default function P() {
     const buf = document.createElement("canvas"); buf.width = LROOM_W; buf.height = LROOM_H;
     const b = buf.getContext("2d")!;
     paint(b, libraryBackground("day"), 0, 0);
-    const desk = bake(deskGrid());
+    const table = bake(longTableGrid(144)), lamp = bake(lampGrid());
     for (const row of [72, 100]) {
-      for (const [cx, ty, who, sand, , flip] of DESKS.filter((d) => d[1] === row)) {
-        if (who !== null) b.drawImage(bake(avatarGrid(AV[who] as never, 0, true)), cx - 12, ty - 22);
-        b.drawImage(desk, cx - 17, ty);
+      const seats = DESKS.filter((d) => d[1] === row);
+      for (const [cx, ty, who] of seats) if (who !== null) b.drawImage(bake(avatarGrid(AV[who] as never, 0, true)), cx - 12, ty - 22);
+      b.drawImage(table, 8, row);
+      for (const [cx, ty, who, sand, , flip] of seats) {
         b.drawImage(bake(hourglassGrid(sand, flip)), cx - 14, ty - 11);
-        // 책
-        b.fillStyle = "#c0504d"; if (who !== null) { b.fillRect(cx + 4, ty - 2, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx + 5, ty - 3, 7, 1); }
+        b.drawImage(lamp, cx + 10, ty - 8);
+        if (who !== null) { b.fillStyle = "#c0504d"; b.fillRect(cx - 4, ty - 2, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 3, ty - 3, 7, 1); }
       }
     }
     ctx.drawImage(buf, 0, 0, LROOM_W * K, LROOM_H * K);

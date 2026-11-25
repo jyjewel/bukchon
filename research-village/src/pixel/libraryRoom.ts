@@ -77,14 +77,21 @@ export function libraryBackground(phase: DayPhase, tick = 0): Grid {
   return outline(g, "#3a2a33");
 }
 
-/** 책상: 앞면과 상판. 가운데 아래가 (17, 15) */
-export function deskGrid(): Grid {
-  const g = grid(34, 16);
-  rect(g, 0, 0, 34, 4, WOOD_L); rect(g, 0, 3, 34, 1, WOOD);
-  rect(g, 1, 4, 32, 10, WOOD); rect(g, 1, 4, 32, 1, WOOD_D);
-  rect(g, 3, 6, 12, 6, shade(WOOD, -14)); rect(g, 19, 6, 12, 6, shade(WOOD, -14));
-  px(g, 9, 9, "#ffd65c"); px(g, 25, 9, "#ffd65c");
-  rect(g, 1, 14, 3, 2, WOOD_D); rect(g, 30, 14, 3, 2, WOOD_D);
+/** 도서관 긴 열람 탁자: 여럿이 나란히 앉는다. 위 윗면, 아래 앞면 널빤지와 다리 */
+export function longTableGrid(w: number): Grid {
+  const g = grid(w, 18);
+  rect(g, 0, 0, w, 5, WOOD_L); rect(g, 0, 4, w, 1, WOOD);
+  for (let x = 6; x < w - 4; x += 17) rect(g, x, 1, 7, 1, shade(WOOD_L, 14));   // 윗면 결
+  rect(g, 1, 5, w - 2, 9, WOOD); rect(g, 1, 5, w - 2, 1, WOOD_D);
+  for (let x = 3; x < w - 8; x += 20) { rect(g, x, 7, 17, 5, shade(WOOD, -14)); rect(g, x, 7, 17, 1, shade(WOOD, -30)); }
+  rect(g, 1, 14, 5, 4, WOOD_D); rect(g, w - 6, 14, 5, 4, WOOD_D); rect(g, Math.floor(w / 2) - 2, 14, 5, 4, WOOD_D);
+  return outline(g, "#3a2a33");
+}
+
+/** 자리마다 놓인 독서등(초록 갓) */
+export function lampGrid(): Grid {
+  const g = grid(8, 9);
+  rect(g, 1, 0, 6, 3, "#2f8f4a"); rect(g, 1, 0, 6, 1, "#4fb868"); rect(g, 3, 3, 1, 4, "#c9a24e"); rect(g, 1, 7, 5, 2, "#8a6a2f");
   return outline(g, "#3a2a33");
 }
 
