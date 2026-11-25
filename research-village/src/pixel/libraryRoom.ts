@@ -155,15 +155,14 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   // 천장 들보
   rect(g, 0, 0, HALL_W, 9, "#4a2f1c"); rect(g, 0, 7, HALL_W, 2, "#2f1d10");
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
-  // 가운데 큰 벽시계(바늘은 화면에서 실제 시각으로 그린다)
-  const face = phase === "night" ? "#efe6c4" : "#fdf6e0";
-  rect(g, 95, 22, 10, 5, "#5a3a22"); rect(g, 96, 22, 8, 1, WOOD_L);                    // 윗장식
-  disc(g, 100, 42, 20, 20, "#5a3a22"); disc(g, 100, 42, 18, 18, "#c9a24e"); disc(g, 100, 42, 16, 16, "#8a6a2f"); disc(g, 100, 42, 15, 15, face);
+  // 가운데 벽시계: 하얀 둥근 시계가 벽에 걸려 있다(바늘은 화면에서 실제 시각으로 그린다)
+  const face = phase === "night" ? "#f6f1e0" : "#ffffff";
+  px(g, 100, 28, "#8a7a6a"); px(g, 99, 29, "#8a7a6a"); px(g, 101, 29, "#8a7a6a");               // 걸이
+  disc(g, 100, 42, 13, 13, "#b9b2a4"); disc(g, 100, 42, 12, 12, "#e4dfd2"); disc(g, 100, 42, 11, 11, face);
   for (let i = 0; i < 12; i++) {
     const t = (i / 12) * Math.PI * 2 - Math.PI / 2, big = i % 3 === 0;
-    for (let r = big ? 11 : 12; r <= 14; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(42 + Math.sin(t) * r), big ? "#3a2a33" : "#8a7a6a");
+    for (let r = big ? 8 : 9; r <= 10; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(42 + Math.sin(t) * r), big ? "#3a2a33" : "#a8a090");
   }
-  rect(g, 86, 66, 28, 2, stoneL); rect(g, 92, 62, 16, 4, "#5a3a22"); rect(g, 94, 63, 12, 2, "#c9a24e");   // 아래 받침과 추
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
   // 오른쪽: 큰 게시판(공동 공부 목표를 써 붙인다. 글씨는 화면 위에 겹쳐 쓴다)
