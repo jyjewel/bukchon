@@ -54,6 +54,8 @@ export interface Profile {
   onboarded: boolean;
   /** 저장된 연구실 꾸미기(없으면 기본). normalizeLabStyle 로 읽는다 */
   lab_style?: unknown;
+  /** 연구실 이름(비어 있으면 "{이름}의 연구실") */
+  lab_name?: string;
 }
 
 export interface VillageInfo {

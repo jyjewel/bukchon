@@ -26,9 +26,27 @@ export default function LabDecorator({ me, onSaved }: { me: Resident; onSaved: (
     await onSaved();
   };
 
+  const [labName, setLabName] = useState(me.profile.lab_name ?? "");
+  const [savedName, setSavedName] = useState(false);
+  const saveName = async () => {
+    const v = labName.trim();
+    const { error } = await supabase().from("profiles").update({ lab_name: v }).eq("id", me.user_id);
+    if (error) return setError(errorMessage(error));
+    setError(""); setSavedName(true); setTimeout(() => setSavedName(false), 2500);
+    await onSaved();
+  };
+
   return (
     <div className="space-y-3 p-3">
       {error && <Notice kind="error">{error}</Notice>}
+      <div>
+        <label className="label" htmlFor="lab-name">연구실 이름</label>
+        <div className="flex gap-2">
+          <input id="lab-name" className="input" value={labName} onChange={(e) => { setLabName(e.target.value); setSavedName(false); }} maxLength={20} placeholder={`비우면 "${me.profile.display_name}의 연구실"`} />
+          <button type="button" className="btn btn-sm btn-primary shrink-0" onClick={() => void saveName()}>{savedName ? "저장했어요 ✓" : "저장"}</button>
+        </div>
+        <p className="mt-1 text-xs text-ink-soft">지도의 내 집 간판과 연구실 제목에 보여요. 이웃에게도 같은 이름으로 보여요.</p>
+      </div>
       <div className="px-box sticky top-0 z-10 overflow-hidden bg-paper" style={{ ["--bd" as string]: "#8e5f3b" }}>
         <RoomCanvas owner={{ ...me, profile: { ...me.profile, lab_style: style } }} inside={false} studying={false} boardCount={0} postitColors={[]} shelf={[]} />
       </div>

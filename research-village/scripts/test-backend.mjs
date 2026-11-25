@@ -948,6 +948,15 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
 
+await t("연구실 이름: 내가 정하면 같은 마을 이웃에게도 그 이름으로 읽히고, 20자를 넘기거나 남의 것은 못 바꾼다", async () => {
+  ok(await m1.c.from("profiles").update({ lab_name: "고전 시가 연구소" }).eq("id", m1.id));
+  assert.equal(ok(await m2.c.from("profiles").select("lab_name").eq("id", m1.id).single()).lab_name, "고전 시가 연구소");   // 이웃이 읽는다
+  assert.ok((await m1.c.from("profiles").update({ lab_name: "가".repeat(21) }).eq("id", m1.id)).error);                      // 너무 긴 이름
+  await m2.c.from("profiles").update({ lab_name: "내가 바꿈" }).eq("id", m1.id);                                              // 남의 것은 안 바뀐다
+  assert.equal(ok(await m1.c.from("profiles").select("lab_name").eq("id", m1.id).single()).lab_name, "고전 시가 연구소");
+  ok(await m1.c.from("profiles").update({ lab_name: "" }).eq("id", m1.id));                                                    // 비우면 기본 이름
+});
+
 await t("내 마을 순서: 내 것만 저장하고 읽는다", async () => {
   ok(await m1.c.from("user_prefs").upsert({ village_order: [village] }, { onConflict: "user_id" }));
   assert.equal(ok(await m1.c.from("user_prefs").select("village_order")).length, 1);
