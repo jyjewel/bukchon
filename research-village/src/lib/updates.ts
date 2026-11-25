@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-25-friend-link", date: "11월 25일", title: "친구 링크: 링크나 QR로 친구가 되면 마을이 달라도 포탈로 서로의 연구실을 구경하고 포스트잇을 남길 수 있어요", body: "" },
   { id: "2026-11-25-library-clock", date: "11월 25일", title: "도서관에 벽시계(누르면 내 공부 시간)와 공동 공부 목표 게시판이 생겼어요", body: "" },
   { id: "2026-11-25-library-hall", date: "11월 25일", title: "[소원] 도서관이 웅장한 홀로 바뀌었어요. 모래시계로 함께 공부하고 기념 메달 장식장이 생겼어요", body: "" },
   { id: "2026-11-25-snow-days", date: "11월 25일", title: "겨울 동안 눈이 오는 날과 안 오는 날이 무작위로 찾아와요", body: "" },
