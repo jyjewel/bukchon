@@ -80,23 +80,11 @@ export function libraryBackground(phase: DayPhase, tick = 0): Grid {
 /** 도서관 긴 열람 탁자: 여럿이 나란히 앉는다. 위 윗면, 아래 앞면 널빤지와 다리 */
 export function longTableGrid(w: number): Grid {
   const g = grid(w, 18);
-  const top = "#7a4a2a", topL = "#93603a", front = "#5e3a22", frontD = "#47291a";                  // 짙은 호두나무색: 원목 마루 위에서 또렷하다
-  rect(g, 0, 0, w, 5, top); rect(g, 0, 0, w, 1, topL); rect(g, 0, 4, w, 1, front);
-  for (let x = 6; x < w - 4; x += 17) rect(g, x, 1, 7, 1, topL);                                  // 윗면 결
-  rect(g, 1, 5, w - 2, 9, front); rect(g, 1, 5, w - 2, 1, frontD);
-  for (let x = 3; x < w - 8; x += 20) { rect(g, x, 7, 17, 5, frontD); rect(g, x, 7, 17, 1, "#33200f"); }
-  rect(g, 1, 14, 5, 4, frontD); rect(g, w - 6, 14, 5, 4, frontD); rect(g, Math.floor(w / 2) - 2, 14, 5, 4, frontD);
-  return outline(g, "#3a2a33");
-}
-
-/** 1인 책상(36×18): 짙은 호두색 상판과 서랍 하나, 양쪽 다리 */
-export function deskGrid(): Grid {
-  const g = grid(DESK_W, 18);
-  const top = "#7a4a2a", topL = "#93603a", front = "#5e3a22", frontD = "#47291a";
-  rect(g, 0, 0, DESK_W, 5, top); rect(g, 0, 0, DESK_W, 1, topL); rect(g, 0, 4, DESK_W, 1, front);
-  rect(g, 1, 5, DESK_W - 2, 9, front); rect(g, 1, 5, DESK_W - 2, 1, frontD);
-  rect(g, 9, 7, 18, 5, frontD); rect(g, 9, 7, 18, 1, "#33200f"); rect(g, 17, 9, 2, 1, "#e8c870");   // 서랍
-  rect(g, 1, 14, 4, 4, frontD); rect(g, DESK_W - 5, 14, 4, 4, frontD);
+  rect(g, 0, 0, w, 5, WOOD_L); rect(g, 0, 4, w, 1, WOOD);
+  for (let x = 6; x < w - 4; x += 17) rect(g, x, 1, 7, 1, shade(WOOD_L, 14));   // 윗면 결
+  rect(g, 1, 5, w - 2, 9, WOOD); rect(g, 1, 5, w - 2, 1, WOOD_D);
+  for (let x = 3; x < w - 8; x += 20) { rect(g, x, 7, 17, 5, shade(WOOD, -14)); rect(g, x, 7, 17, 1, shade(WOOD, -30)); }
+  rect(g, 1, 14, 5, 4, WOOD_D); rect(g, w - 6, 14, 5, 4, WOOD_D); rect(g, Math.floor(w / 2) - 2, 14, 5, 4, WOOD_D);
   return outline(g, "#3a2a33");
 }
 
@@ -155,98 +143,69 @@ export function hourglassGrid(sand: number, flip = 0): Grid {
 }
 
 export const HALL_W = 200;
-export const HALL_H = 150;
+export const HALL_H = 140;
 
-/** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 큰 벽시계, 왼쪽 2층 책장과 오른쪽 큰 게시판,
+/** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 스테인드글라스 아치 창, 양옆 2층 책장과 난간,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
-export type HallTheme = "tan" | "green" | "navy" | "sage" | "cream" | "slate" | "mint";
-const HALL_THEMES: Record<HallTheme, { stone: string; stoneD: string; stoneL: string; floorA: string; floorB: string }> = {
-  tan: { stone: "#d8c4a2", stoneD: "#b59f7c", stoneL: "#ecdcbc", floorA: "#b9a888", floorB: "#eadfc8" },
-  green: { stone: "#4a7a5e", stoneD: "#3a6249", stoneL: "#efe4c8", floorA: "#7d9a82", floorB: "#efe6d0" },
-  navy: { stone: "#44558a", stoneD: "#35446e", stoneL: "#efe4c8", floorA: "#9aa3c4", floorB: "#f2eadb" },
-  sage: { stone: "#e6ecdc", stoneD: "#cdd8c0", stoneL: "#fbf6e6", floorA: "#b7c8a8", floorB: "#f3ead2" },
-  cream: { stone: "#f1e6cb", stoneD: "#e0d2b0", stoneL: "#fffaf0", floorA: "#b9a888", floorB: "#eadfc8" },
-  mint: { stone: "#dcefe4", stoneD: "#c3ddd0", stoneL: "#f9f6ea", floorA: "#b9c9bf", floorB: "#eef2e8" },
-  slate: { stone: "#8fa3b8", stoneD: "#7b90a6", stoneL: "#f3ecdc", floorA: "#9aa3c4", floorB: "#f2eadb" },
-};
-export type HallFloor = "checker" | "wood" | "stone" | "carpet";
-export type HallCarpet = "red" | "green" | "none";
-export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan", floor: HallFloor = "checker", carpet: HallCarpet = "red", floorColor = "#6f7f93"): Grid {
+export function libraryHall(phase: DayPhase, medals = 0): Grid {
   const g = grid(HALL_W, HALL_H);
-  const { stone, stoneD, stoneL, floorA, floorB } = HALL_THEMES[theme];
+  const stone = "#d8c4a2", stoneD = "#b59f7c", stoneL = "#ecdcbc";
   rect(g, 0, 0, HALL_W, 84, stone);
   for (let y = 0; y < 84; y += 6) for (let x = (Math.floor(y / 6) % 2) * 6; x < HALL_W; x += 12) px(g, x, y, stoneD);    // 벽돌 결
   // 천장 들보
   rect(g, 0, 0, HALL_W, 9, "#4a2f1c"); rect(g, 0, 7, HALL_W, 2, "#2f1d10");
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
-  // 가운데 벽시계: 깔끔한 하얀 둥근 시계(바늘은 화면에서 실제 시각으로 그린다)
-  const face = phase === "night" ? "#f6f1e0" : "#ffffff";
-  disc(g, 100, 30, 11, 11, face);                                                               // 테두리 없이 하얀 둥근 시계만
+  // 가운데 아치 창(스테인드글라스)
+  const sky = phase === "night" ? "#243060" : phase === "dusk" ? "#e88a6a" : "#7ec4ec";
+  rect(g, 82, 22, 36, 62, "#5a3a22"); disc(g, 100, 22, 18, 14, "#5a3a22");
+  rect(g, 85, 22, 30, 62, sky); disc(g, 100, 22, 15, 11, sky);
+  const panes = ["#e0605a", "#f2c64e", "#5f8fd6", "#62b866", "#b08ae0"];
+  for (let py = 10; py < 80; py += 7) for (let pxx = 85; pxx < 115; pxx += 6) {
+    const dx = pxx + 3 - 100, dy = py - 22;
+    if (py < 22 && (dx * dx) / 225 + (dy * dy) / 121 > 1) continue;
+    if (phase === "night" ? hash(pxx, py) > 0.8 : (py > 40 && py < 64) || hash(pxx, py) > 0.55) rect(g, pxx, py, 5, 6, shade(panes[Math.floor(hash(pxx + 3, py + 1) * 5)], phase === "night" ? -50 : 0));
+  }
+  rect(g, 99, 8, 2, 76, "#5a3a22"); for (let y = 30; y < 84; y += 14) rect(g, 85, y, 30, 2, "#5a3a22");
+  rect(g, 80, 82, 40, 3, stoneL);
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
-  // 오른쪽: 큰 게시판(공동 공부 목표를 써 붙인다. 글씨는 화면 위에 겹쳐 쓴다)
-  rect(g, 140, 14, 56, 68, "#5a3a22"); rect(g, 142, 16, 52, 64, "#c9965e");
-  for (let i = 0; i < 160; i++) px(g, 143 + (i * 13) % 50, 17 + (i * 29) % 62, hash(i, 3) > 0.5 ? "#b78450" : "#d9aa78");
-  rect(g, 145, 18, 46, 10, "#5a3a22"); rect(g, 146, 19, 44, 8, "#7a5230"); rect(g, 146, 19, 44, 1, "#c9a24e"); rect(g, 146, 26, 44, 1, "#c9a24e");   // 윗머리판
-  for (const [x, y] of [[144, 18], [192, 18], [144, 78], [192, 78]]) { px(g, x, y, "#e0383f"); px(g, x + 1, y, "#ff8a8a"); }
-  for (const x0 of [4]) {
+  bookcase(g, 140, 14, 56, 30, 31); bookcase(g, 140, 48, 56, 34, 32);
+  for (const x0 of [4, 140]) {
     rect(g, x0, 44, 56, 4, "#6e4a2a"); rect(g, x0, 44, 56, 1, WOOD_L);                    // 2층 바닥판과 난간
     for (let x = x0 + 2; x < x0 + 56; x += 5) rect(g, x, 40, 1, 4, "#c9a24e");
     rect(g, x0, 39, 56, 1, WOOD_L);
   }
   // 기둥(책장 구획)
-  for (const x of [4, 22, 41, 59, 140, 195]) { rect(g, x - 1, 14, 3, 68, stoneL); rect(g, x + 1, 14, 1, 68, stoneD); rect(g, x - 2, 12, 5, 3, stoneL); rect(g, x - 2, 80, 5, 3, stoneL); }
+  for (const x of [4, 22, 41, 59, 140, 158, 177, 195]) { rect(g, x - 1, 14, 3, 68, stoneL); rect(g, x + 1, 14, 1, 68, stoneD); rect(g, x - 2, 12, 5, 3, stoneL); rect(g, x - 2, 80, 5, 3, stoneL); }
   // 굴러다니는 사다리
   rect(g, 30, 50, 1, 34, "#8a5a32"); rect(g, 35, 50, 1, 34, "#8a5a32"); for (let y = 54; y < 82; y += 5) rect(g, 30, y, 6, 1, "#c28b52");
-  // 스터디 일정 게시판(시계 왼쪽 벽)
+  // 게시판(왼쪽)·칠판(오른쪽): 창 양옆 벽에
   rect(g, 63, 28, 15, 22, WOOD_D); rect(g, 64, 29, 13, 20, "#c9965e");
   for (const [x, y, c] of [[65, 31, "#fffdf2"], [71, 31, "#ffe58a"], [65, 39, "#cfe8ff"], [71, 40, "#ffd3de"]] as [number, number, string][]) { rect(g, x, y, 5, 6, c); px(g, x + 2, y, "#e0383f"); rect(g, x + 1, y + 2, 3, 1, "#8a7a6a"); }
+  rect(g, 122, 28, 15, 22, "#5a3a22"); rect(g, 123, 29, 13, 20, "#2f5a48");
+  rect(g, 125, 32, 9, 1, "#e8f2ea"); rect(g, 125, 36, 7, 1, "#e8f2ea"); rect(g, 125, 40, 8, 1, "#e8f2ea"); rect(g, 125, 44, 4, 3, "#f2c64e");
   // 샹들리에
-  for (const [cx, cy, w] of [[40, 8, 8], [160, 8, 8]] as [number, number, number][]) {
+  for (const [cx, cy, w] of [[100, 10, 14], [40, 8, 8], [160, 8, 8]] as [number, number, number][]) {
     rect(g, cx, 7, 1, cy - 7 + 2, "#3a2a33"); rect(g, cx - w / 2, cy + 2, w, 2, "#c9a24e"); rect(g, cx - w / 2 + 1, cy + 4, w - 2, 1, "#8a6a2f");
     for (let x = cx - w / 2 + 1; x < cx + w / 2; x += 3) { rect(g, x, cy - 1, 1, 3, "#fff6c0"); px(g, x, cy - 2, "#ffd65c"); }
   }
-  // 바닥: 체크무늬 대리석 / 원목 마루 / 단색 석재
-  if (floor === "checker") {
-    for (let y = 84; y < HALL_H; y += 6) for (let x = 0; x < HALL_W; x += 12) rect(g, x, y, 12, 6, (x / 12 + (y - 84) / 6) % 2 === 0 ? floorA : floorB);
-  } else if (floor === "wood") {
-    const tones = ["#b98552", "#c18f5a", "#b07c4a", "#c9965f"];
-    for (let y = 84, row = 0; y < HALL_H; y += 7, row++) {
-      let x = -((row * 23) % 41);
-      while (x < HALL_W) {
-        const w = 34 + ((row * 7 + x) % 3) * 8, t = tones[Math.abs(row * 3 + Math.floor(x / 40)) % tones.length];
-        rect(g, x, y, w, 7, t); rect(g, x, y, w, 1, shade(t, 14)); rect(g, x, y + 6, w, 1, shade(t, -26)); rect(g, x + w - 1, y, 1, 7, shade(t, -26));
-        for (let k = 0; k < 3; k++) px(g, x + 4 + ((k * 13 + row * 5) % (w - 6)), y + 2 + (k % 3), shade(t, -10));   // 나뭇결
-        x += w;
-      }
-    }
-  } else if (floor === "carpet") {
-    // 바닥 전체에 깐 카펫: 짜임 무늬가 은은하게 보인다
-    rect(g, 0, 84, HALL_W, HALL_H - 84, floorColor);
-    for (let y = 84; y < HALL_H; y++) for (let x = 0; x < HALL_W; x++) {
-      if ((x + y * 2) % 4 === 0) px(g, x, y, shade(floorColor, 9));
-      else if ((x * 2 + y) % 7 === 0) px(g, x, y, shade(floorColor, -9));
-    }
-  } else {
-    rect(g, 0, 84, HALL_W, HALL_H - 84, "#e8dfca");
-    for (let y = 84; y < HALL_H; y += 12) rect(g, 0, y, HALL_W, 1, "#d3c8ae");
-    for (let y = 84, row = 0; y < HALL_H; y += 12, row++) for (let x = (row % 2) * 20; x < HALL_W; x += 40) rect(g, x, y, 1, 12, "#d3c8ae");
+  // 마룻바닥: 체크무늬 대리석
+  for (let y = 84; y < HALL_H; y += 6) for (let x = 0; x < HALL_W; x += 12) {
+    const dark = (x / 12 + (y - 84) / 6) % 2 === 0;
+    rect(g, x, y, 12, 6, dark ? "#b9a888" : "#eadfc8");
   }
   rect(g, 0, 83, HALL_W, 2, "#7a5a3a");
-  // 카펫(아래로 갈수록 넓어짐)
-  if (carpet !== "none") {
-    const base = carpet === "red" ? "#a8303c" : "#3f6b52", dark = carpet === "red" ? "#8a2230" : "#325643", trim = "#e8c870";
-    for (let y = 85; y < HALL_H; y++) {
-      const hw = 12 + Math.floor((y - 85) * 0.16);
-      rect(g, 100 - hw, y, hw * 2, 1, base); px(g, 100 - hw, y, trim); px(g, 100 + hw - 1, y, trim); px(g, 100 - hw + 2, y, trim); px(g, 100 + hw - 3, y, trim);
-      if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, dark);
-    }
+  // 붉은 카펫(아래로 갈수록 넓어짐)
+  for (let y = 85; y < HALL_H; y++) {
+    const hw = 12 + Math.floor((y - 85) * 0.16);
+    rect(g, 100 - hw, y, hw * 2, 1, "#a8303c"); px(g, 100 - hw, y, "#e8c870"); px(g, 100 + hw - 1, y, "#e8c870"); px(g, 100 - hw + 2, y, "#e8c870"); px(g, 100 + hw - 3, y, "#e8c870");
+    if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, "#8a2230");
   }
-  // 노트북을 올린 낮은 장(벽 앞): 앉은 사람 머리에 가리지 않게 벽 높은 곳에
-  rect(g, 63, 56, 26, 12, WOOD_D); rect(g, 63, 56, 26, 3, WOOD_L);
-  rect(g, 68, 44, 16, 11, "#b9bdc7"); rect(g, 69, 45, 14, 9, "#5f8fd6"); rect(g, 71, 47, 5, 2, "#ffffff"); rect(g, 77, 47, 4, 4, "#f2c64e"); rect(g, 71, 51, 9, 1, "#cfe0ff");
-  rect(g, 66, 54, 20, 2, "#9aa0ad"); rect(g, 71, 55, 10, 1, "#7a808c");
-  stamp(g, cabinetGrid(medals), 118, 36);                                    // 기념 장식장(오른쪽 게시판 옆 벽)
+  // 창빛이 바닥에 비친다
+  if (phase !== "night") for (let i = 0; i < 5; i++) rect(g, 86 + i * 6, 88 + i * 3, 4, 4, "rgb(255 240 200)".replace("rgb(255 240 200)", "#fff0c8"));
+  // 회의용 노트북 탁자(왼쪽 안쪽)와 지구본(오른쪽)
+  rect(g, 63, 68, 18, 14, WOOD_D); rect(g, 63, 68, 18, 3, WOOD_L); rect(g, 67, 60, 10, 8, "#b9bdc7"); rect(g, 68, 61, 8, 6, "#5f8fd6"); rect(g, 69, 62, 3, 2, "#fff"); rect(g, 73, 62, 2, 3, "#f2c64e");
+  stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(눌러서 주화를 본다)
   return outline(g, "#3a2a33");
 }
 
@@ -273,22 +232,24 @@ export function hourglassSmall(sand: number, flip = 0): Grid {
 }
 
 // ───────── 열람 탁자의 자리: 캐릭터와 책상 위 물건 ─────────
-/** 열람 탁자는 두 줄: 뒤줄(벽 쪽)과 앞줄에 길게 놓이고, 줄마다 3자리가 있다. 집 번호(0~5)가 곧 자리 번호 */
-export const DESK_W = 36;
-export const HALL_TABLE_YS = [88, 126] as const;
-/** 한 사람에 책상 하나(라운지형 열람석): 뒷줄 3개와, 그 사이사이에 놓인 앞줄 3개. 집 번호(0~5)가 곧 자리 번호 */
-export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 35 : 62) + 55 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
+export const HALL_TABLE_Y = 104;
+export const HALL_TABLE_X = 7;
+export const HALL_TABLE_W = 186;
+/** 집 번호(0~5)가 곧 자리 번호: 탁자 위에서 왼쪽부터 */
+export const seatX = (slot: number) => 22 + 30 * slot;
 export type SeatState = "empty" | "seated" | "study" | "done";
 
 const SKIN = "#f6cba6";
 /** 앉은 캐릭터(탁자 뒤에 가려지도록 탁자보다 먼저 그린다). 공부 중엔 고개를 숙이고 가끔 더 숙인다 */
-export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, ty: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
+export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
+  const ty = HALL_TABLE_Y;
   const dy = st === "study" ? 1 + (Math.floor(tick / 40) % 5 === 0 ? 1 : 0) : st === "done" ? -1 : 0;
   b.drawImage(avatar, cx - 12, ty - 22 + dy);
 }
 
 /** 탁자 위 물건과 팔·책·펜·독서등·모래시계(탁자 위에 놓인 것은 탁자보다 나중에 그린다) */
-export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, ty: number, st: SeatState, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }) {
+export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: SeatState, sand: number, flip: boolean, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }, glass: (s: number, f: number) => CanvasImageSource) {
+  const ty = HALL_TABLE_Y;
   const person = st !== "empty";
   if (st === "done") { b.fillStyle = SKIN; b.fillRect(cx - 14, ty - 28, 3, 12); b.fillRect(cx + 11, ty - 28, 3, 12); b.fillStyle = "#3a2a33"; b.fillRect(cx - 15, ty - 29, 1, 14); b.fillRect(cx + 14, ty - 29, 1, 14); }   // 기지개
   if (st === "study") {
@@ -299,8 +260,9 @@ export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, ty: num
     const pen = Math.floor(tick / 8) % 2; b.fillStyle = "#3a5fa8"; b.fillRect(cx + 5 + pen, ty - 4 + pen, 2, 1); b.fillRect(cx + 6 + pen, ty - 5 + pen, 1, 1);   // 글씨 쓰는 펜
   } else if (person) { b.fillStyle = "#c0504d"; b.fillRect(cx - 5, ty, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 4, ty - 1, 7, 1); }   // 닫힌 책
   const lit = st === "study";
-  if (person) b.drawImage(lit ? lamp.on : lamp.off, cx + 9, ty - 6);
-  if (lit) { const gr = b.createRadialGradient(cx + 13, ty - 3, 1, cx + 13, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx - 7, ty - 25, 44, 34); }
+  b.drawImage(lit ? lamp.on : lamp.off, cx + 18, ty - 6);
+  if (lit) { const gr = b.createRadialGradient(cx + 22, ty - 3, 1, cx + 22, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx + 2, ty - 25, 44, 34); }
+  b.drawImage(glass(sand, flip ? 1 : 0), cx + 9 - (flip ? 2 : 0), ty - (flip ? 5 : 6));
 }
 
 /** 기념 장식장(홀에 놓인 모습, 20×32): 유리문 안 벨벳 판에 끈 달린 메달이 걸린다. medals 는 0~9 */
@@ -318,7 +280,8 @@ export function cabinetGrid(medals: number): Grid {
       else px(g, x, y + 1, "#6a3a46");
     }
   }
-  rect(g, 15, 5, 2, 22, "#7a4a60");                                                            // 유리에 비친 은은한 빛줄기
+  for (let i = 0; i < 8; i++) { px(g, 4 + i, 6 + i * 2, "#c9e8f4"); px(g, 5 + i, 6 + i * 2, "#e8f6fb"); }
+  rect(g, 17, 5, 1, 22, "#9ac7da");
   rect(g, 8, 29, 4, 1, "#c9a24e"); rect(g, 2, 30, 16, 2, WOOD);
   return g;
 }
@@ -365,16 +328,4 @@ export function cabinetInterior(medals: number, sel = -1): Grid {
   }
   for (let i = 0; i < 6; i++) rect(g, 18 + i * 18, 4, 6, 2, "#fff0b0");                              // 위 조명
   return outline(g, "#3a2a33");
-}
-
-/** 도서관 홀의 지금 모습(벽 색·바닥·카펫) */
-export const HALL_LOOK: { theme: HallTheme; floor: HallFloor; carpet: HallCarpet; floorColor?: string } = { theme: "mint", floor: "stone", carpet: "none" };
-
-/** 밤에 켜진 독서등의 따뜻한 빛(어두워진 홀 위에 덧칠한다) */
-export function drawLampGlow(b: CanvasRenderingContext2D, cx: number, ty: number, alpha: number) {
-  b.globalCompositeOperation = "lighter";
-  const gr = b.createRadialGradient(cx + 13, ty - 4, 1, cx + 13, ty - 4, 30);
-  gr.addColorStop(0, `rgb(255 214 120 / ${alpha})`); gr.addColorStop(1, "rgb(255 214 120 / 0)");
-  b.fillStyle = gr; b.fillRect(cx - 20, ty - 36, 66, 60);
-  b.globalCompositeOperation = "source-over";
 }

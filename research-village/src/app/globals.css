@@ -473,14 +473,8 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 .hall-plate {
   position: absolute; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden;
   border-radius: 3px; background: rgb(58 42 51 / 0.78); color: #fff3c4; pointer-events: none;
-  font-family: var(--font-small); font-size: clamp(8px, 1.7cqw, 11px); line-height: 1; gap: 0.35em;
+  font-family: var(--font-small); font-size: clamp(8px, 1.7cqw, 11px); line-height: 1;
 }
 .hall-plate-on { color: #ffe27a; }
 .hall-plate .nm { display: none; }
 @container hall (min-width: 560px) { .hall-plate .nm { display: inline; } }
-.hall-board-title { position: absolute; display: flex; align-items: center; justify-content: center; color: #ffe27a; font-family: var(--font-small); font-size: clamp(7px, 1.9cqw, 12px); line-height: 1; pointer-events: none; white-space: nowrap; }
-.hall-board { position: absolute; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3.5%; overflow: hidden; pointer-events: none; }
-.hall-card { background: #fffdf2; color: #3a2a33; border: 1px solid #b59f7c; border-radius: 2px; padding: 3% 5%; font-family: var(--font-small); font-size: clamp(7px, 1.7cqw, 11px); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-shadow: 0 1px 0 rgb(58 42 51 / 0.25); }
-.hall-card:nth-child(2) { background: #fff0b8; } .hall-card:nth-child(3) { background: #dff0ff; } .hall-card:nth-child(4) { background: #ffdbe4; }
-.hall-card-empty { color: #8a7a6a; }
-.hall-more { color: #fff3c4; font-family: var(--font-small); font-size: clamp(7px, 1.6cqw, 10px); text-align: center; }
