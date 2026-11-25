@@ -79,6 +79,9 @@ canvas, .pixelated, img[src*="data:"] { border-radius: 0; }
   --bd: var(--color-ink);
 }
 
+/* 대화 말풍선: 다른 창처럼 얇은 테두리에 살짝 둥근 모서리 */
+.bubble { border: 1px solid var(--color-ink); border-radius: var(--r-card); }
+
 .window {
   --bd: var(--color-ink);
   background: var(--color-paper);

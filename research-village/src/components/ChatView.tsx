@@ -117,7 +117,7 @@ function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Residen
                 return (
                   <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                     <div className="max-w-[80%]">
-                      <p className="px-box whitespace-pre-wrap break-words px-2 py-1 text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{m.body}</p>
+                      <p className="bubble whitespace-pre-wrap break-words px-2 py-1 text-sm" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{m.body}</p>
                       <p className={`text-xs text-ink-soft ${mine ? "text-right" : ""}`}>{relativeTime(m.created_at)}</p>
                     </div>
                   </li>
