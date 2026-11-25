@@ -276,3 +276,22 @@ export function snowToday(d = new Date()): 0 | 1 | 2 | 3 {
   const r = (x % 1000) / 1000;
   return r < 0.5 ? 0 : r < 0.72 ? 1 : r < 0.9 ? 2 : 3;
 }
+
+/** 바닥에 쌓인 눈의 정도(0~1). 최근 며칠 동안 온 눈을 쌓고 하루에 조금씩 녹인다.
+ *  겨울(11/25~2월)이 아니면 1(해당 없음)이고, 크리스마스 기간엔 최소한 군데군데는 눈이 남아 있고, 12/24·25는 가득 쌓인다. */
+export function snowCover(d = new Date()): number {
+  const k = new Date(d.getTime() + 9 * 3600_000);
+  const m = k.getUTCMonth() + 1, day = k.getUTCDate();
+  const xmas = (m === 11 && day >= 25) || (m === 12 && day <= 25);
+  const winter = xmas || m === 12 || m <= 2;
+  if (!winter) return 1;
+  let cover = 0;
+  for (let back = 24; back >= 0; back--) {
+    const dd = new Date(d.getTime() - back * 86_400_000);
+    const lv = snowToday(dd);
+    cover = Math.max(0, cover - 0.25);                     // 하루 녹는 양
+    cover = Math.min(1, cover + (lv === 0 ? 0 : lv === 1 ? 0.25 : lv === 2 ? 0.45 : 0.8));
+  }
+  if (m === 12 && (day === 24 || day === 25)) return 1;
+  return xmas ? Math.max(0.4, cover) : cover;
+}

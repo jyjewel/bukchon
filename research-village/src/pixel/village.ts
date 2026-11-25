@@ -80,7 +80,7 @@ function stampLine(mask: Uint8Array, x1: number, y1: number, x2: number, y2: num
 }
 
 /** 잔디·길·광장·연못을 한 장의 그리드로 그린다 */
-export function groundGrid(season: Season): Grid {
+export function groundGrid(season: Season, cover = 1): Grid {
   const s = SEASONS[season];
   const g = grid(W, H);
   const r = rng(7);
@@ -91,6 +91,13 @@ export function groundGrid(season: Season): Grid {
     const n = hash(x, y);
     if (n > 0.985) c = s.grassD;
     else if (n < 0.012) c = s.grassL;
+    if (season === "winter" && cover < 1) {
+      // 눈이 녹은 곳: 큰 얼룩 모양으로 풀빛 맨땅이 드러나고, 눈 가장자리는 질척한 색
+      const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.14;
+      const limit = 0.12 + cover * 0.88;
+      if (pat > limit) c = hash(x, y) > 0.8 ? "#8d9a6c" : hash(x, y) < 0.15 ? "#b3bf8f" : "#a1ae7d";
+      else if (pat > limit - 0.05) c = "#cdd9d6";
+    }
     g.d[y * W + x] = c;
   }
   for (let i = 0; i < 150; i++) {

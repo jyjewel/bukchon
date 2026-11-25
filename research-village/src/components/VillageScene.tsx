@@ -9,7 +9,7 @@ import { fxGrid } from "@/pixel/fx";
 import { nearestWalkable } from "@/lib/walk";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, isChristmasSeason } from "@/pixel/christmas";
-import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, snowToday, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap } from "@/pixel/magic";
+import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, snowToday, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap, snowCover } from "@/pixel/magic";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
 import { eatGrid } from "@/pixel/eat";
@@ -90,13 +90,13 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     if (fx && fxRef.current?.id !== fx.id) fxRef.current = { ...fx, start: performance.now() };
   }, [fx]);
-  const [clock, setClock] = useState<{ season: Season; phase: DayPhase; xmas: boolean; snow: 0 | 1 | 2 | 3 }>({ season: "spring", phase: "day", xmas: false, snow: 0 });
+  const [clock, setClock] = useState<{ season: Season; phase: DayPhase; xmas: boolean; snow: 0 | 1 | 2 | 3; cover: number }>({ season: "spring", phase: "day", xmas: false, snow: 0, cover: 1 });
   useEffect(() => {
     data.current = { houses, residents, myId };
   }, [houses, residents, myId]);
 
   useEffect(() => {
-    const update = () => setClock({ season: currentSeason(), phase: currentPhase(), xmas: isChristmasSeason(), snow: snowToday() });
+    const update = () => setClock({ season: currentSeason(), phase: currentPhase(), xmas: isChristmasSeason(), snow: snowToday(), cover: snowCover() });
     update();
     const t = setInterval(update, 60_000);
     return () => clearInterval(t);
@@ -105,7 +105,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     const canvas = canvasRef.current, wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const { season, phase, xmas, snow } = clock;
+    const { season, phase, xmas, snow, cover } = clock;
     const pal = SEASONS[season];
     const night = phase === "night";
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -120,8 +120,12 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       return c;
     };
     const vSeason: Season = xmas ? "winter" : season;
-    const ground = bake(groundGrid(vSeason));
-    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(treeGrid(SEASONS[vSeason].leaves[(v + i) % pal.leaves.length], v + i, vSeason)) }));
+    const wintry = vSeason === "winter";
+    const capped = wintry && cover >= 0.4;     // 지붕에 눈이 쌓일 만큼 쌓였을 때만
+    const bare = wintry && cover < 0.4;       // 눈이 많이 녹은 날의 나무 잎
+    const BARE: [string, string, string][] = [["#6f8f74", "#8fae92", "#527358"], ["#7a9468", "#9cb585", "#5b7550"], ["#6a8a7e", "#8aab9d", "#4f6d62"]];
+    const ground = bake(groundGrid(vSeason, wintry ? cover : 1));
+    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(bare ? treeGrid(BARE[(v + i) % 3], v + i, "summer") : treeGrid(SEASONS[vSeason].leaves[(v + i) % pal.leaves.length], v + i, vSeason)) }));
     const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
     const fountain = [0, 1, 2, 3].map((f) => bake(fountainGrid(f)));
     const candleImg = bake(candleGrid());
@@ -347,7 +351,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         });
       }
       const libLit = night || residents.some((r) => r.shown === "library");
-      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? snowCap(castleGrid(libLit), 0.6, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - (xmas ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (xmas ? CASTLE_H : LIB_H) + 2) });
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? (capped ? snowCap(castleGrid(libLit), 0.6, false) : castleGrid(libLit)) : capped ? snowCap(libraryGrid(libLit, libraryStyle), 0.4, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - (xmas ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (xmas ? CASTLE_H : LIB_H) + 2) });
 
       if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
       if (xmas && !reduced) items.push({ y: 401, draw: () => drawOwl(b, tick, W) });
@@ -356,7 +360,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         const pos = HOUSE_POS[h.slot], r = bySlot.get(h.slot);
         const lit = Boolean(r?.online), empty = !h.owner_id, mine = h.owner_id === data.current.myId;
         const meta = HOUSE_META[houseTypeOf(h.style)];
-        const c = sp(`h${houseTypeOf(h.style)}${lit}${empty}${mine}`, () => xmas ? snowCap(houseGrid(h.style, { lit, empty, mine })) : houseGrid(h.style, { lit, empty, mine }));
+        const c = sp(`h${houseTypeOf(h.style)}${lit}${empty}${mine}`, () => capped ? snowCap(houseGrid(h.style, { lit, empty, mine })) : houseGrid(h.style, { lit, empty, mine }));
         items.push({
           y: pos.y,
           draw: () => {
