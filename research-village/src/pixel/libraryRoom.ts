@@ -1,5 +1,6 @@
 import type { DayPhase } from "@/lib/time";
-import { disc, grid, hash, outline, px, rect, rng, shade, type Grid } from "./core";
+import { coinGrid as coinGridLocal } from "./coin";
+import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const LROOM_W = 160;
 export const LROOM_H = 120;
@@ -147,7 +148,7 @@ export const HALL_H = 140;
 
 /** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 스테인드글라스 아치 창, 양옆 2층 책장과 난간,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
-export function libraryHall(phase: DayPhase): Grid {
+export function libraryHall(phase: DayPhase, medals = 0): Grid {
   const g = grid(HALL_W, HALL_H);
   const stone = "#d8c4a2", stoneD = "#b59f7c", stoneL = "#ecdcbc";
   rect(g, 0, 0, HALL_W, 84, stone);
@@ -205,7 +206,7 @@ export function libraryHall(phase: DayPhase): Grid {
   if (phase !== "night") for (let i = 0; i < 5; i++) rect(g, 86 + i * 6, 88 + i * 3, 4, 4, "rgb(255 240 200)".replace("rgb(255 240 200)", "#fff0c8"));
   // 회의용 노트북 탁자(왼쪽 안쪽)와 지구본(오른쪽)
   rect(g, 63, 68, 18, 14, WOOD_D); rect(g, 63, 68, 18, 3, WOOD_L); rect(g, 67, 60, 10, 8, "#b9bdc7"); rect(g, 68, 61, 8, 6, "#5f8fd6"); rect(g, 69, 62, 3, 2, "#fff"); rect(g, 73, 62, 2, 3, "#f2c64e");
-  rect(g, 123, 70, 2, 12, "#8a5a32"); disc(g, 124, 66, 6, 6, "#4a8ac0"); disc(g, 122, 65, 2.5, 2, "#62b866"); disc(g, 127, 68, 2, 2, "#62b866"); rect(g, 119, 66, 11, 1, "#c9a24e");
+  stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(눌러서 주화를 본다)
   return outline(g, "#3a2a33");
 }
 
@@ -263,4 +264,54 @@ export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, st: Sea
   b.drawImage(lit ? lamp.on : lamp.off, cx + 18, ty - 6);
   if (lit) { const gr = b.createRadialGradient(cx + 22, ty - 3, 1, cx + 22, ty - 3, 20); gr.addColorStop(0, "rgb(255 226 140 / .5)"); gr.addColorStop(1, "rgb(255 226 140 / 0)"); b.fillStyle = gr; b.fillRect(cx + 2, ty - 25, 44, 34); }
   b.drawImage(glass(sand, flip ? 1 : 0), cx + 9 - (flip ? 2 : 0), ty - (flip ? 5 : 6));
+}
+
+/** 기념 장식장(홀에 놓인 모습, 20×32): 유리문 안 선반 세 칸에 금빛 주화가 채워진다. medals 는 0~9 */
+export function cabinetGrid(medals: number): Grid {
+  const g = grid(20, 32);
+  rect(g, 0, 0, 20, 32, WOOD_D); rect(g, 0, 0, 20, 2, WOOD_L); rect(g, 1, 2, 18, 1, WOOD);        // 틀과 윗장식
+  rect(g, 2, 4, 16, 25, "#5a2f3a");                                                              // 안쪽 벨벳
+  for (let r = 0; r < 3; r++) {
+    const y = 4 + r * 8;
+    rect(g, 2, y + 6, 16, 2, WOOD); rect(g, 2, y + 6, 16, 1, WOOD_L);                            // 선반
+    for (let c = 0; c < 3; c++) {
+      const idx = r * 3 + c;
+      if (idx < medals) { disc(g, 5 + c * 5, y + 3, 2, 2, "#e0a92c"); px(g, 4 + c * 5, y + 2, "#fff0a8"); px(g, 6 + c * 5, y + 4, "#b8821f"); }
+      else px(g, 5 + c * 5, y + 5, "#7a4a56");                                                  // 빈 자리 받침
+    }
+  }
+  // 유리 반사
+  for (let i = 0; i < 8; i++) { px(g, 4 + i, 6 + i * 2, "#c9e8f4"); px(g, 5 + i, 6 + i * 2, "#e8f6fb"); }
+  rect(g, 17, 5, 1, 22, "#9ac7da");
+  rect(g, 8, 29, 4, 1, "#c9a24e"); rect(g, 2, 30, 16, 2, WOOD);                                // 손잡이·받침
+  return g;
+}
+
+/** 장식장 안쪽(눌렀을 때 열리는 진열 화면, 128×84): 벨벳을 댄 3단 선반에 기념주화가 메달처럼 진열된다 */
+export function cabinetInterior(medals: number, sel = -1): Grid {
+  const W = 128, H = 84, g = grid(W, H);
+  rect(g, 0, 0, W, H, WOOD_D); rect(g, 0, 0, W, 3, WOOD_L); rect(g, 1, 3, W - 2, 1, WOOD);
+  rect(g, 5, 7, W - 10, H - 14, "#5a2f3a");
+  for (let y = 7; y < H - 7; y++) for (let x = 5; x < W - 5; x++) if ((x + y) % 4 === 0) px(g, x, y, "#6a3a46");   // 벨벳 결
+  const PER = 5;
+  for (let r = 0; r < 3; r++) {
+    const top = 9 + r * 24;
+    rect(g, 5, top + 21, W - 10, 3, WOOD); rect(g, 5, top + 21, W - 10, 1, WOOD_L); rect(g, 5, top + 23, W - 10, 1, WOOD_D);   // 선반
+    for (let c = 0; c < PER; c++) {
+      const idx = r * PER + c, cx = 16 + c * 24, cy = top + 12;
+      if (idx < medals) {
+        // 받침대: 작은 삼각 거치대, 위에 주화를 세워 놓는다
+        rect(g, cx - 5, top + 19, 11, 2, "#3a2a2a"); rect(g, cx - 1, top + 17, 3, 3, "#3a2a2a");
+        const coin = coinGridLocal();
+        stamp(g, coin, cx - 9, cy - 9);
+        if (idx === sel) for (let a = 0; a < 20; a++) { const t = (a / 20) * Math.PI * 2; px(g, Math.round(cx + Math.cos(t) * 11), Math.round(cy + Math.sin(t) * 11), "#fff6c0"); }
+        rect(g, cx - 4, top + 19, 9, 1, "#e8c870");                                              // 이름표 판
+      } else {
+        disc(g, cx, cy + 4, 7, 7, "#4a2630"); disc(g, cx, cy + 4, 6, 6, "#52303a");              // 빈 자리 받침
+      }
+    }
+  }
+  // 위쪽 조명 빛
+  for (let i = 0; i < 6; i++) rect(g, 18 + i * 18, 4, 6, 2, "#fff0b0");
+  return outline(g, "#3a2a33");
 }
