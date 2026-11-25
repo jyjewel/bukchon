@@ -88,7 +88,7 @@ canvas, .pixelated, img[src*="data:"] { border-radius: 0; }
   box-shadow: 0 4px 0 0 rgb(58 42 51 / 0.22);
 }
 .window:not(dialog) { overflow: clip; }
-dialog.window { border: 1px solid var(--bd); overflow: visible; margin: auto; }
+dialog.window { border: 1px solid var(--bd); overflow: visible; margin: auto !important; }   /* 모달이 space-y 칸 안에 있어도 칸 여백에 밀리지 않게 */
 .space-y-4 > .window:not(:last-child), .space-y-5 > .window:not(:last-child), .space-y-4 > header.window, .space-y-5 > header.window { margin-bottom: 22px; }
 .space-y-4 > :where(div, main, form):not(:last-child) { margin-bottom: 22px; }
 .titlebar {
@@ -372,6 +372,18 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 .lab-main { padding-bottom: 8px; }
 .lab-focus textarea.big-write { min-height: calc(100vh - 230px); font-size: 1.125rem; padding: 20px 26px; }
 
+/* ── 화면에 고정된 요소 ── */
+/* 하단 메뉴가 차지하는 높이(버튼 40 + 테두리 1 + 아이폰 홈 막대 자리). 넓은 화면에는 하단 메뉴가 없다 */
+:root { --nav-h: 0px; }
+@media (max-width: 1023px) { :root { --nav-h: calc(41px + env(safe-area-inset-bottom) * 0.45); } }
+/* space-y 칸의 자식이라도 칸 여백을 받지 않는다(받으면 그만큼 화면 끝에서 떨어져 보인다) */
+.pinned { margin: 0 !important; }
+.above-nav { bottom: calc(var(--nav-h) + 1rem); }
+/* 폰의 모달은 화면 아래에 붙는다 */
+@media (width < 40rem) {
+  dialog.window { margin: auto auto 0 !important; padding-bottom: env(safe-area-inset-bottom); border-bottom: 0; border-radius: var(--r-win) var(--r-win) 0 0; }
+}
+
 /* ── 폰에서 쓰기 편하게 ── */
 @media (max-width: 1023px) {
   /* 아이폰은 16px 보다 작은 입력칸을 누르면 화면이 저절로 확대된다 */
@@ -398,7 +410,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 
 /* 처음 접속: 편지를 물어다 주는 부엉이 */
-.owl-visit { position: fixed; z-index: 45; right: 16px; bottom: 70px; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.owl-visit { position: fixed; z-index: 45; right: 16px; bottom: max(70px, calc(var(--nav-h) + 1rem)); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
 .owl-visit .owl-btn { pointer-events: auto; max-width: 15rem; }
 .owl-flying { animation: owl-fly 2.6s ease-out both; }
 .owl-bob { animation: owl-bob 2.4s ease-in-out infinite; }

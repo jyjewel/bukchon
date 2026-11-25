@@ -29,10 +29,10 @@ export default function WelcomeOwl({ userId }: { userId: string }) {
   useEffect(() => { if (!saved) return; const t = setTimeout(() => setSaved(false), 5000); return () => clearTimeout(t); }, [saved]);
 
   if (!checked) return null;
-  if (state === "read") return saved ? <p role="status" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 card px-4 py-2 text-sm">편지는 ‘내 연구실 → 편지 서랍’에 넣어 뒀어요 ✉</p> : null;
+  if (state === "read") return saved ? <p role="status" className="pinned above-nav fixed left-1/2 z-40 -translate-x-1/2 card px-4 py-2 text-sm">편지는 ‘내 연구실 → 편지 서랍’에 넣어 뒀어요 ✉</p> : null;
   return (
     <>
-      <div className={`owl-visit ${landed ? "owl-landed" : "owl-flying"}`}>
+      <div className={`pinned owl-visit ${landed ? "owl-landed" : "owl-flying"}`}>
         <div className={landed ? "owl-bob" : ""}><PixelArt art={wings[flap ? 1 : 0]} scale={4} label="편지를 물어온 부엉이" /></div>
         {landed && (
           <span className="owl-btn flex items-center gap-1">
