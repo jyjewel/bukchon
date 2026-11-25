@@ -11,6 +11,7 @@ import { useFold } from "@/hooks/useFold";
 import PushSettings from "./PushSettings";
 import MovingCakes from "./MovingCakes";
 import { UPDATES } from "@/lib/updates";
+import UpdateGroups from "./UpdateGroups";
 import PixelArt from "./PixelArt";
 import { libraryGrid, type LibraryStyle } from "@/pixel/village";
 import { detachPush } from "@/lib/push";
@@ -205,14 +206,7 @@ export default function SettingsView({
           <PushSettings />
         </Window>
         <Window title="업데이트 소식" icon="" tone="butter" controls={foldNews}>
-          <ul className="space-y-2 p-3">
-            {UPDATES.map((u) => (
-              <li key={u.id} className="card px-3 py-2">
-                <p className="font-display">{u.title} <span className="text-xs text-ink-soft">· {u.date}</span></p>
-                {u.body && <p className="text-sm text-ink-soft">{u.body}</p>}
-              </li>
-            ))}
-          </ul>
+          <div className="p-3"><UpdateGroups list={UPDATES} /></div>
         </Window>
         {villages.length > 1 && (
           <Window title="내 마을 순서" icon="" tone="lilac">

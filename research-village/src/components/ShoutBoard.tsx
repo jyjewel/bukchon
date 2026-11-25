@@ -10,8 +10,8 @@ import { Notice, Window } from "./ui";
 
 /** 광장 전체 채팅방: 광장에 나와 있는 주민이 모두에게 외치고, 마을 주민 모두가 읽는다. */
 export default function ShoutBoard({
-  villageId, myId, isAdmin, residents, inPlaza, onGoPlaza,
-}: { villageId: string; myId: string; isAdmin: boolean; residents: Resident[]; inPlaza: boolean; onGoPlaza: () => void }) {
+  villageId, myId, isAdmin, residents, inPlaza, onGoPlaza, onProfile,
+}: { villageId: string; myId: string; isAdmin: boolean; residents: Resident[]; inPlaza: boolean; onGoPlaza: () => void; onProfile: (userId: string) => void }) {
   const { shouts, loaded, reload } = useShouts(villageId);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -49,7 +49,7 @@ export default function ShoutBoard({
           const mine = s.author_id === myId;
           return (
             <li key={s.id} className={`flex items-end gap-2 max-lg:items-start ${mine ? "flex-row-reverse" : ""}`}>
-              {who ? <><span className="flex w-[44px] shrink-0 flex-col items-center lg:hidden"><CharacterIcon avatar={who.profile.avatar} size={36} headOnly /><span className="mt-[3px] w-full truncate text-center text-[10px] leading-[12px] text-ink-soft">{who.profile.display_name}</span></span><span className="hidden shrink-0 lg:inline"><CharacterIcon avatar={who.profile.avatar} size={36} /></span></> : <span className="w-[27px]" />}
+              {who ? <><button type="button" aria-label={`${who.profile.display_name} 프로필 보기`} onClick={() => onProfile(who.user_id)} className="flex w-[44px] shrink-0 flex-col items-center lg:hidden"><CharacterIcon avatar={who.profile.avatar} size={36} headOnly /><span className="mt-[3px] w-full truncate text-center text-[10px] leading-[12px] text-ink-soft">{who.profile.display_name}</span></button><button type="button" aria-label={`${who.profile.display_name} 프로필 보기`} onClick={() => onProfile(who.user_id)} className="hidden shrink-0 lg:inline"><CharacterIcon avatar={who.profile.avatar} size={36} /></button></> : <span className="w-[27px]" />}
               <div className={`min-w-0 max-w-[80%] ${mine ? "text-right" : ""}`}>
                 <p className="text-xs text-ink-soft max-lg:hidden">{who?.profile.display_name ?? "떠난 주민"}<span className="max-lg:hidden"> · {relativeTime(s.created_at)}</span></p>
                 <p className="px-box inline-block break-words px-2 py-1 text-left text-sm max-lg:inline-flex max-lg:min-h-[28px] max-lg:items-center max-lg:px-1.5 max-lg:py-0.5 max-lg:text-[14px] max-lg:leading-[18px]" style={{ background: mine ? "#ffc9d6" : "#fffdf6", ["--px" as string]: "1px" }}>{s.body}</p>

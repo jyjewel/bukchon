@@ -418,28 +418,32 @@ const me = v.me!;
                 </div>
               </div>
             </section>
-            <ShoutBoard key="shout" villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} />
+            <ShoutBoard key="shout" villageId={village.id} myId={me.user_id} isAdmin={me.role === "admin"} residents={v.residents} inPlaza={me.shown === "rest"} onGoPlaza={() => void v.setStatus("rest")} onProfile={setSelected} />
           </WindowColumn>
 
           <div className="order-2 space-y-4 lg:order-3">
             <Window title="마을 주민" icon="" tone="sky" as="aside">
               <ul className="space-y-1 p-2">
-                {listed.map((r) => (
+                {listed.map((r) => {
+                  const away = !r.online || r.shown === "offline";   // 접속 중이어도 "오프라인 표시"면 자리 비운 것으로 보인다
+                  const since = !r.online ? (r.status.left_at ?? r.status.last_seen_at) : r.status.updated_at;   // 오프라인 표시로 바꾼 때부터 센다
+                  return (
                   <li key={r.user_id} className="flex items-center">
                     <button type="button" onClick={() => (r.user_id === me.user_id ? openMyRoom("diary") : setSelected(r.user_id))} className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left hover:bg-[#fff3c4]">
-                      <span className={r.online ? "" : "opacity-45 grayscale"}><CharacterIcon avatar={r.profile.avatar} size={44} /></span>
+                      <span className={away ? "opacity-45 grayscale" : ""}><CharacterIcon avatar={r.profile.avatar} size={44} /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-sm">{r.profile.display_name}{r.user_id === me.user_id && <span className="ml-1 text-xs text-ink-soft">(나)</span>}</span>
                         <StatusChip r={r} />
-                        {!r.online && (awayDays(r.status.left_at ?? r.status.last_seen_at) >= 2
-                          ? <span className="ml-1 text-xs text-ink-soft">{awayDays(r.status.left_at ?? r.status.last_seen_at)}일째 안 와요</span>
-                          : <span className="ml-1 text-xs text-ink-soft">{lastSeenLabel(r.status.left_at ?? r.status.last_seen_at)}</span>)}
-                        {r.online && r.status.topic && <span className="mt-0.5 block truncate text-xs text-ink-soft">{r.status.topic}</span>}
+                        {away && (awayDays(since) >= 2
+                          ? <span className="ml-1 text-xs text-ink-soft">{awayDays(since)}일째 안 와요</span>
+                          : <span className="ml-1 text-xs text-ink-soft">{lastSeenLabel(since)}</span>)}
+                        {!away && r.status.topic && <span className="mt-0.5 block truncate text-xs text-ink-soft">{r.status.topic}</span>}
                       </span>
                     </button>
                     {r.user_id !== me.user_id && r.shown === "open" && <button type="button" className="btn btn-sm btn-mint shrink-0" onClick={() => void startChat(r.user_id)}>대화 신청</button>}
                   </li>
-                ))}
+                  );
+                })}
                 {others.length === 0 && <li className="p-2 text-sm text-ink-soft">아직 이웃이 없어요.</li>}
               </ul>
               {emptyHouses > 0 && (

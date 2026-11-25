@@ -876,13 +876,13 @@ await t("연구실 새 글 표시: 새 글이 있으면 집이 반짝, 보고 �
   assert.ok(!(await news(m1)).includes(a.id));                    // 내가 쓴 글은 새 글이 아님
   ok(await m2.c.from("postits").insert({ owner_id: a.id, body: "다른 이웃이 붙임" }));
   assert.ok((await news(m1)).includes(a.id));                     // 다른 사람이 쓰면 다시 반짝
-  // 공개 일지: 하루에 한 번만 새 글로 친다
+  // 공개 일지: 본 뒤에 고쳐도 다시 새 글로 친다
   const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);   // 한국 날짜
   ok(await m2.c.from("daily_logs").upsert({ log_date: today, body: "오늘 일지", shared_villages: [village] }));
   assert.ok((await news(m1)).includes(m2.id));                    // 처음 올라온 일지는 새 글
   ok(await m1.c.rpc("mark_room_seen", { p_owner: m2.id }));
   ok(await m2.c.from("daily_logs").upsert({ log_date: today, body: "오늘 일지, 이어서 씀", shared_villages: [village] }));
-  assert.ok(!(await news(m1)).includes(m2.id));                   // 본 뒤 같은 날 고쳐도 다시 알리지 않는다
+  assert.ok((await news(m1)).includes(m2.id));                    // 본 뒤에 고치면 다시 새 글
   assert.equal((await m1.c.from("room_seen").select("*").eq("viewer_id", a.id)).data.length, 0);   // 남의 확인 기록은 못 본다
 });
 
