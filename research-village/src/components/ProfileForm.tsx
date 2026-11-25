@@ -4,7 +4,7 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { useChristmas } from "@/hooks/useChristmas";
 import { XMAS_ACCESSORIES, XMAS_HATS } from "@/lib/constants";
 import { isChristmasSeason } from "@/pixel/christmas";
-import { ACCENTS, ACCESSORIES, BEARDS, EYES, PANTS, SHOES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
+import { ACCENTS, ACCESSORIES, BEARDS, EYES, PANTS, SHOES, EYEWEAR, HAIR_COLORS, HAIR_STYLES, BADGES, BAGS, HAND_PROPS, HATS, OUTFITS, PROPS, SKINS, TOPS } from "@/lib/constants";
 import type { Profile } from "@/lib/types";
 import { normalizeAvatar, type FullAvatar } from "@/pixel/avatar";
 import { CharacterIcon } from "./Character";
@@ -18,6 +18,7 @@ export default function ProfileForm({
   status?: { topic: string; reading: string }; onSaveStatus?: (patch: { topic: string; reading: string }) => Promise<string | null>;
 }) {
   const xmas = useChristmas(profile.id);
+  const [grantedBadge] = useState(() => (profile.avatar?.props ?? []).includes("honorbadge"));   // 선물로 받은 사람만 뱃지를 고를 수 있다
   const [name, setName] = useState(profile.display_name);
   const [field, setField] = useState(profile.field);
   const [bio, setBio] = useState(profile.bio);
@@ -31,6 +32,7 @@ export default function ProfileForm({
   /** 소품: 손에 든 것은 하나, 가방도 하나만. 둘은 같이 쓸 수 있다 */
   const toggleProp = (id: string) => {
     const has = avatar.props.includes(id);
+    if (id === "honorbadge") { set({ props: has ? avatar.props.filter((p) => p !== id) : [...avatar.props, id] }); return; }
     const group = (HAND_PROPS.some((p) => p.id === id) ? HAND_PROPS : BAGS).map((p) => p.id);
     set({ props: has ? avatar.props.filter((p) => p !== id) : [...avatar.props.filter((p) => !group.includes(p)), id] });
   };
@@ -80,7 +82,7 @@ export default function ProfileForm({
           <Choices label="모자" options={HATS.filter((h) => !XMAS_HATS.includes(h.id) || xmas.hasAny || isChristmasSeason() || avatar.hat === h.id)} value={avatar.hat} onChange={(hat) => set({ hat })} />
           <Toggles label="액세서리 (여러 개 가능)" options={ACCESSORIES.filter((a) => !XMAS_ACCESSORIES.includes(a.id) || (a.id === "goldnose" ? xmas.golden : xmas.hasAny || isChristmasSeason()) || avatar.accessories.includes(a.id))} values={avatar.accessories} onToggle={toggleAccessory} />
           <Swatches label="모자·소품 색" options={ACCENTS} value={avatar.accent} onChange={(accent) => set({ accent })} />
-          <Toggles label="소품" options={PROPS} values={avatar.props} onToggle={toggleProp} />
+          <Toggles label="소품" options={[...PROPS, ...(grantedBadge ? BADGES : [])]} values={avatar.props} onToggle={toggleProp} />
         </div>
       </div>
       <div className="dotted pt-3">

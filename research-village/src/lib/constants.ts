@@ -133,6 +133,8 @@ export const BAGS = [
   { id: "ecobag", label: "에코백" },
 ];
 export const PROPS = [...HAND_PROPS, ...BAGS];
+/** 선물로만 생기는 캐릭터 소품(가슴에 다는 뱃지): 받은 사람에게만 고르는 목록에 보인다 */
+export const BADGES = [{ id: "honorbadge", label: "명예 마을 보완관 뱃지" }];
 
 /** 연구실 건물 종류 (고르는 순서) */
 export const HOUSE_TYPES: { id: import("./types").HouseType; label: string }[] = [

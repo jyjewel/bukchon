@@ -428,6 +428,12 @@ export function avatarGrid(avatar: Avatar, frame: 0 | 1 | 2 = 0, seated = false,
     px(g, 15, 2, "#f2c64e"); px(g, 16, 3, "#f2c64e"); px(g, 16, 4, "#f2c64e"); px(g, 16, 5, "#f2c64e"); px(g, 16, 6, "#e0a830"); px(g, 15, 6, "#e0a830"); // 술
   }
 
+  // 명예 마을 보완관 뱃지: 가슴에 다는 금빛 별 뱃지와 빨간 리본
+  if (f.props.includes("honorbadge")) {
+    px(g, 9, 16, "#d9303a"); px(g, 11, 16, "#d9303a"); px(g, 9, 17, "#b02030"); px(g, 11, 17, "#b02030");
+    px(g, 10, 13, "#ffd23f"); px(g, 9, 14, "#ffd23f"); px(g, 11, 14, "#e0a830"); px(g, 10, 14, "#fff3b0"); px(g, 10, 15, "#e0a830");
+  }
+
   // 24칸 그림으로 옮기고 손에 든 소품·에코백을 그린다
   const out = grid(AV_W, AV_H);
   stamp(out, g, OX, 0);
