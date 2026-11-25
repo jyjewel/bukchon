@@ -98,7 +98,7 @@ export default function LibraryHall({ residents, myId, desks, secondsOf, onOpen,
         const sec = secondsOf(d, now);
         if (!d && r.shown !== "library") return null;
         return (
-          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatX(r.slot) - 13, HALL_TABLE_Y + 8, 26, 8)}>
+          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatX(r.slot) - 12, HALL_TABLE_Y + 9, 24, 5.5)}>
             <span className="nm">{r.profile.display_name} </span>{clockHM(sec)}
           </span>
         );
