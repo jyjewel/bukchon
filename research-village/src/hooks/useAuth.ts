@@ -7,7 +7,7 @@ import type { Profile } from "@/lib/types";
 /** 재설정 메일의 링크로 열렸는지: 주소 뒤의 토큰은 곧 지워지므로 불러오는 순간 한 번 기억해 둔다 */
 const OPENED_FOR_RECOVERY = typeof window !== "undefined" && /type=recovery/.test(window.location.hash + window.location.search);
 
-export const PROFILE_COLUMNS = "id, display_name, field, bio, keywords, avatar, share_study_time, onboarded, lab_style";
+export const PROFILE_COLUMNS = "id, display_name, field, bio, keywords, avatar, share_study_time, onboarded, lab_style, lab_name";
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);

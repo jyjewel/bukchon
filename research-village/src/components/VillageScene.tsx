@@ -7,6 +7,7 @@ import { bake } from "@/pixel/core";
 import { BOOK_COLORS, flyingBookGrid } from "@/pixel/book";
 import { fxGrid } from "@/pixel/fx";
 import { nearestWalkable } from "@/lib/walk";
+import { labTitle, signLines } from "@/lib/labName";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, isChristmasSeason } from "@/pixel/christmas";
 import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, snowToday, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap, snowCover } from "@/pixel/magic";
@@ -620,7 +621,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       {houses.map((h) => {
         const r = bySlot.get(h.slot) ?? null;
         const mine = h.owner_id === myId;
-        const label = !r ? `${h.slot + 1}번 연구실 — 비어 있음` : mine ? "내 연구실 — 눌러서 들어가기" : `${r.profile.display_name}의 연구실 — ${STATUS_META[r.shown].label}. 눌러서 연구실 방문하기`;
+        const label = !r ? `${h.slot + 1}번 연구실 — 비어 있음` : mine ? "내 연구실 — 눌러서 들어가기" : `${labTitle(r.profile)} — ${STATUS_META[r.shown].label}. 눌러서 연구실 방문하기`;
         const pos = HOUSE_POS[h.slot];
         return (
           <button key={h.slot} type="button" className="scene-hit" style={pct(pos.x - 27, pos.y - HOUSE_H + 6, 54, HOUSE_H - 4)} aria-label={label} disabled={!r} onClick={() => onHouse(h.slot)}>
@@ -635,8 +636,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         return (
           <span key={`sign-${h.slot}`} className="scene-sign" aria-hidden style={{ left: `${(sx / W) * 100}%`, top: `${(sy / H) * 100}%` }}>
             <span className={`scene-sign-board ${r.user_id === myId ? "scene-sign-board-mine" : ""}`}>
-              <span className="scene-sign-name">{r.profile.display_name}의</span>
-              <span className="scene-sign-sub">연구실</span>
+              {r.profile.lab_name?.trim() ? (() => { const [l1, l2] = signLines(r.profile.lab_name); return <><span className="scene-sign-name">{l1}</span>{l2 && <span className="scene-sign-sub">{l2}</span>}</>; })() : <><span className="scene-sign-name">{r.profile.display_name}의</span><span className="scene-sign-sub">연구실</span></>}
             </span>
             <span className="scene-sign-post" />
           </span>

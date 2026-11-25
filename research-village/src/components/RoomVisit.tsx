@@ -4,6 +4,7 @@ import { useFavBooks } from "@/hooks/useFavBooks";
 import { useRoom } from "@/hooks/useRoom";
 import type { BoardTab, Resident, VillageInfo } from "@/lib/types";
 import { useState } from "react";
+import { labTitle } from "@/lib/labName";
 import FavoriteShelf from "./FavoriteShelf";
 import { GiftBox } from "./GiveBox";
 import PortalDialog from "./LabPortal";
@@ -31,7 +32,7 @@ export default function RoomVisit({
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <div className="space-y-5">
-        <Window title={`${name}의 연구실`} tone="butter">
+        <Window title={labTitle(owner.profile)} tone="butter">
           <RoomCanvas
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
             note={inRoom || !give ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={(t) => { onTab(t); document.getElementById(t === "shelf" ? "visit-results" : "visit-board")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} onDesk={() => { if (give) setGiving(true); }} onPortal={() => setPortal(true)}
