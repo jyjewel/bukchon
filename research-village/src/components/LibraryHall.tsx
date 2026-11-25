@@ -8,12 +8,12 @@ import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
 
-export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet";
+export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet" | "clock";
 const SAND_SECONDS = 3600;   // 모래가 다 떨어지는 데 1시간. 다 떨어지면 저절로 다시 뒤집힌다
 
 /** 도서관 홀: 뒤쪽 큰 도서관과 앞쪽 열람 탁자. 물건을 누르면 기능이 열리고, 내 모래시계를 누르면 공부가 시작된다. */
-export default function LibraryHall({ medals, residents, myId, desks, secondsOf, onOpen, onTurn }: {
-  medals: number; residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
+export default function LibraryHall({ medals, goalTitles, goalCount, residents, myId, desks, secondsOf, onOpen, onTurn }: {
+  medals: number; goalTitles: string[]; goalCount: number; residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
   onOpen: (p: HallPanel) => void; onTurn: () => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -55,6 +55,12 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
       const ms = Date.now();
       b.clearRect(0, 0, HALL_W, HALL_H);
       b.drawImage(bg, 0, 0);
+      {   // 벽시계 바늘: 실제 시각
+        const d = new Date(ms), sec = d.getSeconds() + d.getMilliseconds() / 1000, min = d.getMinutes() + sec / 60, hr = (d.getHours() % 12) + min / 60;
+        const hand = (ang: number, len: number, col: string) => { for (let r = 0; r <= len; r += 0.5) { b.fillStyle = col; b.fillRect(Math.round(100 + Math.sin(ang) * r), Math.round(42 - Math.cos(ang) * r), 1, 1); } };
+        hand((hr / 12) * Math.PI * 2, 7, "#3a2a33"); hand((min / 60) * Math.PI * 2, 11, "#3a2a33"); hand((Math.floor(sec) / 60) * Math.PI * 2, 12, "#d9303a");
+        b.fillStyle = "#c9a24e"; b.fillRect(99, 41, 3, 3); b.fillStyle = "#3a2a33"; b.fillRect(100, 42, 1, 1);
+      }
       const seats = Array.from({ length: 6 }, (_, slot) => {
         const r = residents.find((x) => x.slot === slot);
         const d = r ? desks.find((x) => x.user_id === r.user_id) : undefined;
@@ -86,12 +92,18 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
   return (
     <div ref={wrap} className="hall-wrap relative w-full" style={{ aspectRatio: `${HALL_W} / ${HALL_H}` }} role="group" aria-label="도서관 홀">
       <canvas ref={canvas} width={HALL_W} height={HALL_H} className="pixelated absolute inset-0 h-full w-full" aria-hidden />
-      {hit("함께 읽는 책 (왼쪽 책장)", "books", 4, 14, 56, 68)}
-      {hit("함께 읽는 책 (오른쪽 책장)", "books", 140, 14, 56, 68)}
+      {hit("함께 읽는 책 (책장)", "books", 4, 14, 56, 68)}
       {hit("스터디 일정 (게시판)", "schedules", 63, 28, 15, 22)}
-      {hit("공동 공부 목표 (칠판)", "goals", 122, 28, 15, 22)}
+      {hit("공동 공부 목표 (큰 게시판)", "goals", 140, 14, 56, 68)}
+      {hit("내 공부 시간 (벽시계)", "clock", 80, 22, 40, 48)}
       {hit("Zoom 회의 (노트북)", "zoom", 63, 60, 18, 22)}
       {hit("기념 장식장 (메달)", "cabinet", 118, 50, 20, 32)}
+      <div className="hall-board-title" style={pct(146, 19, 44, 8)} aria-hidden>공동 공부 목표</div>
+      <ul className="hall-board" style={pct(144, 30, 48, 48)} aria-hidden>
+        {goalTitles.slice(0, 4).map((t, i) => <li key={i} className="hall-card" style={{ transform: `rotate(${[-1.5, 1, -0.8, 1.4][i % 4]}deg)` }}>{t}</li>)}
+        {goalCount === 0 && <li className="hall-card hall-card-empty">진행 중인 목표가 없어요</li>}
+        {goalCount > 4 && <li className="hall-more">외 {goalCount - 4}개</li>}
+      </ul>
       {mySlot >= 0 && (
         <button type="button" className="scene-hit hall-hit" style={pct(seatX(mySlot) + 6, HALL_TABLE_Y - 10, 14, 16)} aria-label={myDesk?.running ? "내 모래시계 멈추기" : "내 모래시계 돌려서 공부 시작"} title={myDesk?.running ? "모래시계 멈추기" : "모래시계 돌리기"} onClick={onTurn} />
       )}

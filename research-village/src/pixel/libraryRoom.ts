@@ -145,7 +145,7 @@ export function hourglassGrid(sand: number, flip = 0): Grid {
 export const HALL_W = 200;
 export const HALL_H = 140;
 
-/** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 스테인드글라스 아치 창, 양옆 2층 책장과 난간,
+/** 웅장한 도서관 홀: 높은 천장의 들보와 샹들리에, 가운데 큰 벽시계, 왼쪽 2층 책장과 오른쪽 큰 게시판,
  *  체크무늬 대리석 바닥과 붉은 카펫. 앞쪽(y 100~)은 열람 탁자를 놓는 자리다. */
 export function libraryHall(phase: DayPhase, medals = 0): Grid {
   const g = grid(HALL_W, HALL_H);
@@ -155,35 +155,34 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
   // 천장 들보
   rect(g, 0, 0, HALL_W, 9, "#4a2f1c"); rect(g, 0, 7, HALL_W, 2, "#2f1d10");
   for (let x = 6; x < HALL_W; x += 22) { rect(g, x, 0, 4, 9, "#6e4a2a"); rect(g, x, 0, 1, 9, "#8a6038"); }
-  // 가운데 아치 창(스테인드글라스)
-  const sky = phase === "night" ? "#243060" : phase === "dusk" ? "#e88a6a" : "#7ec4ec";
-  rect(g, 82, 22, 36, 62, "#5a3a22"); disc(g, 100, 22, 18, 14, "#5a3a22");
-  rect(g, 85, 22, 30, 62, sky); disc(g, 100, 22, 15, 11, sky);
-  const panes = ["#e0605a", "#f2c64e", "#5f8fd6", "#62b866", "#b08ae0"];
-  for (let py = 10; py < 80; py += 7) for (let pxx = 85; pxx < 115; pxx += 6) {
-    const dx = pxx + 3 - 100, dy = py - 22;
-    if (py < 22 && (dx * dx) / 225 + (dy * dy) / 121 > 1) continue;
-    if (phase === "night" ? hash(pxx, py) > 0.8 : (py > 40 && py < 64) || hash(pxx, py) > 0.55) rect(g, pxx, py, 5, 6, shade(panes[Math.floor(hash(pxx + 3, py + 1) * 5)], phase === "night" ? -50 : 0));
+  // 가운데 큰 벽시계(바늘은 화면에서 실제 시각으로 그린다)
+  const face = phase === "night" ? "#efe6c4" : "#fdf6e0";
+  rect(g, 95, 22, 10, 5, "#5a3a22"); rect(g, 96, 22, 8, 1, WOOD_L);                    // 윗장식
+  disc(g, 100, 42, 20, 20, "#5a3a22"); disc(g, 100, 42, 18, 18, "#c9a24e"); disc(g, 100, 42, 16, 16, "#8a6a2f"); disc(g, 100, 42, 15, 15, face);
+  for (let i = 0; i < 12; i++) {
+    const t = (i / 12) * Math.PI * 2 - Math.PI / 2, big = i % 3 === 0;
+    for (let r = big ? 11 : 12; r <= 14; r++) px(g, Math.round(100 + Math.cos(t) * r), Math.round(42 + Math.sin(t) * r), big ? "#3a2a33" : "#8a7a6a");
   }
-  rect(g, 99, 8, 2, 76, "#5a3a22"); for (let y = 30; y < 84; y += 14) rect(g, 85, y, 30, 2, "#5a3a22");
-  rect(g, 80, 82, 40, 3, stoneL);
+  rect(g, 86, 66, 28, 2, stoneL); rect(g, 92, 62, 16, 4, "#5a3a22"); rect(g, 94, 63, 12, 2, "#c9a24e");   // 아래 받침과 추
   // 양옆 2층 책장과 난간
   bookcase(g, 4, 14, 56, 30, 21); bookcase(g, 4, 48, 56, 34, 22);
-  bookcase(g, 140, 14, 56, 30, 31); bookcase(g, 140, 48, 56, 34, 32);
-  for (const x0 of [4, 140]) {
+  // 오른쪽: 큰 게시판(공동 공부 목표를 써 붙인다. 글씨는 화면 위에 겹쳐 쓴다)
+  rect(g, 140, 14, 56, 68, "#5a3a22"); rect(g, 142, 16, 52, 64, "#c9965e");
+  for (let i = 0; i < 160; i++) px(g, 143 + (i * 13) % 50, 17 + (i * 29) % 62, hash(i, 3) > 0.5 ? "#b78450" : "#d9aa78");
+  rect(g, 145, 18, 46, 10, "#5a3a22"); rect(g, 146, 19, 44, 8, "#7a5230"); rect(g, 146, 19, 44, 1, "#c9a24e"); rect(g, 146, 26, 44, 1, "#c9a24e");   // 윗머리판
+  for (const [x, y] of [[144, 18], [192, 18], [144, 78], [192, 78]]) { px(g, x, y, "#e0383f"); px(g, x + 1, y, "#ff8a8a"); }
+  for (const x0 of [4]) {
     rect(g, x0, 44, 56, 4, "#6e4a2a"); rect(g, x0, 44, 56, 1, WOOD_L);                    // 2층 바닥판과 난간
     for (let x = x0 + 2; x < x0 + 56; x += 5) rect(g, x, 40, 1, 4, "#c9a24e");
     rect(g, x0, 39, 56, 1, WOOD_L);
   }
   // 기둥(책장 구획)
-  for (const x of [4, 22, 41, 59, 140, 158, 177, 195]) { rect(g, x - 1, 14, 3, 68, stoneL); rect(g, x + 1, 14, 1, 68, stoneD); rect(g, x - 2, 12, 5, 3, stoneL); rect(g, x - 2, 80, 5, 3, stoneL); }
+  for (const x of [4, 22, 41, 59, 140, 195]) { rect(g, x - 1, 14, 3, 68, stoneL); rect(g, x + 1, 14, 1, 68, stoneD); rect(g, x - 2, 12, 5, 3, stoneL); rect(g, x - 2, 80, 5, 3, stoneL); }
   // 굴러다니는 사다리
   rect(g, 30, 50, 1, 34, "#8a5a32"); rect(g, 35, 50, 1, 34, "#8a5a32"); for (let y = 54; y < 82; y += 5) rect(g, 30, y, 6, 1, "#c28b52");
-  // 게시판(왼쪽)·칠판(오른쪽): 창 양옆 벽에
+  // 스터디 일정 게시판(시계 왼쪽 벽)
   rect(g, 63, 28, 15, 22, WOOD_D); rect(g, 64, 29, 13, 20, "#c9965e");
   for (const [x, y, c] of [[65, 31, "#fffdf2"], [71, 31, "#ffe58a"], [65, 39, "#cfe8ff"], [71, 40, "#ffd3de"]] as [number, number, string][]) { rect(g, x, y, 5, 6, c); px(g, x + 2, y, "#e0383f"); rect(g, x + 1, y + 2, 3, 1, "#8a7a6a"); }
-  rect(g, 122, 28, 15, 22, "#5a3a22"); rect(g, 123, 29, 13, 20, "#2f5a48");
-  rect(g, 125, 32, 9, 1, "#e8f2ea"); rect(g, 125, 36, 7, 1, "#e8f2ea"); rect(g, 125, 40, 8, 1, "#e8f2ea"); rect(g, 125, 44, 4, 3, "#f2c64e");
   // 샹들리에
   for (const [cx, cy, w] of [[100, 10, 14], [40, 8, 8], [160, 8, 8]] as [number, number, number][]) {
     rect(g, cx, 7, 1, cy - 7 + 2, "#3a2a33"); rect(g, cx - w / 2, cy + 2, w, 2, "#c9a24e"); rect(g, cx - w / 2 + 1, cy + 4, w - 2, 1, "#8a6a2f");
@@ -201,8 +200,6 @@ export function libraryHall(phase: DayPhase, medals = 0): Grid {
     rect(g, 100 - hw, y, hw * 2, 1, "#a8303c"); px(g, 100 - hw, y, "#e8c870"); px(g, 100 + hw - 1, y, "#e8c870"); px(g, 100 - hw + 2, y, "#e8c870"); px(g, 100 + hw - 3, y, "#e8c870");
     if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, "#8a2230");
   }
-  // 창빛이 바닥에 비친다
-  if (phase !== "night") for (let i = 0; i < 5; i++) rect(g, 86 + i * 6, 88 + i * 3, 4, 4, "rgb(255 240 200)".replace("rgb(255 240 200)", "#fff0c8"));
   // 회의용 노트북 탁자(왼쪽 안쪽)와 지구본(오른쪽)
   rect(g, 63, 68, 18, 14, WOOD_D); rect(g, 63, 68, 18, 3, WOOD_L); rect(g, 67, 60, 10, 8, "#b9bdc7"); rect(g, 68, 61, 8, 6, "#5f8fd6"); rect(g, 69, 62, 3, 2, "#fff"); rect(g, 73, 62, 2, 3, "#f2c64e");
   stamp(g, cabinetGrid(medals), 118, 50);                                    // 기념 장식장(눌러서 주화를 본다)
