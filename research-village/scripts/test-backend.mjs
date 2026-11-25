@@ -912,6 +912,30 @@ await t("도서관 모래시계: 돌리면 시간이 재져 마을 모두에게 
   assert.match((await outside[0].c.rpc("library_desks", { p_village: village })).error?.message ?? "", /not_member/);   // 남의 마을은 못 본다
   assert.match((await outside[0].c.rpc("desk_turn", { p_village: village })).error?.message ?? "", /not_member/);
   assert.equal((await m1.c.from("library_desks").select("*")).data?.length ?? 0, 0);            // 표는 직접 못 읽는다
+await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 목록·소개만 보이며, 새 코드를 받으면 이전 링크는 못 쓴다", async () => {
+  const code1 = ok(await outside[0].c.rpc("my_friend_code"));
+  assert.match(code1, /^[a-z0-9]{12}$/);
+  assert.equal(ok(await outside[0].c.rpc("my_friend_code")), code1);                              // 같은 코드가 계속 나온다
+  const pv = ok(await a.c.rpc("preview_friend", { p_code: code1 }));
+  assert.ok(pv.display_name && !pv.is_self && !pv.already);
+  assert.equal(ok(await outside[0].c.rpc("preview_friend", { p_code: code1 })).is_self, true);   // 내 링크
+  assert.equal(ok(await a.c.rpc("preview_friend", { p_code: "nope" })), null);                    // 없는 코드
+  assert.match((await outside[0].c.rpc("add_friend", { p_code: code1 })).error?.message ?? "", /self_friend/);
+  assert.match((await a.c.rpc("add_friend", { p_code: "nope" })).error?.message ?? "", /invalid_code/);
+  assert.equal(ok(await a.c.rpc("add_friend", { p_code: code1 })), outside[0].id);                // 마을이 달라도 친구
+  ok(await a.c.rpc("add_friend", { p_code: code1 }));                                             // 두 번 눌러도 그대로
+  assert.equal(ok(await a.c.rpc("preview_friend", { p_code: code1 })).already, true);
+  const fa = ok(await a.c.rpc("list_friends")), fo = ok(await outside[0].c.rpc("list_friends"));
+  assert.ok(fa.some((f) => f.user_id === outside[0].id) && fo.some((f) => f.user_id === a.id));   // 서로의 목록에 있다
+  assert.ok(Object.keys(fa[0]).every((k) => ["user_id", "display_name", "field", "bio", "avatar", "since"].includes(k)));
+  assert.equal((await a.c.from("friendships").select("*")).data?.length ?? 0, 0);                // 표는 직접 못 읽는다
+  assert.equal((await a.c.from("friend_codes").select("*")).data?.length ?? 0, 0);
+  const code2 = ok(await outside[0].c.rpc("renew_friend_code"));
+  assert.notEqual(code2, code1);
+  assert.equal(ok(await m1.c.rpc("preview_friend", { p_code: code1 })), null);                    // 이전 링크는 못 쓴다
+  assert.ok(ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 이미 된 친구는 그대로
+  ok(await a.c.rpc("remove_friend", { p_friend: outside[0].id }));
+  assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
 
 await t("내 마을 순서: 내 것만 저장하고 읽는다", async () => {
