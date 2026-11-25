@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { bake, paint } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
-import { LROOM_H, LROOM_W, hourglassGrid, lampGrid, libraryBackground, longTableGrid } from "@/pixel/libraryRoom";
+import { HALL_H, HALL_W, LROOM_H, LROOM_W, hourglassGrid, hourglassSmall, lampGrid, libraryBackground, libraryHall, longTableGrid } from "@/pixel/libraryRoom";
 
 const K = 6;
 const AV = [
@@ -32,6 +32,7 @@ function Sheet() {
 }
 export default function P() {
   if (typeof window !== "undefined" && window.location.search.includes("sheet")) return <Sheet />;
+  if (typeof window !== "undefined" && window.location.search.includes("hall")) return <Hall />;
   const ref = useRef<HTMLCanvasElement>(null);
   const labels = typeof window !== "undefined" && window.location.search.includes("labels");
   useEffect(() => {
@@ -61,6 +62,37 @@ export default function P() {
       ))}
       {labels && ([["책장 → 함께 읽는 책", 3, 4, 38, 50], ["게시판 → 스터디 일정", 44, 10, 20, 26], ["칠판 → 공동 공부 목표", 96, 10, 20, 26], ["노트북 → Zoom 회의", 44, 34, 22, 20], ["책장 → 책 읽기", 119, 4, 38, 50], ["창문 (밤엔 별)", 66, 6, 28, 48]] as [string, number, number, number, number][]).map(([t, x, y, w, h], i) => (
         <span key={i} style={{ position: "absolute", left: x * K, top: y * K, width: w * K, height: h * K, border: "3px dashed #ff4d8d", boxSizing: "border-box", font: "12px Galmuri11, sans-serif", color: "#fff", background: "rgb(255 77 141 / .18)", display: "flex", alignItems: "flex-end", justifyContent: "center", textShadow: "0 1px 2px #000" }}>{t}</span>
+      ))}
+    </div>
+  );
+}
+
+export function Hall() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const K = 5;
+  const SEATS: [number, number | null, number, string, number][] = [[20, 0, 0.7, "0:42", 0], [46, 1, 0.35, "1:18", 0], [72, null, 1, "", 0], [128, null, 1, "", 0], [154, 2, 0.9, "0:09", 1], [180, 3, 0.15, "2:05", 0]];
+  useEffect(() => {
+    const ctx = ref.current!.getContext("2d")!; ctx.imageSmoothingEnabled = false;
+    const buf = document.createElement("canvas"); buf.width = HALL_W; buf.height = HALL_H;
+    const b = buf.getContext("2d")!;
+    paint(b, libraryHall("day"), 0, 0);
+    const table = bake(longTableGrid(80));
+    const ty = 104;
+    for (const side of [0, 1]) {
+      for (const [cx, who] of SEATS.slice(side * 3, side * 3 + 3)) if (who !== null) b.drawImage(bake(avatarGrid(AV[who] as never, 0, true)), cx - 12, ty - 22);
+      b.drawImage(table, side ? 116 : 7, ty);
+      for (const [cx, who, sand, , flip] of SEATS.slice(side * 3, side * 3 + 3)) {
+        b.drawImage(bake(hourglassSmall(sand, flip)), cx + 9 - (flip ? 3 : 0), ty - (flip ? 8 : 10));
+        if (who !== null) { b.fillStyle = "#c0504d"; b.fillRect(cx - 5, ty - 2, 9, 2); b.fillStyle = "#fff8e4"; b.fillRect(cx - 4, ty - 3, 7, 1); }
+      }
+    }
+    ctx.drawImage(buf, 0, 0, HALL_W * K, HALL_H * K);
+  }, []);
+  return (
+    <div id="prev" style={{ position: "relative", width: HALL_W * K, height: HALL_H * K }}>
+      <canvas ref={ref} width={HALL_W * K} height={HALL_H * K} style={{ width: HALL_W * K, height: HALL_H * K, imageRendering: "pixelated" }} />
+      {SEATS.filter((d) => d[1] !== null).map((d, i) => (
+        <span key={i} style={{ position: "absolute", left: (d[0] - 12) * K, top: 112 * K, width: 24 * K, textAlign: "center", font: "11px Galmuri11, sans-serif", color: "#fff3c4", background: "rgb(58 42 51 / .78)", borderRadius: 3, padding: "1px 0" }}>{["아라", "하나", "윤수", "민규"][d[1] as number]} {d[3]}</span>
       ))}
     </div>
   );
