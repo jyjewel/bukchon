@@ -3,27 +3,26 @@ import { useEffect, useRef, useState } from "react";
 import { bake } from "@/pixel/core";
 import { avatarGrid } from "@/pixel/avatar";
 import { currentPhase, type DayPhase } from "@/lib/time";
-import { HALL_H, HALL_TABLE_W, HALL_TABLE_X, HALL_TABLE_Y, HALL_W, drawSeatObjects, drawSeatPerson, hourglassSmall, lampGrid, libraryHall, longTableGrid, seatX, type SeatState } from "@/pixel/libraryRoom";
+import { HALL_LOOK, HALL_H, DESK_W, HALL_W, drawLampGlow, drawSeatObjects, drawSeatPerson, deskGrid, lampGrid, libraryHall, seatPos, type SeatState } from "@/pixel/libraryRoom";
 import type { Avatar, Resident } from "@/lib/types";
 import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
 
-export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet";
-const SAND_SECONDS = 3600;   // 모래가 다 떨어지는 데 1시간. 다 떨어지면 저절로 다시 뒤집힌다
+export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet" | "clock";
+const SAND_SECONDS = 3600;   // 공부 한 시간마다 기지개를 켠다
 
 /** 도서관 홀: 뒤쪽 큰 도서관과 앞쪽 열람 탁자. 물건을 누르면 기능이 열리고, 내 모래시계를 누르면 공부가 시작된다. */
-export default function LibraryHall({ medals, residents, myId, desks, secondsOf, onOpen, onTurn }: {
-  medals: number; residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
-  onOpen: (p: HallPanel) => void; onTurn: () => void;
+export default function LibraryHall({ medals, goalTitles, goalCount, residents, myId, desks, secondsOf, onOpen }: {
+  medals: number; goalTitles: string[]; goalCount: number; residents: Resident[]; myId: string; desks: Desk[]; secondsOf: (d: Desk | undefined, now?: number) => number;
+  onOpen: (p: HallPanel) => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ residents, desks, myId, secondsOf });
   const hallMedals = Math.min(9, medals);
+  const look = HALL_LOOK;
   const [phase] = useState<DayPhase>(() => currentPhase());
   const [now, setNow] = useState(() => Date.now());
-  const flip = useRef<Record<string, number>>({});          // 방금 모래시계를 돌린 사람: 눕는 동작이 끝나는 때
-  const prevRunning = useRef<Record<string, boolean>>({});
   useEffect(() => { live.current = { residents, desks, myId, secondsOf }; }, [residents, desks, myId, secondsOf]);
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
 
@@ -31,10 +30,8 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
     const cv = canvas.current, box = wrap.current;
     if (!cv || !box) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bg = bake(libraryHall(phase, hallMedals)), table = bake(longTableGrid(HALL_TABLE_W));
+    const bg = bake(libraryHall(phase, hallMedals, look.theme, look.floor, look.carpet, look.floorColor)), desk = bake(deskGrid());
     const lamp = { off: bake(lampGrid(false)), on: bake(lampGrid(true)) };
-    const glassCache = new Map<string, HTMLCanvasElement>();
-    const glass = (s: number, f: number) => { const key = `${Math.round(s * 3)}-${f}`; let c = glassCache.get(key); if (!c) glassCache.set(key, (c = bake(hourglassSmall(Math.round(s * 3) / 3, f)))); return c; };
     const avCache = new Map<string, HTMLCanvasElement>();
     const avOf = (a: Avatar) => { const k = JSON.stringify(a); let c = avCache.get(k); if (!c) avCache.set(k, (c = bake(avatarGrid(a, 0, true)))); return c; };
     const buf = document.createElement("canvas"); buf.width = HALL_W; buf.height = HALL_H;
@@ -55,6 +52,12 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
       const ms = Date.now();
       b.clearRect(0, 0, HALL_W, HALL_H);
       b.drawImage(bg, 0, 0);
+      {   // 벽시계 바늘: 실제 시각
+        const d = new Date(ms), sec = d.getSeconds() + d.getMilliseconds() / 1000, min = d.getMinutes() + sec / 60, hr = (d.getHours() % 12) + min / 60;
+        const hand = (ang: number, len: number, col: string) => { for (let r = 0; r <= len; r += 0.5) { b.fillStyle = col; b.fillRect(Math.round(100 + Math.sin(ang) * r), Math.round(30 - Math.cos(ang) * r), 1, 1); } };
+        hand((hr / 12) * Math.PI * 2, 5, "#3a2a33"); hand((min / 60) * Math.PI * 2, 8.5, "#3a2a33"); hand((Math.floor(sec) / 60) * Math.PI * 2, 9.5, "#d9303a");
+        b.fillStyle = "#3a2a33"; b.fillRect(100, 29, 2, 2); b.fillStyle = "#d9303a"; b.fillRect(100, 29, 1, 1);
+      }
       const seats = Array.from({ length: 6 }, (_, slot) => {
         const r = residents.find((x) => x.slot === slot);
         const d = r ? desks.find((x) => x.user_id === r.user_id) : undefined;
@@ -62,13 +65,20 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
         const sinceSec = running && d?.since ? (ms - new Date(d.since).getTime()) / 1000 : 0;
         const cycle = sinceSec % SAND_SECONDS;
         const st: SeatState = !r ? "empty" : running ? (sinceSec >= SAND_SECONDS && cycle < 25 ? "done" : "study") : (r.shown === "library" ? "seated" : "empty");
-        const sand = running ? 1 - cycle / SAND_SECONDS : 1;
-        if (r) { const was = prevRunning.current[r.user_id]; if (was !== undefined && was !== running) flip.current[r.user_id] = ms + 700; prevRunning.current[r.user_id] = running; }
-        return { slot, r, st, sand, flipping: r ? (flip.current[r.user_id] ?? 0) > ms : false };
+        return { slot, r, st };
       });
-      for (const s of seats) if (s.r && s.st !== "empty") drawSeatPerson(b, seatX(s.slot), avOf(s.r.profile.avatar), s.st, tick);
-      b.drawImage(table, HALL_TABLE_X, HALL_TABLE_Y);
-      for (const s of seats) drawSeatObjects(b, seatX(s.slot), s.st, s.sand, s.flipping, tick, lamp, glass);
+      for (const row of [0, 1]) {      // 뒷줄 → 앞줄 순서로 그려서 앞줄 책상이 뒷줄 위에 겹친다
+        for (const s of seats.filter((x) => (x.slot < 3 ? 0 : 1) === row)) {
+          const { cx, ty } = seatPos(s.slot);
+          if (s.r && s.st !== "empty") drawSeatPerson(b, cx, ty, avOf(s.r.profile.avatar), s.st, tick);
+          b.drawImage(desk, cx - DESK_W / 2, ty);
+          drawSeatObjects(b, cx, ty, s.st, tick, lamp);
+        }
+      }
+      if (phase === "night" || phase === "dusk") {   // 저녁·밤에는 홀 전체가 은은하게 어두워진다
+        b.globalCompositeOperation = "multiply"; b.fillStyle = phase === "night" ? "#9aa6d4" : "#e0c8c0"; b.fillRect(0, 0, HALL_W, HALL_H); b.globalCompositeOperation = "source-over";
+        for (const s of seats) if (s.st === "study" || s.st === "done") { const { cx, ty } = seatPos(s.slot); drawLampGlow(b, cx, ty, phase === "night" ? 0.38 : 0.22); }
+      }
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, cv.width, cv.height);
       ctx.drawImage(buf, 0, 0, cv.width, cv.height);
@@ -81,26 +91,27 @@ export default function LibraryHall({ medals, residents, myId, desks, secondsOf,
   const hit = (label: string, p: HallPanel, x: number, y: number, w: number, h: number) => (
     <button key={label} type="button" className="scene-hit hall-hit" style={pct(x, y, w, h)} aria-label={label} title={label} onClick={() => onOpen(p)} />
   );
-  const mySlot = residents.find((r) => r.user_id === myId)?.slot ?? -1;
-  const myDesk = desks.find((d) => d.user_id === myId);
   return (
     <div ref={wrap} className="hall-wrap relative w-full" style={{ aspectRatio: `${HALL_W} / ${HALL_H}` }} role="group" aria-label="도서관 홀">
       <canvas ref={canvas} width={HALL_W} height={HALL_H} className="pixelated absolute inset-0 h-full w-full" aria-hidden />
-      {hit("함께 읽는 책 (왼쪽 책장)", "books", 4, 14, 56, 68)}
-      {hit("함께 읽는 책 (오른쪽 책장)", "books", 140, 14, 56, 68)}
+      {hit("함께 읽는 책 (책장)", "books", 4, 14, 56, 68)}
       {hit("스터디 일정 (게시판)", "schedules", 63, 28, 15, 22)}
-      {hit("공동 공부 목표 (칠판)", "goals", 122, 28, 15, 22)}
-      {hit("Zoom 회의 (노트북)", "zoom", 63, 60, 18, 22)}
-      {hit("기념 장식장 (메달)", "cabinet", 118, 50, 20, 32)}
-      {mySlot >= 0 && (
-        <button type="button" className="scene-hit hall-hit" style={pct(seatX(mySlot) + 6, HALL_TABLE_Y - 10, 14, 16)} aria-label={myDesk?.running ? "내 모래시계 멈추기" : "내 모래시계 돌려서 공부 시작"} title={myDesk?.running ? "모래시계 멈추기" : "모래시계 돌리기"} onClick={onTurn} />
-      )}
+      {hit("공동 공부 목표 (큰 게시판)", "goals", 140, 14, 56, 68)}
+      {hit("내 공부 시간 (벽시계)", "clock", 86, 16, 28, 28)}
+      {hit("Zoom 회의 (노트북)", "zoom", 63, 44, 26, 24)}
+      {hit("기념 장식장 (메달)", "cabinet", 118, 36, 20, 32)}
+      <div className="hall-board-title" style={pct(146, 19, 44, 8)} aria-hidden>공동 공부 목표</div>
+      <ul className="hall-board" style={pct(144, 30, 48, 48)} aria-hidden>
+        {goalTitles.slice(0, 4).map((t, i) => <li key={i} className="hall-card">{t}</li>)}
+        {goalCount === 0 && <li className="hall-card hall-card-empty">진행 중인 목표가 없어요</li>}
+        {goalCount > 4 && <li className="hall-more">외 {goalCount - 4}개</li>}
+      </ul>
       {residents.filter((r) => r.slot >= 0 && r.slot < 6).map((r) => {
         const d = desks.find((x) => x.user_id === r.user_id);
         const sec = secondsOf(d, now);
         if (!d && r.shown !== "library") return null;
         return (
-          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatX(r.slot) - 12, HALL_TABLE_Y + 9, 24, 5.5)}>
+          <span key={r.user_id} className={`hall-plate ${d?.running ? "hall-plate-on" : ""}`} style={pct(seatPos(r.slot).cx - 12, seatPos(r.slot).ty + 9, 24, 5.5)}>
             <span className="nm">{r.profile.display_name} </span>{clockHM(sec)}
           </span>
         );
