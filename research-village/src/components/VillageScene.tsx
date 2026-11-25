@@ -9,7 +9,7 @@ import { fxGrid } from "@/pixel/fx";
 import { nearestWalkable } from "@/lib/walk";
 import { SANTA_AVATAR, rudolphGrid, sackGrid } from "@/pixel/santa";
 import { TREE_BASE, christmasTreeGrid, drawLightStrings, isChristmasSeason } from "@/pixel/christmas";
-import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap } from "@/pixel/magic";
+import { CANDLES, candleGlow, candleGrid, drawCandle, drawOwl, drawSnowfall, snowToday, drawLibraryXmas, castleGrid, CASTLE_H, CASTLE_W, treeAura, snowCap } from "@/pixel/magic";
 import { MON_H, MON_POS, MON_W, drawMonumentBreak, monumentGrid } from "@/pixel/monument";
 import { BIRD_KINDS, birdGrid } from "@/pixel/birds";
 import { eatGrid } from "@/pixel/eat";
@@ -90,13 +90,13 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     if (fx && fxRef.current?.id !== fx.id) fxRef.current = { ...fx, start: performance.now() };
   }, [fx]);
-  const [clock, setClock] = useState<{ season: Season; phase: DayPhase; xmas: boolean }>({ season: "spring", phase: "day", xmas: false });
+  const [clock, setClock] = useState<{ season: Season; phase: DayPhase; xmas: boolean; snow: 0 | 1 | 2 | 3 }>({ season: "spring", phase: "day", xmas: false, snow: 0 });
   useEffect(() => {
     data.current = { houses, residents, myId };
   }, [houses, residents, myId]);
 
   useEffect(() => {
-    const update = () => setClock({ season: currentSeason(), phase: currentPhase(), xmas: isChristmasSeason() });
+    const update = () => setClock({ season: currentSeason(), phase: currentPhase(), xmas: isChristmasSeason(), snow: snowToday() });
     update();
     const t = setInterval(update, 60_000);
     return () => clearInterval(t);
@@ -105,7 +105,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   useEffect(() => {
     const canvas = canvasRef.current, wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const { season, phase, xmas } = clock;
+    const { season, phase, xmas, snow } = clock;
     const pal = SEASONS[season];
     const night = phase === "night";
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -350,7 +350,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? snowCap(castleGrid(libLit), 0.6, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - (xmas ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (xmas ? CASTLE_H : LIB_H) + 2) });
 
       if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
-      if (xmas && !reduced) { items.push({ y: 401, draw: () => drawOwl(b, tick, W) }); items.push({ y: 402, draw: () => drawSnowfall(b, tick, W, H, night) }); }
+      if (xmas && !reduced) items.push({ y: 401, draw: () => drawOwl(b, tick, W) });
+      if (snow > 0 && !reduced) items.push({ y: 402, draw: () => drawSnowfall(b, tick, W, H, night, snow as 1 | 2 | 3) });
       for (const h of houses) {
         const pos = HOUSE_POS[h.slot], r = bySlot.get(h.slot);
         const lit = Boolean(r?.online), empty = !h.owner_id, mine = h.owner_id === data.current.myId;

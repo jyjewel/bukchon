@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-25-snow-days", date: "11월 25일", title: "겨울 동안 눈이 오는 날과 안 오는 날이 무작위로 찾아와요", body: "" },
   { id: "2026-11-25-wish-batch", date: "11월 25일", title: "[소원] 일지 수정에도 새가 와요, 채팅에서 프로필 보기, 소식 날짜별로 보기", body: "" },
   { id: "2026-11-25-xmas-menu", date: "11월 25일", title: "건네기 메뉴에 뱅쇼·따뜻한 우유·슈톨렌·쿠키·부쉬드 노엘이 생겼어요", body: "" },
   { id: "2026-11-25-xmas-items", date: "11월 25일", title: "산타 모자·루돌프 코·벽걸이 양말·리스를 미리 꾸며볼 수 있어요", body: "" },

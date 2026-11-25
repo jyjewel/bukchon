@@ -1,5 +1,4 @@
 import { disc, get, grid, outline, px, rect, type Grid } from "./core";
-import { LIB_H, LIB_W } from "./village";
 
 /** 크리스마스 시즌 "마법학교" 분위기: 지붕에 눈, 처마 전구, 둥둥 떠다니는 초 */
 
@@ -69,8 +68,9 @@ export function candleGlow(b: CanvasRenderingContext2D, c: { x: number; y: numbe
 }
 
 /** 소복소복 내리는 눈. 매 프레임 tick 으로 위치를 계산한다 (reduced motion 이면 호출하지 않는다) */
-export function drawSnowfall(b: CanvasRenderingContext2D, tick: number, w: number, h: number, night: boolean) {
-  for (let i = 0; i < 110; i++) {
+export function drawSnowfall(b: CanvasRenderingContext2D, tick: number, w: number, h: number, night: boolean, level: 1 | 2 | 3 = 2) {
+  const n = level === 1 ? 45 : level === 2 ? 90 : 140;
+  for (let i = 0; i < n; i++) {
     const speed = 0.25 + ((i * 37) % 10) / 22;
     const x = ((i * 61) % w) + Math.sin(tick * 0.02 + i) * 4;
     const y = (((i * 83) % h) + tick * speed) % h;
@@ -261,4 +261,18 @@ export function castleGrid(lit: boolean): Grid {
   rect(g, 8, 90, 108, 3, "#cfc9de"); rect(g, 8, 92, 108, 1, "#8f88a9");
   rect(g, 40, 93, 44, 1, "#e6e1f0");
   return outline(g);
+}
+
+/** 오늘 눈이 오는 정도(0 = 안 옴, 1 = 조금, 2 = 보통, 3 = 펑펑). 한국 날짜로 정해서 모두에게 같다.
+ *  겨울(12~2월)과 크리스마스 기간(11/25~)에만 오고, 날마다 무작위로 오는 날과 안 오는 날이 갈린다. 12/24·25는 늘 온다. */
+export function snowToday(d = new Date()): 0 | 1 | 2 | 3 {
+  const k = new Date(d.getTime() + 9 * 3600_000);
+  const y = k.getUTCFullYear(), m = k.getUTCMonth() + 1, day = k.getUTCDate();
+  const winter = m === 12 || m <= 2 || (m === 11 && day >= 25);
+  if (!winter) return 0;
+  if (m === 12 && (day === 24 || day === 25)) return 3;
+  let x = Math.imul(y * 372 + m * 31 + day, 2654435761) >>> 0;
+  x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = (x ^ (x >>> 13)) >>> 0;
+  const r = (x % 1000) / 1000;
+  return r < 0.5 ? 0 : r < 0.72 ? 1 : r < 0.9 ? 2 : 3;
 }
