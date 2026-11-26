@@ -631,15 +631,15 @@ export function bicheondangGrid(lit: boolean): Grid {
   // 처마 끝: 겹처마(부연) 한 줄과 서까래 끝
   for (let x = 0; x < LIB_W; x++) { const e = eave(x); rect(g, x, e + 1, 1, 2, tileD); px(g, x, e + 3, x % 3 === 0 ? "#d9c9a0" : "#9a8a64"); }
   // 단청 두른 공포 층
-  rect(g, 5, 34, 94, 6, "#5a2f26");
-  for (let x = 6; x < 98; x += 6) {
+  rect(g, 14, 34, 76, 6, "#5a2f26");
+  for (let x = 15; x < 88; x += 6) {
     rect(g, x, 35, 2, 4, "#3f9a8a"); rect(g, x + 2, 35, 2, 4, "#c4483f"); rect(g, x + 4, 35, 2, 4, "#4a6fb0");
     px(g, x, 37, "#f4efe0"); px(g, x + 3, 36, "#f4efe0"); px(g, x + 5, 37, "#f4efe0");
   }
-  rect(g, 5, 40, 94, 2, "#8a3a2a"); rect(g, 5, 40, 94, 1, "#a8503a");
+  rect(g, 14, 40, 76, 2, "#8a3a2a"); rect(g, 14, 40, 76, 1, "#a8503a");
   // 기둥과 띠살 창호
-  rect(g, 7, 42, 90, 28, "#2a2433");
-  const cols = [6, 24, 41, 59, 76, 94];
+  rect(g, 16, 42, 72, 28, "#2a2433");
+  const cols = [15, 29, 43, 61, 75, 89];
   for (let i = 0; i < cols.length - 1; i++) {
     const x0 = cols[i] + 4, x1 = cols[i + 1];
     if (i === 2 && false) {
@@ -662,8 +662,8 @@ export function bicheondangGrid(lit: boolean): Grid {
   rect(g, 43, 42, 18, 7, "#1f1a22"); rect(g, 43, 42, 18, 1, "#e8c24a"); rect(g, 43, 48, 18, 1, "#e8c24a"); rect(g, 43, 42, 1, 7, "#e8c24a"); rect(g, 60, 42, 1, 7, "#e8c24a");
   for (const gx of [45, 50, 55]) { rect(g, gx, 44, 4, 1, "#e8c24a"); rect(g, gx + 1, 44, 1, 3, "#e8c24a"); rect(g, gx + 3, 45, 1, 2, "#e8c24a"); rect(g, gx, 46, 3, 1, "#e8c24a"); }
   // 월대(기단)와 계단
-  rect(g, 2, 71, 100, 5, "#b9bdc6"); rect(g, 2, 71, 100, 1, "#d6d9e0"); rect(g, 2, 75, 100, 1, "#8a8e99");
-  for (let x = 6; x < 100; x += 12) rect(g, x, 72, 1, 3, "#9a9eaa");
+  rect(g, 11, 71, 82, 5, "#b9bdc6"); rect(g, 11, 71, 82, 1, "#d6d9e0"); rect(g, 11, 75, 82, 1, "#8a8e99");
+  for (let x = 15; x < 92; x += 12) rect(g, x, 72, 1, 3, "#9a9eaa");
   rect(g, 34, 76, 36, 3, "#d0d4da"); rect(g, 34, 78, 36, 1, "#9a9eaa");
   rect(g, 30, 79, 44, 3, "#c0c4cc"); rect(g, 30, 81, 44, 1, "#9a9eaa");
   rect(g, 26, 82, 52, 2, "#aeb2bb");
