@@ -67,7 +67,6 @@ export default function StudyRoomWork({
             <div className="space-y-3">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} onPortal={() => { setRoomView(null); setPortal(true); }} />
-              <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로, 벽 아래 포탈을 누르면 다른 연구실로 건너가요.</p>
               <div className="flex gap-1">
                 <button type="button" className="btn btn-primary" onClick={() => setRoomView("decorate")}>꾸미기</button>
                 <button type="button" className="btn" onClick={() => setRoomView(null)}>닫기</button>
@@ -75,7 +74,6 @@ export default function StudyRoomWork({
             </div>
           ) : (
             <div className="space-y-2">
-              <button type="button" className="btn btn-sm" onClick={() => setRoomView("view")}>◀ 연구실로 돌아가기</button>
               <div className="-m-3"><LabDecorator me={me} onSaved={onProfileSaved} /></div>
             </div>
           )}
@@ -86,7 +84,7 @@ export default function StudyRoomWork({
           <Window title={labTitle(me.profile)} tone="butter">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("view")} onPortal={() => setPortal(true)} />
-            <p className="px-2 pt-1 text-center text-xs text-ink-soft">그림을 누르면 크게 보고 꾸밀 수 있어요</p>
+            <div className="flex justify-center px-2 pt-1"><button type="button" className="btn btn-sm" onClick={() => setRoomView("decorate")}>꾸미기</button></div>
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {SECTIONS.map((s) => (
                 <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
