@@ -130,8 +130,6 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
               ))}
             </div>
           )}
-          {isPublic && villages.length === 1 && <p className="mt-1 text-xs text-ink-soft">{villages[0].name} 주민이 읽을 수 있어요.</p>}
-          {isPublic && villages.length > 1 && <p className="mt-1 text-xs text-ink-soft">{fields.shared.length ? `${villages.filter((v) => fields.shared.includes(v.id)).map((v) => v.name).join(", ")} 주민이 읽을 수 있어요.` : "공개할 마을을 골라 주세요."}</p>}
         </fieldset>
       </div>
     </>

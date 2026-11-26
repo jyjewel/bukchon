@@ -242,10 +242,11 @@ export function libraryHall(phase: DayPhase, medals = 0, theme: HallTheme = "tan
       if (y % 6 === 0) rect(g, 100 - hw + 4, y, hw * 2 - 8, 1, dark);
     }
   }
-  // 노트북을 올린 낮은 탁자: 다리가 마룻바닥에 닿는다(앉은 사람 앞줄에 가려져도 괜찮다)
-  rect(g, 63, 64, 26, 3, WOOD_L); rect(g, 63, 67, 26, 3, WOOD_D);
-  rect(g, 65, 70, 3, 14, WOOD_D); rect(g, 84, 70, 3, 14, WOOD_D); rect(g, 65, 70, 3, 1, "#47291a"); rect(g, 84, 70, 3, 1, "#47291a");
-  rect(g, 62, 84, 28, 2, "#3a2a3338");                                                         // 바닥에 지는 그림자
+  // 노트북을 올린 흰 탁자: 가운데 기둥 하나가 바닥에 닿는다
+  rect(g, 63, 64, 26, 3, "#ffffff"); rect(g, 63, 67, 26, 2, "#dfe2e8"); rect(g, 63, 64, 26, 1, "#f4f6fa");
+  rect(g, 74, 69, 4, 15, "#e8ebf0"); rect(g, 74, 69, 1, 15, "#ffffff"); rect(g, 77, 69, 1, 15, "#c9ced8");
+  rect(g, 68, 82, 14, 2, "#e8ebf0"); rect(g, 68, 82, 14, 1, "#ffffff");
+  rect(g, 66, 84, 20, 2, "#3a2a3338");                                                         // 바닥에 지는 그림자
   rect(g, 68, 53, 16, 11, "#b9bdc7"); rect(g, 69, 54, 14, 9, "#5f8fd6"); rect(g, 71, 56, 5, 2, "#ffffff"); rect(g, 77, 56, 4, 4, "#f2c64e"); rect(g, 71, 60, 9, 1, "#cfe0ff");
   rect(g, 66, 63, 20, 1, "#9aa0ad");
   stamp(g, cabinetGrid(medals), 118, 52);                                    // 기념 장식장(오른쪽 게시판 옆, 바닥에 선다)
