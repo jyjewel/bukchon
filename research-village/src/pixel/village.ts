@@ -656,7 +656,7 @@ export function bicheondangGrid(lit: boolean): Grid {
   stamp(g, bicheondangBody(lit), OX, OY);
   const tile = "#98a0a8", tileD = "#737b85", tileL = "#c3cad0";
   const eave = (u: number) => 30 - Math.round(5 * Math.pow(Math.abs(u - 51.5) / 52, 2.6));   // 원래 좌표의 처마선
-  const top = 8, bend = 12, baseY = 30 + OY;
+  const top = 8, bend = 12, baseY = 30 + OY + 3;   // 지붕을 몸통 쪽으로 3칸 내림
   const eaveY = (X: number) => baseY - Math.round((30 - eave((X - OX - 52) / S + 52)) * S);
   for (let X = 0; X < BICHEON_W; X++) {
     const u = (X - OX - 52) / S + 52;
