@@ -8,7 +8,7 @@ import { dateKey } from "@/lib/time";
 import JournalCalendar from "./JournalCalendar";
 import PixelIcon from "./PixelIcon";
 
-interface Shared { log_date: string; body: string; shared_villages: string[]; updated_at: string }
+interface Shared { log_date: string; body: string; shared_villages: string[]; shared_friends: boolean; updated_at: string }
 interface Reaction { log_date: string; user_id: string; emoji: string }
 interface Comment { id: string; log_date: string; author_id: string; body: string; reply_to: string | null; created_at: string }
 
@@ -26,8 +26,8 @@ export default function PublicJournal({
 
   const load = useCallback(async () => {
     const sb = supabase();
-    const { data } = await sb.from("daily_logs").select("log_date, body, shared_villages, updated_at").eq("user_id", ownerId).neq("body", "").order("log_date", { ascending: false }).limit(120);
-    const shared = ((data ?? []) as Shared[]).filter((l) => l.shared_villages.length > 0);
+    const { data } = await sb.from("daily_logs").select("log_date, body, shared_villages, shared_friends, updated_at").eq("user_id", ownerId).neq("body", "").order("log_date", { ascending: false }).limit(120);
+    const shared = ((data ?? []) as Shared[]).filter((l) => l.shared_villages.length > 0 || l.shared_friends);
     setList(shared);
     const dates = shared.map((l) => l.log_date);
     if (dates.length) {

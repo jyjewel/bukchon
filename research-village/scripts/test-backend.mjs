@@ -1010,6 +1010,16 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.equal(fg.length, 1); assert.equal(fg[0].kind, "coffee");
   assert.match((await m1.c.rpc("send_gift", { p_village: village, p_target: outside[0].id, p_kind: "coffee", p_note: "" })).error?.message ?? "", /not_member/);   // 친구가 아니면 못 올린다
   assert.equal(ok(await m1.c.rpc("desk_gifts", { p_owner: outside[0].id })).length, 0);
+  // 일지는 친구 모두에게 한꺼번에 공개할 수 있다(한 명씩 고르지 않는다)
+  const jd = "2026-12-05";
+  ok(await outside[0].c.from("daily_logs").insert({ user_id: outside[0].id, log_date: jd, body: "친구에게만 공개한 일지", shared_friends: true }));
+  assert.equal(ok(await a.c.from("daily_logs").select("body").eq("user_id", outside[0].id).eq("log_date", jd)).length, 1);   // 친구는 읽는다
+  assert.equal(ok(await m1.c.from("daily_logs").select("body").eq("user_id", outside[0].id).eq("log_date", jd)).length, 0);   // 친구가 아니면 못 읽는다
+  ok(await a.c.from("journal_reactions").insert({ owner_id: outside[0].id, log_date: jd, emoji: "heart" }));                 // 친구는 반응·댓글도 남긴다
+  ok(await a.c.from("journal_comments").insert({ owner_id: outside[0].id, log_date: jd, body: "친구의 댓글" }));
+  assert.ok((await m1.c.from("journal_comments").insert({ owner_id: outside[0].id, log_date: jd, body: "남의 댓글" })).error);
+  ok(await outside[0].c.from("daily_logs").update({ shared_friends: false }).eq("user_id", outside[0].id).eq("log_date", jd));
+  assert.equal(ok(await a.c.from("daily_logs").select("body").eq("user_id", outside[0].id).eq("log_date", jd)).length, 0);   // 공개를 끄면 바로 안 보인다
   ok(await a.c.rpc("remove_friend", { p_friend: outside[0].id }));
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
