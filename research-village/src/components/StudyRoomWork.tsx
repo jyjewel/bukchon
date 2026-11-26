@@ -37,6 +37,8 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "drawer", label: "편지 서랍" },
   { id: "snacks", label: "간식 상자" },
 ];
+/** 폰의 가로 메뉴에서는 간식 상자를 오늘의 일지 바로 다음에 둔다 */
+const MOBILE_SECTIONS = [SECTIONS[0], SECTIONS[SECTIONS.length - 1], ...SECTIONS.slice(1, -1)];
 
 /** 내 연구실(작업 화면): 글쓰기 창이 가운데에 크게, 왼쪽엔 작은 연구실 그림과 항목 목록, 오른쪽엔 마감·할 일. 집중 모드는 가운데만 남긴다. */
 export default function StudyRoomWork({
@@ -100,7 +102,7 @@ export default function StudyRoomWork({
       <div className="order-1 min-w-0 lg:order-2">
         {!focus && (
           <nav aria-label="연구실 항목 (폰)" className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:hidden">
-            {SECTIONS.map((s) => (
+            {MOBILE_SECTIONS.map((s) => (
               <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
                 className={`btn shrink-0 whitespace-nowrap ${section === s.id ? "btn-primary" : ""}`}>{s.label}</button>
             ))}
