@@ -479,7 +479,7 @@ const me = v.me!;
         const owner = v.residents.find((r) => r.user_id === visitId) ?? (guest && guest.user_id === visitId ? guest : undefined);
         const isGuest = Boolean(owner) && !v.residents.some((r) => r.user_id === visitId);
         return owner ? (
-          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={goPortal} villages={v.villages} villageId={village.id} onProfile={isGuest ? undefined : () => setSelected(owner.user_id)} give={isGuest ? undefined : give(owner.user_id)} /></main>
+          <main><RoomVisit key={owner.user_id} owner={owner} myId={me.user_id} residents={v.residents} tab={tab} onTab={setTab} onBack={() => setView("home")} onGoto={goPortal} villages={v.villages} villageId={village.id} onProfile={isGuest ? undefined : () => setSelected(owner.user_id)} give={give(owner.user_id)} isGuest={isGuest} /></main>
         ) : <main><Notice>이 주민은 더 이상 마을에 없어요.</Notice></main>;
       })()}
       {view === "library" && <main><LibraryView lib={lib} goals={goals} onGoalDone={() => setView("home")} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}

@@ -133,7 +133,7 @@ export default function RoomBoards({
             }}>
               <label className="sr-only" htmlFor={`cm-${it.id}`}>댓글</label>
               <input id={`cm-${it.id}`} className="input" maxLength={500} value={cm[it.id] ?? ""} onChange={(e) => setCm((m) => ({ ...m, [it.id]: e.target.value }))} placeholder="댓글 달기" />
-              <button type="submit" className="btn btn-sm btn-mint mt-[5px]" disabled={!(cm[it.id] ?? "").trim()}>달기</button>
+              <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!(cm[it.id] ?? "").trim()}>달기</button>
             </form>
           </article>
         );
