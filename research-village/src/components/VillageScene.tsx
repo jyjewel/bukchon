@@ -253,7 +253,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
       for (const l of LAMPS) items.push({ y: l.y, draw: () => b.drawImage(lamp, l.x - 5, l.y - 28) });
       if (xmas) {
         // 크리스마스 달: 분수 자리에 커다란 트리가 서고, 가로등까지 전구 줄이 이어진다
-        const base = { x: PLAZA.x, y: PLAZA.y + 12 };
+        const base = { x: PLAZA.x, y: PLAZA.y + 26 };
         items.push({ y: base.y, draw: () => { shadow(base.x, base.y, 24); b.drawImage(xtree[Math.floor(tick / 8) % 4], base.x - TREE_BASE.x, base.y - TREE_BASE.y); } });
         items.push({ y: base.y + 0.5, draw: () => drawLightStrings(b, tick, base, LAMPS, phase !== "day") });
       } else items.push({ y: PLAZA.y + 6, draw: () => b.drawImage(fountain[slow % 4], PLAZA.x - 19, PLAZA.y - 24) });
@@ -503,7 +503,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
           const a = night ? 0.5 : 0.22;
           for (const l of LAMPS) glow(l.x, l.y - 23, 26, a);
           if (eve) for (const c of CANDLES) candleGlow(b, c, tick, night ? 0.5 : 0.16);
-          if (xmas) { treeAura(b, { x: PLAZA.x, y: PLAZA.y + 12 }, tick, night); drawLibraryXmas(b, LIBRARY, tick, night, "glow"); }
+          if (xmas) { treeAura(b, { x: PLAZA.x, y: PLAZA.y + 26 }, tick, night); drawLibraryXmas(b, LIBRARY, tick, night, "glow"); }
           if (truck) glow(TRUCK_POS.x - 9, TRUCK_POS.y - 17, 26, a + 0.15);
           for (const h of houses) if (bySlot.get(h.slot)?.online) { const m = HOUSE_META[houseTypeOf(h.style)]; glow(HOUSE_POS[h.slot].x - 27 + m.window.x + 5, HOUSE_POS[h.slot].y - 62 + m.window.y + 5, 20, a); }
           if (libLit) { glow(LIBRARY.x - 27, LIBRARY.y - 30, 18, a); glow(LIBRARY.x + 27, LIBRARY.y - 30, 18, a); }
@@ -515,7 +515,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         }
         b.globalCompositeOperation = "source-over";
       }
-      if (xmas && !night && phase !== "dusk") treeAura(b, { x: PLAZA.x, y: PLAZA.y + 12 }, tick, false);
+      if (xmas && !night && phase !== "dusk") treeAura(b, { x: PLAZA.x, y: PLAZA.y + 26 }, tick, false);
 
       {
         // 책걸이: 색종이가 쏟아지고 별이 터진다
