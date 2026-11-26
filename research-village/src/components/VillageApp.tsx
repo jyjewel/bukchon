@@ -123,6 +123,15 @@ const me = v.me!;
   const onIncoming = useCallback((conv: Conversation) => { if (statusRef.current !== "focus") setToast({ kind: "chat", conv }); }, []);
   const notifs = useNotifications(me.user_id, onNew);
   const chat = useChat(me.user_id, onIncoming);
+  const markRead = notifs.markRead;
+  // 알림 창을 펴서 잠깐 보면 그 알림은 읽은 것으로 친다(숫자 표시가 사라진다). 창이 열려 있는 동안 새로 온 것도 같다.
+  useEffect(() => {
+    if (view !== "alerts") return;
+    const ids = notifs.list.filter((n) => !n.read_at && !n.id.startsWith("portal-")).map((n) => n.id);
+    if (!ids.length) return;
+    const t = setTimeout(() => void markRead(ids), 1500);
+    return () => clearTimeout(t);
+  }, [view, notifs.list, markRead]);
   const lib = useLibrary(village.id);
   const goals = useStudyGoals(village.id);
   // 공동 목표를 다 이루면 광장에 모여 한바탕 잔치(홈 화면을 보고 있을 때만, 이룬 지 1분 반 안이면)
