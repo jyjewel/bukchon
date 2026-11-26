@@ -34,6 +34,7 @@ import WelcomeBack from "./WelcomeBack";
 import UpdateNotice from "./UpdateNotice";
 import UpdateBanner from "./UpdateBanner";
 import WindowColumn from "./WindowColumn";
+import MailOwl from "./MailOwl";
 import WelcomeOwl from "./WelcomeOwl";
 import ChristmasGift from "./ChristmasGift";
 import { useChristmas } from "@/hooks/useChristmas";
@@ -343,6 +344,7 @@ const me = v.me!;
 
       {view === "home" && <UpdateNotice userId={me.user_id} />}
       {view === "home" && <WelcomeOwl userId={me.user_id} />}
+      {view === "home" && <MailOwl userId={me.user_id} />}
       {giftOpen && (
         <ChristmasGift mode={giftOpen} already={Boolean(xmas.thisYear)} claim={xmas.claim} onClose={() => setGiftOpen(null)}
           onWear={async () => { await supabase().from("profiles").update({ avatar: { ...profile.avatar, hat: "santa" } }).eq("id", me.user_id); await auth.reloadProfile(); await v.reload(); }} />

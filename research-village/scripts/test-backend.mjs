@@ -1078,6 +1078,11 @@ await t("편지 서랍: 운영자 편지는 읽기만 되고, 산타 쪽지는 �
     ok(await sv.from("mail_letters").insert({ title: "설날 설빔 소식", body: "설날을 맞아 설빔 소품을 풀었어요.", icon: "🎎" }));
     const seen = ok(await m2.c.from("mail_letters").select("title, icon").eq("title", "설날 설빔 소식"));
     assert.equal(seen.length, 1);                                                                                     // 모든 주민이 읽는다
+    const lid = ok(await m2.c.from("mail_letters").select("id").eq("title", "설날 설빔 소식").limit(1))[0].id;
+    ok(await m2.c.from("mail_letter_reads").insert({ user_id: m2.id, letter_id: lid }));                            // 읽은 편지를 기억한다
+    assert.equal(ok(await m2.c.from("mail_letter_reads").select("letter_id").eq("letter_id", lid)).length, 1);
+    assert.equal(ok(await m3.c.from("mail_letter_reads").select("letter_id").eq("letter_id", lid)).length, 0);      // 남의 읽음 기록은 못 본다
+    assert.ok((await m3.c.from("mail_letter_reads").insert({ user_id: m2.id, letter_id: lid })).error);              // 남 대신 읽음 표시도 못 한다
     ok(await sv.from("mail_letters").delete().eq("title", "설날 설빔 소식"));
     ok(await sv.from("gifts").insert({ from_user: m2.id, to_user: m2.id, kind: "coffee", note: "🎅 산타가 두고 갔어요" }));
     assert.equal(ok(await m2.c.from("gift_notes").select("id").like("note", "🎅%")).length, 0);                        // 산타 쪽지는 보관하지 않는다
