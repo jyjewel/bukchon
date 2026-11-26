@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { dateKey, dateLabel, timeLabel } from "@/lib/time";
+import { dateKey, dateLabel } from "@/lib/time";
 import { useAutosave, type PersistResult } from "@/hooks/useAutosave";
 import type { VillageInfo } from "@/lib/types";
 import { DocTools, SaveStatusBar } from "./DocTools";
@@ -42,26 +42,49 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
         <button type="button" className="btn btn-sm" onClick={() => setDate(shift(date, -1))} aria-label="전날">◀</button>
         <button type="button" className="btn btn-sm" disabled={date >= today} onClick={() => setDate(shift(date, 1))} aria-label="다음날">▶</button>
         <button type="button" className="btn btn-sm" disabled={date === today} onClick={() => setDate(today)}>오늘</button>
-        <label className="sr-only" htmlFor="journal-jump">날짜로 이동</label>
-        <input id="journal-jump" type="date" className="input !w-auto" max={today} value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
+        <span className="font-display text-sm">{date === today ? "오늘 · " : ""}{dateLabel(date)}</span>
       </div>
+      <details className="pb-1">
+        <summary className="label cursor-pointer">일지 달력{past.length > 0 ? ` · 쓴 날 ${past.length}일` : ""}</summary>
+        <JournalCalendar today={today} selected={date} logs={past} onPick={setDate} />
+      </details>
       <JournalEditor key={date} userId={userId} date={date} villages={villages} onSaved={() => void loadPast()} />
-      {past.length > 0 && (
-        <details className="dotted pt-2">
-          <summary className="label">지난 일지 {past.length}개</summary>
-          <ul className="mt-1 max-h-72 space-y-1 overflow-y-auto" aria-label="지난 일지 목록">
-            {past.map((l) => (
-              <li key={l.log_date}>
-                <button type="button" className={`card w-[calc(100%-6px)] px-2 py-1 text-left text-xs ${l.log_date === date ? "card-on" : ""}`} onClick={() => setDate(l.log_date)}>
-                  <span className="font-display">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} {timeLabel(l.updated_at)}</span>
-                  {l.shared_villages.length > 0 && <span className="chip ml-1">공개</span>}
-                  {" · "}<span className="text-ink-soft">{l.body.replace(/\s+/g, " ").slice(0, 40)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
+    </div>
+  );
+}
+
+/** 달력: 일지를 쓴 날은 색이 칠해지고(공개한 날은 파란 점), 날짜를 누르면 그날 일지가 열린다 */
+function JournalCalendar({ today, selected, logs, onPick }: { today: string; selected: string; logs: PastLog[]; onPick: (d: string) => void }) {
+  const [month, setMonth] = useState(selected.slice(0, 7));
+  const [y, m] = month.split("-").map(Number);
+  const byDate = new Map(logs.map((l) => [l.log_date, l]));
+  const first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
+  const cells: (string | null)[] = [...Array(first).fill(null), ...Array.from({ length: days }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`)];
+  const move = (n: number) => { const d = new Date(y, m - 1 + n, 1); setMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); };
+  return (
+    <div className="mt-1 max-w-sm" aria-label="일지 달력">
+      <div className="mb-1 flex items-center justify-between">
+        <button type="button" className="btn btn-sm" onClick={() => move(-1)} aria-label="이전 달">◀</button>
+        <span className="font-display text-sm">{y}년 {m}월</span>
+        <button type="button" className="btn btn-sm" disabled={month >= today.slice(0, 7)} onClick={() => move(1)} aria-label="다음 달">▶</button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-ink-soft" aria-hidden>
+        {["일", "월", "화", "수", "목", "금", "토"].map((w) => <span key={w}>{w}</span>)}
+      </div>
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (!d) return <span key={`e${i}`} />;
+          const log = byDate.get(d), future = d > today, on = d === selected;
+          return (
+            <button key={d} type="button" disabled={future} onClick={() => onPick(d)} aria-label={`${m}월 ${Number(d.slice(8))}일${log ? " 일지 있음" : ""}${log && log.shared_villages.length ? " (공개)" : ""}`} aria-pressed={on}
+              className={`relative h-9 rounded-md border text-sm ${on ? "border-[#3a2a33] bg-[#ffe07a] font-display" : log ? "border-[#e0c98a] bg-[#fff3c4]" : "border-transparent"} ${d === today && !on ? "ring-1 ring-[#e07a8a]" : ""} ${future ? "opacity-30" : ""}`}>
+              {Number(d.slice(8))}
+              {log && log.shared_villages.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#5f8fd6]" />}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-1 text-xs text-ink-soft">색이 칠해진 날은 일지를 쓴 날이에요. 파란 점은 이웃에게 공개한 날이에요.</p>
     </div>
   );
 }

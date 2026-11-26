@@ -77,7 +77,7 @@ export default function PublicJournal({
             return (
               <li key={l.log_date}>
                 <details open={i === 0} className="px-box p-2" style={{ background: "#fff8e4", ["--bd" as string]: "#8a8fa3" }}>
-                  <summary className="cursor-pointer font-display text-sm">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} <span className="font-body text-xs text-ink-soft">· {timeLabel(l.updated_at)} 올림 · {l.body.replace(/\s+/g, " ").slice(0, 28)}{cs.length ? ` · 댓글 ${cs.length}` : ""}</span></summary>
+                  <summary className="cursor-pointer font-display text-sm">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} <span className="font-body text-xs text-ink-soft">· {timeLabel(l.updated_at)} 올림 {cs.length ? ` · 댓글 ${cs.length}` : ""}</span></summary>
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{l.body}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="일지 반응">
                     {REACTIONS.map((r) => {
