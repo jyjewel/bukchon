@@ -102,7 +102,7 @@ export default function PublicJournal({
                   <form className="mt-1 flex items-start gap-1" onSubmit={(e) => { e.preventDefault(); void comment(l.log_date); }}>
                     <label className="sr-only" htmlFor={`jc-${l.log_date}`}>댓글 쓰기</label>
                     <input id={`jc-${l.log_date}`} className="input" maxLength={500} value={drafts[l.log_date] ?? ""} onChange={(e) => setDrafts((d) => ({ ...d, [l.log_date]: e.target.value }))} placeholder="댓글 달기" />
-                    <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0" disabled={!(drafts[l.log_date] ?? "").trim()}>달기</button>
+                    <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!(drafts[l.log_date] ?? "").trim()}>달기</button>
                   </form>
                 </details>
               </li>

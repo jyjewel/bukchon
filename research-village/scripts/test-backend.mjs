@@ -954,6 +954,15 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   ok(await a.c.from("postits").insert({ owner_id: outside[0].id, body: "친구가 붙임" }));
   assert.equal(ok(await outside[0].c.from("postits").select("id").eq("owner_id", outside[0].id).eq("author_id", a.id)).length, 1);   // 받은 사람이 자기 연구실에서 본다 (마을이 없는 사람은 알림만 없다)
   assert.ok((await m1.c.from("postits").insert({ owner_id: outside[0].id, body: "남이 붙임" })).error);                // 친구가 아니면 못 붙인다
+  const wbItem = ok(await outside[0].c.from("whiteboard_items").select("id").eq("owner_id", outside[0].id).limit(1))[0].id;
+  ok(await a.c.from("whiteboard_comments").insert({ item_id: wbItem, author_id: a.id, body: "친구의 댓글" }));          // 친구는 화이트보드에 댓글도 단다
+  assert.equal(ok(await outside[0].c.from("whiteboard_comments").select("id").eq("item_id", wbItem)).length, 1);
+  assert.ok((await m1.c.from("whiteboard_comments").insert({ item_id: wbItem, author_id: m1.id, body: "남의 댓글" })).error);   // 친구가 아니면 못 단다
+  ok(await a.c.rpc("send_gift", { p_village: village, p_target: outside[0].id, p_kind: "coffee", p_note: "친구 선물" }));   // 친구의 책상에 선물을 올린다
+  const fg = ok(await a.c.rpc("desk_gifts", { p_owner: outside[0].id }));                                              // 친구는 책상 위 선물(종류)을 본다
+  assert.equal(fg.length, 1); assert.equal(fg[0].kind, "coffee");
+  assert.match((await m1.c.rpc("send_gift", { p_village: village, p_target: outside[0].id, p_kind: "coffee", p_note: "" })).error?.message ?? "", /not_member/);   // 친구가 아니면 못 올린다
+  assert.equal(ok(await m1.c.rpc("desk_gifts", { p_owner: outside[0].id })).length, 0);
   ok(await a.c.rpc("remove_friend", { p_friend: outside[0].id }));
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
