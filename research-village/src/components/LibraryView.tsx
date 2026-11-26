@@ -71,7 +71,7 @@ export default function LibraryView({
   const upcoming = lib.meetings.filter((m) => new Date(m.starts_at).getTime() > nowMs - 2 * 3600_000);
 
   const mySec = desk.secondsOf(desk.desks.find((d) => d.user_id === me.user_id), nowTick);
-  const turn = async () => { await desk.turn(); };
+  const setRunning = async (run: boolean) => { await desk.setRunning(run); };
   const goalsRef = useRef<HTMLDivElement>(null), schedRef = useRef<HTMLDivElement>(null);
   /** 칠판·게시판은 아래에 늘 펼쳐져 있는 창으로 부드럽게 내려가고, 나머지는 창을 띄운다 */
   const openPanel = (p: HallPanel) => {
@@ -114,7 +114,7 @@ export default function LibraryView({
           </Window>
     ),
     cabinet: <MedalCabinet key="cabinet" goals={goals.goals} />,
-    clock: <StudyClockPanel key="clock" desk={desk.desks.find((d) => d.user_id === me.user_id)} seconds={mySec} now={nowTick} onTurn={turn} />,
+    clock: <StudyClockPanel key="clock" desk={desk.desks.find((d) => d.user_id === me.user_id)} seconds={mySec} now={nowTick} onSet={setRunning} />,
     zoom: (
         <Window key="zoom" title="Zoom 회의" tone="mint" className="self-start">
           <div className="space-y-3 p-3 text-sm">
