@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 
-/** 글쓴이에 따라 색을 달리한다: 연구실 주인(따뜻한 상아색) · 나(연분홍) · 다른 사람(연하늘) */
-export function speakerStyle(authorId: string | null, ownerId: string, myId: string): CSSProperties {
-  const c = authorId === ownerId ? { bg: "#fff8e4", bar: "#d4a63a" } : authorId === myId ? { bg: "#ffe6ee", bar: "#e0708c" } : { bg: "#e3f1fb", bar: "#5f9fd6" };
-  return { background: c.bg, borderLeft: `4px solid ${c.bar}`, padding: "3px 8px" };
+/** 댓글·답장 줄 모양: 누가 썼든 흰 바탕에 옅은 세로줄 하나(글쓴이는 이름으로 구분한다) */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- 호출하는 쪽 모양을 그대로 두려고 인자를 남겨 둔다
+export function speakerStyle(_authorId: string | null, _ownerId: string, _myId: string): CSSProperties {
+  return { background: "#ffffff", borderLeft: "3px solid #eadfc4", padding: "3px 8px" };
 }
 /** 이름 표시: 내가 쓴 글에는 '나' */
 export const speakerName = (authorId: string, myId: string, name: string) => (authorId === myId ? `나(${name})` : name);
-export const OWNER_BG = "#fff8e4";
+export const OWNER_BG = "#ffffff";
