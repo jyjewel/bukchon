@@ -39,7 +39,7 @@ export default function RoomCanvas({
   return (
     <div className="relative">
       <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={`${owner.profile.display_name}의 연구실`} />
-      {onOpen && <button type="button" className="scene-hit" style={pos(0, 0, ROOM_W, ROOM_H)} aria-label="연구실 크게 보기" onClick={onOpen} />}
+      {onOpen && <button type="button" className="scene-hit" style={pos(0, 0, ROOM_W, ROOM_H)} aria-label="연구실 꾸미기" onClick={onOpen} />}
       {onPick && (
         <>
           <button type="button" className="scene-hit" style={pos(52, 5, 48, 32)} aria-label="화이트보드 보기" onClick={() => onPick("whiteboard")} />
