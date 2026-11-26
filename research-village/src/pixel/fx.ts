@@ -34,6 +34,10 @@ const SPRITES: Record<string, { rows: string[]; pal: Record<string, string> }> =
     rows: ["...kyk...", "...kyk...", "kkkkyykkk", "kyyyyyyyk", ".kyyhyyk.", "..kyyyk..", ".kyykyyk.", ".kyk.kyk.", "..k...k.."],
     pal: { k: "#2a2433", y: "#ffd23f", h: "#fff6b0" },
   },
+  snowball: {
+    rows: ["..kkkkk..", ".kwwwwwk.", "kwwhhwwwk", "kwhhwwbwk", "kwwwwbbwk", "kwwwwwwwk", "kbwwwwwbk", ".kbbbbbk.", "..kkkkk.."],
+    pal: { k: "#4a5f8a", w: "#ffffff", h: "#f4fbff", b: "#bcd6ee" },
+  },
   star: {
     rows: ["..y..", ".yyy.", "yyyyy", ".yyy.", "..y.."],
     pal: { y: "#ffe34a" },
