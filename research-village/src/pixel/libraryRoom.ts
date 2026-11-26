@@ -282,19 +282,18 @@ export const DESK_W = 36;
 export const HALL_TABLE_YS = [88, 126] as const;
 /** 한 사람에 책상 하나(라운지형 열람석): 뒷줄 3개와, 그 사이사이에 놓인 앞줄 3개. 집 번호(0~5)가 곧 자리 번호 */
 export const seatPos = (slot: number) => ({ cx: (slot < 3 ? 35 : 62) + 55 * (slot % 3), ty: HALL_TABLE_YS[slot < 3 ? 0 : 1] });
-export type SeatState = "empty" | "seated" | "study" | "done";
+export type SeatState = "empty" | "seated" | "study";
 
 const SKIN = "#f6cba6";
 /** 앉은 캐릭터(탁자 뒤에 가려지도록 탁자보다 먼저 그린다). 공부 중엔 고개를 숙이고 가끔 더 숙인다 */
 export function drawSeatPerson(b: CanvasRenderingContext2D, cx: number, ty: number, avatar: CanvasImageSource, st: SeatState, tick: number) {
-  const dy = st === "study" ? 1 + (Math.floor(tick / 40) % 5 === 0 ? 1 : 0) : st === "done" ? -1 : 0;
+  const dy = st === "study" ? 1 + (Math.floor(tick / 40) % 5 === 0 ? 1 : 0) : 0;
   b.drawImage(avatar, cx - 12, ty - 22 + dy);
 }
 
 /** 탁자 위 물건과 팔·책·펜·독서등·모래시계(탁자 위에 놓인 것은 탁자보다 나중에 그린다) */
 export function drawSeatObjects(b: CanvasRenderingContext2D, cx: number, ty: number, st: SeatState, tick: number, lamp: { off: CanvasImageSource; on: CanvasImageSource }) {
   const person = st !== "empty";
-  if (st === "done") { b.fillStyle = SKIN; b.fillRect(cx - 14, ty - 28, 3, 12); b.fillRect(cx + 11, ty - 28, 3, 12); b.fillStyle = "#3a2a33"; b.fillRect(cx - 15, ty - 29, 1, 14); b.fillRect(cx + 14, ty - 29, 1, 14); }   // 기지개
   if (st === "study") {
     b.fillStyle = "#3a2a33"; b.fillRect(cx - 9, ty - 1, 19, 4);                                   // 펼친 책
     b.fillStyle = "#fff8e4"; b.fillRect(cx - 8, ty - 1, 8, 3); b.fillRect(cx + 1, ty - 1, 8, 3);
