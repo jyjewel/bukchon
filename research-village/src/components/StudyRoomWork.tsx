@@ -37,8 +37,8 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "drawer", label: "편지 서랍" },
   { id: "snacks", label: "간식 상자" },
 ];
-/** 폰의 가로 메뉴에서는 간식 상자를 오늘의 일지 바로 다음에 둔다 */
-const MOBILE_SECTIONS = [SECTIONS[0], SECTIONS[SECTIONS.length - 1], ...SECTIONS.slice(1, -1)];
+/** 메뉴(컴퓨터 왼쪽 목록·폰 가로 메뉴)에서는 간식 상자를 오늘의 일지 바로 다음에 둔다 */
+const MENU_SECTIONS = [SECTIONS[0], SECTIONS[SECTIONS.length - 1], ...SECTIONS.slice(1, -1)];
 
 /** 내 연구실(작업 화면): 글쓰기 창이 가운데에 크게, 왼쪽엔 작은 연구실 그림과 항목 목록, 오른쪽엔 마감·할 일. 집중 모드는 가운데만 남긴다. */
 export default function StudyRoomWork({
@@ -73,9 +73,8 @@ export default function StudyRoomWork({
           <Window title={labTitle(me.profile)} tone="butter">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
-            <div className="flex justify-center px-2 pt-1 max-lg:hidden"><button type="button" className="btn btn-sm" onClick={() => setRoomView("decorate")}>꾸미기</button></div>
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
-              {SECTIONS.map((s) => (
+              {MENU_SECTIONS.map((s) => (
                 <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
                   className={`card block w-[calc(100%-6px)] px-3 py-2 text-left font-display ${section === s.id ? "card-on" : "hover:bg-[#fff3c4]"}`}>
                   {s.label}
@@ -89,7 +88,7 @@ export default function StudyRoomWork({
       <div className="order-1 min-w-0 lg:order-2">
         {!focus && (
           <nav aria-label="연구실 항목 (폰)" className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:hidden">
-            {MOBILE_SECTIONS.map((s) => (
+            {MENU_SECTIONS.map((s) => (
               <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
                 className={`btn shrink-0 whitespace-nowrap ${section === s.id ? "btn-primary" : ""}`}>{s.label}</button>
             ))}
