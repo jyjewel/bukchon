@@ -2,11 +2,11 @@
 import { speakerName, speakerStyle } from "@/lib/tone";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { relativeTime, dateLabel } from "@/lib/time";
+import { relativeTime, dateLabel, timeLabel } from "@/lib/time";
 import { REACTIONS } from "@/lib/social";
 import PixelIcon from "./PixelIcon";
 
-interface Shared { log_date: string; body: string; shared_villages: string[] }
+interface Shared { log_date: string; body: string; shared_villages: string[]; updated_at: string }
 interface Reaction { log_date: string; user_id: string; emoji: string }
 interface Comment { id: string; log_date: string; author_id: string; body: string; created_at: string }
 
@@ -22,7 +22,7 @@ export default function PublicJournal({
 
   const load = useCallback(async () => {
     const sb = supabase();
-    const { data } = await sb.from("daily_logs").select("log_date, body, shared_villages").eq("user_id", ownerId).neq("body", "").order("log_date", { ascending: false }).limit(120);
+    const { data } = await sb.from("daily_logs").select("log_date, body, shared_villages, updated_at").eq("user_id", ownerId).neq("body", "").order("log_date", { ascending: false }).limit(120);
     const shared = ((data ?? []) as Shared[]).filter((l) => l.shared_villages.length > 0);
     setList(shared);
     const dates = shared.slice(0, 15).map((l) => l.log_date);
@@ -77,7 +77,7 @@ export default function PublicJournal({
             return (
               <li key={l.log_date}>
                 <details open={i === 0} className="px-box p-2" style={{ background: "#fff8e4", ["--bd" as string]: "#8a8fa3" }}>
-                  <summary className="cursor-pointer font-display text-sm">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} <span className="font-body text-xs text-ink-soft">· {l.body.replace(/\s+/g, " ").slice(0, 28)}{cs.length ? ` · 댓글 ${cs.length}` : ""}</span></summary>
+                  <summary className="cursor-pointer font-display text-sm">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} <span className="font-body text-xs text-ink-soft">· {timeLabel(l.updated_at)} 올림 · {l.body.replace(/\s+/g, " ").slice(0, 28)}{cs.length ? ` · 댓글 ${cs.length}` : ""}</span></summary>
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{l.body}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="일지 반응">
                     {REACTIONS.map((r) => {
