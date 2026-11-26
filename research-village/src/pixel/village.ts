@@ -614,9 +614,9 @@ export function bicheondangGrid(lit: boolean): Grid {
   // 처마선: 가운데는 낮고 양 끝으로 갈수록 곡선으로 들린다
   const eave = (x: number) => 30 - Math.round(5 * Math.pow(Math.abs(x - 51.5) / 52, 2.6));
   // 팔작지붕: 낮고 넓게, 처마 끝만 살짝 들린다(각진 마루선 없이 매끈하게)
-  const top = 5, bend = 19;   // 위쪽은 가파르고 bend 아래로 완만하게 퍼진다
+  const top = 5, bend = 10;   // 위쪽은 가파르고 bend 아래로 완만하게 퍼진다
   for (let y = 0; y <= 25; y++) {
-    const half = y <= bend ? 34 : Math.round(34 + ((y - bend) / (25 - bend)) * 18);
+    const half = y <= bend ? Math.round(32 + y * 0.18) : Math.round(34 + ((y - bend) / (25 - bend)) * 18);
     for (let x = Math.max(0, 52 - half); x < Math.min(LIB_W, 52 + half); x++) {
       if (top + y > eave(x)) continue;
       let c = tile;
