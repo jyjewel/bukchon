@@ -922,6 +922,25 @@ await t("도서관 모래시계: 돌리면 시간이 재져 마을 모두에게 
   assert.match((await outside[0].c.rpc("library_desks", { p_village: village })).error?.message ?? "", /not_member/);   // 남의 마을은 못 본다
   assert.match((await outside[0].c.rpc("desk_turn", { p_village: village })).error?.message ?? "", /not_member/);
   assert.equal((await m1.c.from("library_desks").select("*")).data?.length ?? 0, 0);            // 표는 직접 못 읽는다
+  assert.equal((await m1.c.from("study_clocks").select("*")).data?.length ?? 0, 0);
+});
+
+await t("공부 시간은 마을과 상관없이 사람마다 하나: 두 마을에 속한 사람의 시계는 어느 도서관에서 재든 같다", async () => {
+  const code2 = ok(await outside[0].c.rpc("create_invite", { p_village: ok(await outside[0].c.rpc("create_village", { p_name: "시계 합치기 마을" })) }));
+  const v2 = ok(await m1.c.rpc("join_village", { p_code: code2 }));                              // m1 은 두 마을에 속한다
+  const v2id = v2;
+  const before = (ok(await m2.c.rpc("library_desks", { p_village: village })).find((r) => r.user_id === m1.id)?.seconds) ?? 0;
+  assert.equal(ok(await m1.c.rpc("desk_turn", { p_village: v2id })).running, true);                // 두 번째 마을 도서관에서 켠다
+  await new Promise((r) => setTimeout(r, 1500));
+  const here = ok(await m2.c.rpc("library_desks", { p_village: village })).find((r) => r.user_id === m1.id);   // 첫 마을에서도 같은 시계가 돌고 있다
+  assert.ok(here && here.running === true && here.seconds >= before + 1);
+  const there = ok(await outside[0].c.rpc("library_desks", { p_village: v2id })).find((r) => r.user_id === m1.id);
+  assert.ok(there && there.running === true && Math.abs(there.seconds - here.seconds) <= 2);
+  assert.equal(ok(await m1.c.rpc("desk_turn", { p_village: village })).running, false);            // 첫 마을에서 멈추면 둘 다 멈춘다
+  const done = ok(await outside[0].c.rpc("library_desks", { p_village: v2id })).find((r) => r.user_id === m1.id);
+  assert.ok(done && done.running === false && done.seconds >= before + 1);
+  ok(await m1.c.rpc("leave_village", { p_village: v2id }));                                        // 뒤의 시험이 헷갈리지 않게 정리
+  ok(await outside[0].c.rpc("leave_village", { p_village: v2id }));
 });
 
 await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 목록·소개만 보이며, 새 코드를 받으면 이전 링크는 못 쓴다", async () => {
