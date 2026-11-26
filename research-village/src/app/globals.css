@@ -335,7 +335,7 @@ button:disabled, .scene-hit:disabled { cursor: default; }
 }
 .scene-vinyl::before { left: 1px; }
 .scene-vinyl::after { right: 1px; }
-.scene-vinyl-big { font-size: clamp(9px, 1cqw, 14px); line-height: 1.15; color: #333; font-weight: 700; letter-spacing: 0.5px; }
+.scene-vinyl-big { font-size: clamp(9px, 1cqw, 14px); line-height: 1.15; color: #9a9a9a; font-weight: 700; letter-spacing: 0.5px; }
 
 /* ── 연구실 옆 팻말: 이름 위, '연구실' 아래 두 줄. 나무결·못·기둥·그림자가 있는 작은 도트 팻말 ── */
 .scene-sign {
