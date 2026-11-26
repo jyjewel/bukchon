@@ -1057,16 +1057,23 @@ await t("알림: 읽은 것만 지울 수 있다", async () => {
   assert.equal(ok(await m2.c.from("notifications").select("id").eq("user_id", m1.id)).length, 0);                          // 남의 알림은 볼 수도 없다
 });
 
-await t("쪽지 보관함: 간식을 먹어도 받은 한마디는 남고, 받은 사람만 보고 지운다", async () => {
-  ok(await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "coffee", p_note: "논문 힘내요 쪽지시험" }));
-  const gid = ok(await m2.c.from("gifts").select("id, note").eq("to_user", m2.id).eq("note", "논문 힘내요 쪽지시험").limit(1))[0].id;
-  ok(await m2.c.rpc("eat_gift", { p_gift: gid }));                                                                    // 간식을 먹으면 상자에서는 사라지지만
-  assert.equal(ok(await m2.c.from("gifts").select("id").eq("id", gid)).length, 0);
-  const kept = ok(await m2.c.from("gift_notes").select("id, note, from_user").eq("to_user", m2.id).eq("note", "논문 힘내요 쪽지시험"));
-  assert.equal(kept.length, 1); assert.equal(kept[0].from_user, m1.id);                                               // 쪽지는 보관함에 남는다
-  assert.equal(ok(await m1.c.from("gift_notes").select("id").eq("note", "논문 힘내요 쪽지시험")).length, 0);        // 보낸 사람도, 다른 사람도 못 본다
-  assert.equal(ok(await m3.c.from("gift_notes").select("id").eq("note", "논문 힘내요 쪽지시험")).length, 0);
+await t("쪽지 보관함: 기본은 간식과 함께 사라지고, 보관하기를 누른 한마디만 남아 받은 사람만 보고 지운다", async () => {
+  const send = async (note) => { ok(await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "coffee", p_note: note })); return ok(await m2.c.from("gifts").select("id").eq("to_user", m2.id).eq("note", note).limit(1))[0].id; };
+  const g1 = await send("보관 안 하는 쪽지");
+  ok(await m2.c.rpc("eat_gift", { p_gift: g1 }));                                                                     // 그냥 먹으면 간식도 한마디도 사라진다
+  assert.equal(ok(await m2.c.from("gift_notes").select("id").eq("note", "보관 안 하는 쪽지")).length, 0);
+  const g2 = await send("보관할 쪽지");
+  assert.ok((await m3.c.rpc("keep_gift_note", { p_gift: g2 })).error);                                                 // 남의 선물은 보관 못 한다
+  ok(await m2.c.rpc("keep_gift_note", { p_gift: g2 })); ok(await m2.c.rpc("keep_gift_note", { p_gift: g2 }));          // 두 번 눌러도 한 통
+  ok(await m2.c.rpc("eat_gift", { p_gift: g2 }));
+  const kept = ok(await m2.c.from("gift_notes").select("id, kind, from_user").eq("to_user", m2.id).eq("note", "보관할 쪽지"));
+  assert.equal(kept.length, 1); assert.equal(kept[0].from_user, m1.id); assert.equal(kept[0].kind, "coffee");          // 간식 종류와 함께 남는다
+  assert.equal(ok(await m1.c.from("gift_notes").select("id").eq("note", "보관할 쪽지")).length, 0);                    // 보낸 사람도, 다른 사람도 못 본다
+  assert.equal(ok(await m3.c.from("gift_notes").select("id").eq("note", "보관할 쪽지")).length, 0);
   assert.ok((await m2.c.from("gift_notes").insert({ to_user: m2.id, kind: "coffee", note: "직접 넣기" })).error);       // 직접 적을 수는 없다
+  ok(await m1.c.rpc("send_gift", { p_village: village, p_target: m2.id, p_kind: "coffee", p_note: "" }));
+  const g3id = ok(await m2.c.from("gifts").select("id").eq("to_user", m2.id).eq("note", "").limit(1))[0].id;
+  assert.ok((await m2.c.rpc("keep_gift_note", { p_gift: g3id })).error);                                              // 한마디가 없으면 보관할 것도 없다
   ok(await m2.c.from("gift_notes").delete().eq("id", kept[0].id));
   assert.equal(ok(await m2.c.from("gift_notes").select("id").eq("id", kept[0].id)).length, 0);
 });
