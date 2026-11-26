@@ -7,6 +7,12 @@ export function isChristmasSeason(d = new Date()): boolean {
   return (m === 11 && day >= 25) || (m === 12 && day <= 25);
 }
 
+/** 크리스마스 이브와 당일(12/24~25, 한국 시간): 촛불과 날아다니는 부엉이는 이 이틀에만 */
+export function isChristmasEve(d = new Date()): boolean {
+  const k = new Date(d.getTime() + 9 * 3600_000);
+  return k.getUTCMonth() === 11 && (k.getUTCDate() === 24 || k.getUTCDate() === 25);
+}
+
 export const TREE_W = 70;
 export const TREE_H = 100;
 /** 트리 바닥 가운데는 (35, 98) */
