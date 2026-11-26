@@ -26,6 +26,8 @@ export default function LibraryView({
 }: { lib: Lib; goals: ReturnType<typeof useStudyGoals>; onGoalDone: () => void; villageId: string; me: Resident; residents: Resident[]; isAdmin: boolean }) {
   const [bookId, setBookId] = useState<string | null>(null);
   const [panel, setPanel] = useState<HallPanel | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { overlayRef.current?.scrollTo({ top: 0 }); }, [bookId]);   // 책을 열고 닫을 때 창 맨 위부터 보이게
   const desk = useLibraryDesk(villageId);
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(t); }, []);
@@ -166,14 +168,14 @@ export default function LibraryView({
         <div ref={schedRef} className="scroll-mt-3"><StudySchedules key="schedules" villageId={villageId} me={me} residents={residents} isAdmin={isAdmin} /></div>
       </div>
       {panel && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/40 p-3 sm:p-6" role="dialog" aria-label="도서관 기능" onClick={(e) => { if (e.target === e.currentTarget) setPanel(null); }}>
+        <div ref={overlayRef} className="fixed inset-0 z-50 overflow-y-auto bg-ink/40 p-3 sm:p-6" role="dialog" aria-label="도서관 기능" onClick={(e) => { if (e.target === e.currentTarget) setPanel(null); }}>
           <div className="mx-auto max-w-3xl space-y-3">
             <div className="flex justify-end"><button type="button" className="btn btn-sm" onClick={() => setPanel(null)}>닫기 ✕</button></div>
-            {panel ? PANELS[panel] : null}
+            {book ? <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} /> : PANELS[panel]}
           </div>
         </div>
       )}
-      {book && <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} />}
+      {book && !panel && <BookReader key={book.id} book={book} lib={lib} me={me} who={who} run={run} canRename={book.created_by === me.user_id || isAdmin} onClose={() => setBookId(null)} />}
     </div>
   );
 }
