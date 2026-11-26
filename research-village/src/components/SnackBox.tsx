@@ -25,17 +25,37 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
       .then(({ data }) => { if (alive) setRows(((data as Row[]) ?? []).filter((r) => now - new Date(r.created_at).getTime() < KEEP_MS)); });
     return () => { alive = false; };
   }, [myId, now]);
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Note[] | null>(null);   // 쪽지 보관함: 간식이 사라져도 한마디는 남는다
   useEffect(() => {
     let alive = true;
     supabase().from("gift_notes").select("id, kind, from_user, note, created_at").eq("to_user", myId).order("created_at", { ascending: false }).limit(200)
-      .then(({ data }) => { if (alive) setNotes((data as Note[]) ?? []); });
+      .then(async ({ data }) => {
+        const list = (data as Note[]) ?? [];
+        const ids = [...new Set(list.map((n) => n.from_user).filter((x): x is string => Boolean(x)))];
+        if (ids.length) {
+          const { data: ps } = await supabase().from("profiles").select("id, display_name").in("id", ids);   // 다른 마을 사람의 이름도 읽는다
+          if (alive && ps) setSenderNames(Object.fromEntries((ps as { id: string; display_name: string }[]).map((x) => [x.id, x.display_name])));
+        }
+        if (alive) setNotes(list);
+      });
     return () => { alive = false; };
   }, [myId]);
   const removeNote = async (id: string) => {
     setNotes((cur) => cur?.filter((n) => n.id !== id) ?? cur);
     await supabase().from("gift_notes").delete().eq("id", id);
   };
+  /** 쪽지는 보낸 사람별로 묶고, 마을은 따지지 않는다(받은 날짜순) */
+  const noteGroups = useMemo(() => {
+    const m = new Map<string, { key: string; name: string; notes: Note[] }>();
+    for (const n of notes ?? []) {
+      const santa = n.note.startsWith("🎅");
+      const key = santa ? "santa" : n.from_user ?? "unknown";
+      if (!m.has(key)) m.set(key, { key, name: santa ? "🎅 산타" : `${(n.from_user && (senderNames[n.from_user] ?? residents.find((r) => r.user_id === n.from_user)?.profile.display_name)) || "이웃마을 주민"}님`, notes: [] });
+      m.get(key)!.notes.push(n);
+    }
+    return [...m.values()];
+  }, [notes, senderNames, residents]);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const eat = async (r: Row) => {
     const { error } = await supabase().rpc("eat_gift", { p_gift: r.id });
@@ -79,17 +99,22 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
           {notes === null && <p className="text-sm text-ink-soft">불러오는 중…</p>}
           {notes?.length === 0 && <p className="text-sm text-ink-soft">간식과 함께 받은 한마디가 여기 모여요.</p>}
           {notes && notes.length > 0 && (
-            <ul aria-label="받은 쪽지 목록" className="space-y-1.5">
-              {notes.map((n) => (
-                <li key={n.id} className="card flex items-start gap-2 px-3 py-1.5 text-sm" style={{ background: "#fff8e4" }}>
-                  <span className="min-w-0 flex-1">
-                    <span className="block break-words">{n.note.startsWith("🎅") ? <>🎅 산타: “{n.note.slice(2).trim()}”</> : <>{n.from_user ? who(n.from_user) : "이웃마을 주민"}님: “{n.note}”</>}</span>
-                    <span className="text-xs text-ink-soft">{giftOf(n.kind)?.label ?? "선물"} · {new Date(n.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</span>
-                  </span>
-                  <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="쪽지 지우기" onClick={() => void removeNote(n.id)}>지우기</button>
-                </li>
+            <div aria-label="받은 쪽지 목록" className="space-y-2">
+              {noteGroups.map((g) => (
+                <section key={g.key} className="card space-y-1 px-3 py-2" style={{ background: "#fff8e4" }}>
+                  <h4 className="font-display text-sm">{g.name} <span className="font-body text-xs text-ink-soft">· {g.notes.length}통</span></h4>
+                  <ul className="space-y-1">
+                    {g.notes.map((n) => (
+                      <li key={n.id} className="flex items-start gap-2 text-sm">
+                        <span className="shrink-0 text-xs text-ink-soft">{new Date(n.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</span>
+                        <span className="min-w-0 flex-1 break-words">“{n.note.startsWith("🎅") ? n.note.slice(2).trim() : n.note}”</span>
+                        <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="쪽지 지우기" onClick={() => void removeNote(n.id)}>지우기</button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
