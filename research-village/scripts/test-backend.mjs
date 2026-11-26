@@ -683,6 +683,14 @@ await t("소원구슬: 주민만 쓰고, 상태는 못 바꾸고, 하루 3개까
   ok(await m1.c.from("wishes").insert({ village_id: village, body: "두 번째 소원" }));
   ok(await m1.c.from("wishes").insert({ village_id: village, body: "세 번째 소원" }));
   assert.match((await m1.c.from("wishes").insert({ village_id: village, body: "네 번째 소원" })).error.message, /too_many_wishes/);
+  assert.ok((await m1.c.from("profiles").update({ honor_badge: true }).eq("id", m1.id)).error);                   // 뱃지 권한은 스스로 못 준다
+  if (process.env.SUPABASE_SERVICE_KEY) {                                                                            // 뱃지를 받은 사람은 제한이 없다
+    const badge = createClient(url, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+    await badge.from("profiles").update({ honor_badge: true }).eq("id", m1.id);
+    ok(await m1.c.from("wishes").insert({ village_id: village, body: "네 번째 소원(뱃지)" }));
+    ok(await m1.c.from("wishes").insert({ village_id: village, body: "다섯 번째 소원(뱃지)" }));
+    await badge.from("profiles").update({ honor_badge: false }).eq("id", m1.id);
+  }
   ok(await m2.c.from("wishes").insert({ village_id: village, body: "다른 사람은 따로 센다" }));
   assert.equal((await m1.c.from("wishes").delete().eq("id", w1.id).select()).data.length, 1);          // 대기 중인 내 소원은 거둘 수 있다
   if (process.env.SUPABASE_SERVICE_KEY) {
