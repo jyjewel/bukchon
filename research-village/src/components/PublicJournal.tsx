@@ -69,7 +69,7 @@ export default function PublicJournal({
     <section aria-label={`${isOwner ? "내가" : `${name}님이`} 공개한 일지`} className="space-y-2">
       <h3 className="label">{isOwner ? "내가 공개한 일지" : "공개 일지"}</h3>
       {list.length === 0 ? (
-        <p className="px-box p-3 text-sm text-ink-soft" style={{ background: "#fdfdfb", ["--bd" as string]: "#8a8fa3" }}>
+        <p className="card p-3 text-sm text-ink-soft">
           {isOwner ? "오늘의 일지에서 ‘마을 주민에게 공개’를 누르면 여기에 보여요." : "아직 공개한 일지가 없어요."}
         </p>
       ) : (
@@ -81,7 +81,7 @@ export default function PublicJournal({
             const cs = comments.filter((c) => c.log_date === l.log_date);
             return (
               <li key={l.log_date}>
-                <div className="px-box p-2" style={{ background: "#ffffff", ["--bd" as string]: "#8a8fa3" }}>
+                <div className="card p-2" style={{ background: "#ffffff" }}>
                   <p className="font-display text-sm">{dateLabel(l.log_date)} <span className="font-body text-xs text-ink-soft">· {timeLabel(l.updated_at)} 올림{cs.length ? ` · 댓글 ${cs.length}` : ""}</span></p>
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{l.body}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="일지 반응">
