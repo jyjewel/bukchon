@@ -88,19 +88,20 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
             </ul>
             <ul aria-label="받은 간식 목록" className="space-y-1.5">
               {rows.map((r) => (
-                <li key={r.id} className="card flex items-center gap-3 px-3 py-1.5">
-                  <span className="flex w-16 shrink-0 justify-center">{icon(r.kind)}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-display">{giftOf(r.kind)?.label ?? "선물"}</span>
+                <li key={r.id} className="card flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-1.5">
+                  <span className="flex w-12 shrink-0 justify-center sm:w-16">{icon(r.kind)}</span>
+                  <span className="min-w-0 flex-1 basis-40">
+                    <span className="flex items-baseline gap-2"><span className="font-display">{giftOf(r.kind)?.label ?? "선물"}</span><span className="text-xs text-ink-soft">{relativeTime(r.created_at)}</span></span>
                     <span className="block break-words text-sm">{r.note.startsWith("🎅") ? <>🎅 산타{r.note.slice(2) ? <>: “{r.note.slice(2).trim()}”</> : ""}</> : <>{who(r.from_user)}님{r.note ? <>: “{r.note}”</> : ""}</>}</span>
                   </span>
-                  <span className="shrink-0 text-xs text-ink-soft">{relativeTime(r.created_at)}</span>
-                  {r.note.trim() !== "" && !r.note.startsWith("🎅") && (
-                    notes?.some((n) => n.gift_id === r.id)
-                      ? <span className="chip shrink-0 text-xs">보관됨</span>
-                      : <button type="button" className="btn btn-sm shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"}의 한마디 보관하기`} onClick={() => void keep(r)}>보관</button>
-                  )}
-                  <button type="button" className="btn btn-sm btn-mint shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"} 먹기`} onClick={() => void eat(r)}>먹기</button>
+                  <span className="ml-auto flex shrink-0 items-center gap-1.5 max-sm:basis-full max-sm:justify-end">
+                    {r.note.trim() !== "" && !r.note.startsWith("🎅") && (
+                      notes?.some((n) => n.gift_id === r.id)
+                        ? <span className="chip shrink-0 text-xs">보관됨</span>
+                        : <button type="button" className="btn btn-sm shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"}의 한마디 보관하기`} onClick={() => void keep(r)}>보관</button>
+                    )}
+                    <button type="button" className="btn btn-sm btn-mint shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"} 먹기`} onClick={() => void eat(r)}>먹기</button>
+                  </span>
                 </li>
               ))}
             </ul>
