@@ -119,7 +119,7 @@ const BULBS = ["#ff5a5a", "#ffd23f", "#6adf7a", "#5ab0ff"];
 /** 트리에서 가로등까지 이어진 반짝이 전구 줄. 전구가 차례로 반짝인다 */
 export function drawLightStrings(
   b: CanvasRenderingContext2D, tick: number,
-  tree: { x: number; y: number }, lamps: { x: number; y: number }[],
+  tree: { x: number; y: number }, lamps: { x: number; y: number }[], lit = true,
 ) {
   lamps.forEach((l, li) => {
     const sx = tree.x + (l.x < tree.x ? -17 : 17), sy = tree.y - (l.y < tree.y ? 48 : 16);
@@ -136,7 +136,7 @@ export function drawLightStrings(
     // 전구
     for (let i = 1; i < n; i++) {
       const [x, y] = pts[Math.round((i / n) * (pts.length - 1))];
-      const on = (Math.floor(tick / 6) + i + li) % 3 !== 0;
+      const on = lit && (Math.floor(tick / 6) + i + li) % 3 !== 0;
       const c = BULBS[(i + li) % BULBS.length];
       b.fillStyle = on ? c : "#5a5568";
       b.fillRect(x, y + 1, 2, 2);
@@ -144,7 +144,7 @@ export function drawLightStrings(
     }
     // 가로등 머리에 두른 전구
     for (let i = 0; i < 3; i++) {
-      const on = (Math.floor(tick / 6) + i + li) % 2 === 0;
+      const on = lit && (Math.floor(tick / 6) + i + li) % 2 === 0;
       b.fillStyle = on ? BULBS[(i + li + 1) % 4] : "#5a5568";
       b.fillRect(l.x - 4 + i * 4, l.y - 20 + (i % 2), 2, 2);
     }
