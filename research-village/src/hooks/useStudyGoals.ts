@@ -61,7 +61,7 @@ export function useStudyGoals(villageId: string) {
   return { goals, loaded, reload: load };
 }
 
-export interface HabitToday { id: string; title: string; village_id: string; start: string; end: string; perWeek: number; checked: string[]; need: number }
+export interface HabitToday { id: string; title: string; village_id: string; start: string; end: string; perWeek: number; checked: string[]; need: number; upcoming: boolean }
 
 /** 오늘의 체크리스트에 올라오는, 내가 참여 중인 기간형 목표들(모든 마을) */
 export function useMyHabits(userId: string, today: string) {
@@ -79,8 +79,8 @@ export function useMyHabits(userId: string, today: string) {
     const days = new Map<string, string[]>();
     for (const r of c.data as { goal_id: string; day: string }[]) days.set(r.goal_id, [...(days.get(r.goal_id) ?? []), r.day]);
     setList((g.data as { id: string; title: string; village_id: string; start_date: string; end_date: string; per_week: number }[])
-      .filter((x) => x.start_date <= today && today <= x.end_date)
-      .map((x) => ({ id: x.id, title: x.title, village_id: x.village_id, start: x.start_date, end: x.end_date, perWeek: x.per_week, checked: days.get(x.id) ?? [], need: needDays(x.start_date, x.end_date, x.per_week) })));
+      .filter((x) => today <= x.end_date)   // 아직 시작 전인 목표도 "○/○부터"로 미리 보인다
+      .map((x) => ({ id: x.id, title: x.title, village_id: x.village_id, start: x.start_date, end: x.end_date, perWeek: x.per_week, checked: days.get(x.id) ?? [], need: needDays(x.start_date, x.end_date, x.per_week), upcoming: x.start_date > today })));
   }, [userId, today]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 처음 한 번 불러온다

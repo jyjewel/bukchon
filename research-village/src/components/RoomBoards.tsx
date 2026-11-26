@@ -107,6 +107,8 @@ export default function RoomBoards({
   // ── 화이트보드 ──
   const [wb, setWb] = useState("");
   const [cm, setCm] = useState<Record<string, string>>({});
+  const [replyC, setReplyC] = useState<string | null>(null);   // 대댓글을 쓰는 중인 댓글
+  const [replyCText, setReplyCText] = useState("");
   const whiteboard = (
     <div className="space-y-3">
       {room.gifts.length > 0 && (
@@ -147,15 +149,45 @@ export default function RoomBoards({
               </div>
             )}
             <ul className="dotted mt-2 space-y-1 pt-2">
-              {cs.map((c) => (
-                <li key={c.id} className="text-sm" style={speakerStyle(c.author_id, owner.user_id, myId)}>
-                  <span className="font-display">{speakerName(c.author_id, myId, who(c.author_id))}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
-                  <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span>
-                  {(c.author_id === myId || isOwner) && (
-                    <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", c.id))}>삭제</button>
-                  )}
-                </li>
-              ))}
+              {cs.filter((c) => !c.reply_to).map((c) => {
+                const replies = cs.filter((r) => r.reply_to === c.id);
+                return (
+                  <li key={c.id} className="text-sm">
+                    <div style={speakerStyle(c.author_id, owner.user_id, myId)}>
+                      <span className="font-display">{speakerName(c.author_id, myId, who(c.author_id))}:</span> <span className="whitespace-pre-wrap break-words">{c.body}</span>{" "}
+                      <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span>
+                      <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => { setReplyC(replyC === c.id ? null : c.id); setReplyCText(""); }}>답글</button>
+                      {(c.author_id === myId || isOwner) && (
+                        <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", c.id))}>삭제</button>
+                      )}
+                    </div>
+                    {replies.length > 0 && (
+                      <ul className="ml-4 mt-1 space-y-1">
+                        {replies.map((r) => (
+                          <li key={r.id} style={speakerStyle(r.author_id, owner.user_id, myId)}>
+                            <span>↳ </span><span className="font-display">{speakerName(r.author_id, myId, who(r.author_id))}:</span> <span className="whitespace-pre-wrap break-words">{r.body}</span>{" "}
+                            <span className="text-xs text-ink-soft">{relativeTime(r.created_at)}</span>
+                            {(r.author_id === myId || isOwner) && (
+                              <button type="button" className="ml-1 text-xs text-ink-soft underline" onClick={() => void run(sb.from("whiteboard_comments").delete().eq("id", r.id))}>삭제</button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {replyC === c.id && (
+                      <form className="ml-4 mt-1 flex items-start gap-1" onSubmit={async (e: FormEvent) => {
+                        e.preventDefault();
+                        const text = replyCText.trim();
+                        if (text && (await run(sb.from("whiteboard_comments").insert({ item_id: it.id, author_id: myId, body: text, reply_to: c.id })))) { setReplyCText(""); setReplyC(null); }
+                      }}>
+                        <label className="sr-only" htmlFor={`cr-${c.id}`}>답글</label>
+                        <input id={`cr-${c.id}`} className="input" maxLength={500} autoFocus value={replyCText} onChange={(e) => setReplyCText(e.target.value)} placeholder="답글 쓰기" />
+                        <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!replyCText.trim()}>보내기</button>
+                      </form>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <form className="mt-1 flex items-start gap-1" onSubmit={async (e: FormEvent) => {
               e.preventDefault();

@@ -130,6 +130,18 @@ export function TodoPanel({ planner, userId }: { planner: Planner; userId: strin
         <ul aria-label="공동 공부" className="space-y-1">
           {habits.list.map((h) => {
             const on = h.checked.includes(today), n = h.checked.length;
+            if (h.upcoming) {
+              const [, mm, dd] = h.start.split("-").map(Number);
+              return (
+                <li key={h.id} className="card p-2 text-sm" style={{ background: "#eef6ff", opacity: 0.75 }}>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="h-5 w-5 shrink-0" aria-label={`공동 공부: ${h.title} (${mm}월 ${dd}일부터)`} disabled />
+                    <span className="min-w-0 flex-1 break-words">공동 공부: {h.title}</span>
+                    <span className="chip shrink-0 text-xs">{mm}/{dd}부터</span>
+                  </label>
+                </li>
+              );
+            }
             return (
               <li key={h.id} className="card p-2 text-sm" style={{ background: "#eef6ff" }}>
                 <label className="flex cursor-pointer items-center gap-2">

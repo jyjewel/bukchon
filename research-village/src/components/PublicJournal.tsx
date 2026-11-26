@@ -10,7 +10,7 @@ import PixelIcon from "./PixelIcon";
 
 interface Shared { log_date: string; body: string; shared_villages: string[]; updated_at: string }
 interface Reaction { log_date: string; user_id: string; emoji: string }
-interface Comment { id: string; log_date: string; author_id: string; body: string; created_at: string }
+interface Comment { id: string; log_date: string; author_id: string; body: string; reply_to: string | null; created_at: string }
 
 /** 연구실 주인이 마을 주민에게 공개한 오늘의 일지. 읽고, 반응(응원·박수 등)과 댓글을 남길 수 있다. */
 export default function PublicJournal({
@@ -21,6 +21,8 @@ export default function PublicJournal({
   const [comments, setComments] = useState<Comment[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   const load = useCallback(async () => {
     const sb = supabase();
@@ -31,7 +33,7 @@ export default function PublicJournal({
     if (dates.length) {
       const [r, c] = await Promise.all([
         sb.from("journal_reactions").select("log_date, user_id, emoji").eq("owner_id", ownerId).in("log_date", dates),
-        sb.from("journal_comments").select("id, log_date, author_id, body, created_at").eq("owner_id", ownerId).in("log_date", dates).order("created_at"),
+        sb.from("journal_comments").select("id, log_date, author_id, body, reply_to, created_at").eq("owner_id", ownerId).in("log_date", dates).order("created_at"),
       ]);
       setReactions((r.data ?? []) as Reaction[]);
       setComments((c.data ?? []) as Comment[]);
@@ -57,6 +59,12 @@ export default function PublicJournal({
     if (has) await sb.from("journal_reactions").delete().eq("owner_id", ownerId).eq("log_date", date).eq("emoji", emoji).eq("user_id", myId);
     else await sb.from("journal_reactions").insert({ owner_id: ownerId, log_date: date, emoji });
     await load();
+  };
+  const sendReply = async (date: string, parent: string) => {
+    const body = replyText.trim();
+    if (!body) return;
+    const { error } = await supabase().from("journal_comments").insert({ owner_id: ownerId, log_date: date, body, reply_to: parent });
+    if (!error) { setReplyText(""); setReplyTo(null); await load(); }
   };
   const comment = async (date: string) => {
     const body = (drafts[date] ?? "").trim();
@@ -97,12 +105,35 @@ export default function PublicJournal({
                     })}
                   </div>
                   <ul className="mt-2 space-y-1" aria-label="일지 댓글">
-                    {cs.map((c) => (
-                      <li key={c.id} className="flex items-start gap-2 text-sm" style={speakerStyle(c.author_id, ownerId, myId)}>
-                        <span className="min-w-0 flex-1 break-words"><span className="font-display">{speakerName(c.author_id, myId, names[c.author_id] ?? "이웃마을 주민")}:</span> {c.body} <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span></span>
-                        {(c.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="댓글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", c.id); await load(); }}>지우기</button>}
-                      </li>
-                    ))}
+                    {cs.filter((c) => !c.reply_to).map((c) => {
+                      const replies = cs.filter((r) => r.reply_to === c.id);
+                      return (
+                        <li key={c.id} className="text-sm">
+                          <div className="flex items-start gap-2" style={speakerStyle(c.author_id, ownerId, myId)}>
+                            <span className="min-w-0 flex-1 break-words"><span className="font-display">{speakerName(c.author_id, myId, names[c.author_id] ?? "이웃마을 주민")}:</span> {c.body} <span className="text-xs text-ink-soft">{relativeTime(c.created_at)}</span></span>
+                            <button type="button" className="text-xs text-ink-soft underline" onClick={() => { setReplyTo(replyTo === c.id ? null : c.id); setReplyText(""); }}>답글</button>
+                            {(c.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="댓글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", c.id); await load(); }}>지우기</button>}
+                          </div>
+                          {replies.length > 0 && (
+                            <ul className="ml-4 mt-1 space-y-1">
+                              {replies.map((r) => (
+                                <li key={r.id} className="flex items-start gap-2" style={speakerStyle(r.author_id, ownerId, myId)}>
+                                  <span className="min-w-0 flex-1 break-words">↳ <span className="font-display">{speakerName(r.author_id, myId, names[r.author_id] ?? "이웃마을 주민")}:</span> {r.body} <span className="text-xs text-ink-soft">{relativeTime(r.created_at)}</span></span>
+                                  {(r.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="답글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", r.id); await load(); }}>지우기</button>}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {replyTo === c.id && (
+                            <form className="ml-4 mt-1 flex items-start gap-1" onSubmit={(e) => { e.preventDefault(); void sendReply(l.log_date, c.id); }}>
+                              <label className="sr-only" htmlFor={`jr-${c.id}`}>답글</label>
+                              <input id={`jr-${c.id}`} className="input" maxLength={500} autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="답글 쓰기" />
+                              <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!replyText.trim()}>보내기</button>
+                            </form>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                   <form className="mt-1 flex items-start gap-1" onSubmit={(e) => { e.preventDefault(); void comment(l.log_date); }}>
                     <label className="sr-only" htmlFor={`jc-${l.log_date}`}>댓글 쓰기</label>

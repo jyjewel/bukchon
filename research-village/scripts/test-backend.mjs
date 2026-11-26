@@ -1028,6 +1028,35 @@ await t("포스트잇 답장: 연구실을 볼 수 있는 사람이 답하고, �
   assert.equal(ok(await m1.c.from("postits").select("id").eq("reply_to", pid)).length, 0);
 });
 
+await t("댓글 대댓글: 화이트보드·공개 일지 댓글에 한 단계로 답하고, 다른 글의 댓글이나 답글에는 못 단다", async () => {
+  const item = ok(await m1.c.from("whiteboard_items").insert({ body: "대댓글 시험 고민" }).select("id").single()).id;
+  const c1 = ok(await m2.c.from("whiteboard_comments").insert({ item_id: item, author_id: m2.id, body: "첫 댓글" }).select("id").single()).id;
+  ok(await m1.c.from("whiteboard_comments").insert({ item_id: item, author_id: m1.id, body: "대댓글이에요", reply_to: c1 }));
+  const rid = ok(await m1.c.from("whiteboard_comments").select("id").eq("reply_to", c1).limit(1))[0].id;
+  assert.ok((await m3.c.from("whiteboard_comments").insert({ item_id: item, author_id: m3.id, body: "답글에 답글", reply_to: rid })).error);   // 한 단계만
+  const item2 = ok(await m1.c.from("whiteboard_items").insert({ body: "다른 고민" }).select("id").single()).id;
+  assert.ok((await m1.c.from("whiteboard_comments").insert({ item_id: item2, author_id: m1.id, body: "엉뚱한 곳", reply_to: c1 })).error);   // 다른 글의 댓글엔 못 단다
+  assert.ok(ok(await m2.c.from("notifications").select("kind").eq("user_id", m2.id).eq("kind", "comment")).length >= 1);   // 첫 댓글을 쓴 사람에게 알림
+  ok(await m2.c.from("whiteboard_comments").delete().eq("id", c1));                                                            // 원 댓글을 지우면 답글도 같이
+  assert.equal(ok(await m1.c.from("whiteboard_comments").select("id").eq("reply_to", c1)).length, 0);
+});
+
+await t("알림: 읽은 것만 지울 수 있다", async () => {
+  const mine = ok(await m1.c.from("notifications").select("id, read_at").eq("user_id", m1.id));
+  const unread = mine.find((n) => !n.read_at);
+  if (unread) {
+    await m1.c.from("notifications").delete().eq("id", unread.id).not("read_at", "is", null);
+    assert.ok(ok(await m1.c.from("notifications").select("id").eq("id", unread.id)).length === 1);                          // 안 읽은 건 안 지워진다(클라이언트 조건)
+  }
+  const first = mine[0];
+  if (first) {
+    ok(await m1.c.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", first.id));
+    ok(await m1.c.from("notifications").delete().eq("id", first.id).not("read_at", "is", null));
+    assert.equal(ok(await m1.c.from("notifications").select("id").eq("id", first.id)).length, 0);
+  }
+  assert.equal(ok(await m2.c.from("notifications").select("id").eq("user_id", m1.id)).length, 0);                          // 남의 알림은 볼 수도 없다
+});
+
 await t("연구실 이름: 내가 정하면 같은 마을 이웃에게도 그 이름으로 읽히고, 20자를 넘기거나 남의 것은 못 바꾼다", async () => {
   ok(await m1.c.from("profiles").update({ lab_name: "고전 시가 연구소" }).eq("id", m1.id));
   assert.equal(ok(await m2.c.from("profiles").select("lab_name").eq("id", m1.id).single()).lab_name, "고전 시가 연구소");   // 이웃이 읽는다

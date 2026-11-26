@@ -489,7 +489,7 @@ const me = v.me!;
                 onThank={async (n) => {
                   const { error } = await supabase().rpc("thank_moving_cake", { p_village: n.village_id, p_target: n.actor_id });
                   return error && !errorMessage(error).includes("already_thanked") ? errorMessage(error) : null;
-                }} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} /></main>}
+                }} onReadAll={() => void notifs.markRead(notifs.list.filter((n) => !n.read_at).map((n) => n.id))} onRemove={(ids) => void notifs.removeRead(ids)} /></main>}
       {view === "settings" && <main><SettingsView profile={profile} me={me} village={village} residents={v.residents} reloadProfile={auth.reloadProfile} reloadVillage={v.reload} villages={v.villages} onReorder={v.reorderVillages} /></main>}
 
       {selectedResident && (
