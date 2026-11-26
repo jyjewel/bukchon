@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-26-wish-postit-reply", date: "11월 26일", title: "[소원] 포스트잇에 답장을 달 수 있어요", body: "" },
   { id: "2026-11-26-wish-friend-gift", date: "11월 26일", title: "[소원] 친구 연구실 책상에도 선물을 올릴 수 있어요", body: "" },
   { id: "2026-11-26-lab-name", date: "11월 26일", title: "[소원] 연구실 이름을 바꿀 수 있어요", body: "" },
   { id: "2026-11-25-friend-link", date: "11월 25일", title: "친구 링크: 링크나 QR로 친구가 되면 마을이 달라도 포탈로 서로의 연구실을 구경하고 포스트잇을 남길 수 있어요", body: "" },

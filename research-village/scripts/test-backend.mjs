@@ -967,6 +967,20 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
 
+await t("포스트잇 답장: 연구실을 볼 수 있는 사람이 답하고, 원래 쓴 사람에게 알림이 가고, 한 단계만 된다", async () => {
+  const pid = ok(await m2.c.from("postits").insert({ owner_id: m1.id, body: "논문 잘 봤어요", color: "#ffe58a" }).select("id").single()).id;
+  ok(await m1.c.from("postits").insert({ owner_id: m1.id, body: "고마워요!", color: "#ffe58a", reply_to: pid }));                   // 방 주인이 답장
+  const rn = ok(await m2.c.from("notifications").select("kind, summary, room_owner_id").eq("user_id", m2.id).eq("kind", "postit_reply"));
+  assert.ok(rn.length >= 1 && rn.some((n) => n.room_owner_id === m1.id));                                                         // 원래 쓴 사람에게 알림
+  ok(await m3.c.from("postits").insert({ owner_id: m1.id, body: "저도 궁금해요", color: "#ffe58a", reply_to: pid }));               // 다른 이웃도 답한다
+  const rid = ok(await m1.c.from("postits").select("id").eq("reply_to", pid).limit(1))[0].id;
+  assert.ok((await m1.c.from("postits").insert({ owner_id: m1.id, body: "답장에 답장", color: "#ffe58a", reply_to: rid })).error);   // 답장에는 답장 못 함
+  assert.ok((await m1.c.from("postits").insert({ owner_id: m2.id, body: "다른 방에 답장", color: "#ffe58a", reply_to: pid })).error);   // 다른 연구실의 포스트잇에는 못 함
+  assert.ok((await outside[0].c.from("postits").insert({ owner_id: m1.id, body: "남이 답장", color: "#ffe58a", reply_to: pid })).error);   // 볼 수 없는 사람은 못 함
+  ok(await m2.c.from("postits").delete().eq("id", pid));                                                                          // 원래 포스트잇을 떼면 답장도 같이 사라진다
+  assert.equal(ok(await m1.c.from("postits").select("id").eq("reply_to", pid)).length, 0);
+});
+
 await t("연구실 이름: 내가 정하면 같은 마을 이웃에게도 그 이름으로 읽히고, 20자를 넘기거나 남의 것은 못 바꾼다", async () => {
   ok(await m1.c.from("profiles").update({ lab_name: "고전 시가 연구소" }).eq("id", m1.id));
   assert.equal(ok(await m2.c.from("profiles").select("lab_name").eq("id", m1.id).single()).lab_name, "고전 시가 연구소");   // 이웃이 읽는다
