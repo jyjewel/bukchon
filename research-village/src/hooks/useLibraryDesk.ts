@@ -25,14 +25,15 @@ export function useLibraryDesk(villageId: string) {
     const id = visibleInterval(() => void load(), 20000);
     return () => stopPoll(id);
   }, [load]);
-  const turn = useCallback(async (): Promise<boolean> => {
-    const { error } = await supabase().rpc("desk_turn", { p_village: villageId });
+  /** 재생(true)/일시정지(false): 이미 그 상태면 아무것도 바꾸지 않는다 */
+  const setRunning = useCallback(async (run: boolean): Promise<boolean> => {
+    const { error } = await supabase().rpc("desk_set", { p_village: villageId, p_run: run });
     if (error) { setError(error.message); return false; }
     await load();
     return true;
   }, [villageId, load]);
   /** 화면에 보일 앉은 시간(초): 불러온 값에 그 뒤 흐른 시간을 더한다 */
   const secondsOf = (d: Desk | undefined, now = Date.now()) => (d ? d.seconds + (d.running && fetchedAt.current > 0 ? Math.max(0, Math.floor((now - fetchedAt.current) / 1000)) : 0) : 0);
-  return { desks, loaded, error, turn, reload: load, secondsOf };
+  return { desks, loaded, error, setRunning, reload: load, secondsOf };
 }
 export const clockHM = (sec: number) => { const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return `${h}:${String(m).padStart(2, "0")}`; };
