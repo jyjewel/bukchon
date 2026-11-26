@@ -112,10 +112,10 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
           {notes?.length === 0 && <p className="text-sm text-ink-soft">간식과 함께 받은 한마디가 여기 모여요.</p>}
           {notes && notes.length > 0 && (
             <div aria-label="받은 쪽지 목록" className="space-y-2">
-              {noteGroups.map((g) => (
-                <section key={g.key} className="card space-y-1 px-3 py-2" style={{ background: "#fff8e4" }}>
-                  <h4 className="font-display text-sm">{g.name} <span className="font-body text-xs text-ink-soft">· {g.notes.length}통</span></h4>
-                  <ul className="space-y-1">
+              {noteGroups.map((g, i) => (
+                <details key={g.key} open={i === 0} className="card px-3 py-2" style={{ background: "#fff8e4" }}>
+                  <summary className="cursor-pointer font-display text-sm">{g.name} <span className="font-body text-xs text-ink-soft">· {g.notes.length}통</span></summary>
+                  <ul className="mt-1 space-y-1">
                     {g.notes.map((n) => (
                       <li key={n.id} className="flex items-start gap-2 text-sm">
                         <span className="shrink-0 text-xs text-ink-soft">{new Date(n.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</span>
@@ -124,7 +124,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                       </li>
                     ))}
                   </ul>
-                </section>
+                </details>
               ))}
             </div>
           )}
