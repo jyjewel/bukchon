@@ -264,17 +264,18 @@ export function castleGrid(lit: boolean): Grid {
 }
 
 /** 오늘 눈이 오는 정도(0 = 안 옴, 1 = 조금, 2 = 보통, 3 = 펑펑). 한국 날짜로 정해서 모두에게 같다.
- *  겨울(12~2월)과 크리스마스 기간(11/25~)에만 오고, 날마다 무작위로 오는 날과 안 오는 날이 갈린다. 12/24·25는 늘 온다. */
+ *  겨울(12~2월)과 크리스마스 기간(11/25~)에만 오고, 일주일에 하루만 온다. 12/24·25는 늘 온다. */
 export function snowToday(d = new Date()): 0 | 1 | 2 | 3 {
   const k = new Date(d.getTime() + 9 * 3600_000);
   const y = k.getUTCFullYear(), m = k.getUTCMonth() + 1, day = k.getUTCDate();
   const winter = m === 12 || m <= 2 || (m === 11 && day >= 25);
   if (!winter) return 0;
   if (m === 12 && (day === 24 || day === 25)) return 3;
-  let x = Math.imul(y * 372 + m * 31 + day, 2654435761) >>> 0;
-  x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; x = (x ^ (x >>> 13)) >>> 0;
-  const r = (x % 1000) / 1000;
-  return r < 0.5 ? 0 : r < 0.72 ? 1 : r < 0.9 ? 2 : 3;
+  const h = (n: number) => { let x = Math.imul(n, 2654435761) >>> 0; x = Math.imul(x ^ (x >>> 15), 2246822519) >>> 0; return (x ^ (x >>> 13)) >>> 0; };
+  const dayNo = Math.floor(Date.UTC(y, m - 1, day) / 86_400_000), week = Math.floor(dayNo / 7);
+  if (dayNo % 7 !== h(week) % 7) return 0;                  // 일주일에 눈 오는 날은 하루뿐(어느 요일인지는 주마다 무작위)
+  const r = (h(dayNo + 7919) % 1000) / 1000;
+  return r < 0.25 ? 1 : r < 0.65 ? 2 : 3;
 }
 
 /** 바닥에 쌓인 눈의 정도(0~1). 최근 며칠 동안 온 눈을 쌓고 하루에 조금씩 녹인다.
