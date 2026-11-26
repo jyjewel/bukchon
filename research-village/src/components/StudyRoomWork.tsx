@@ -44,7 +44,7 @@ const MOBILE_SECTIONS = [SECTIONS[0], SECTIONS[SECTIONS.length - 1], ...SECTIONS
 export default function StudyRoomWork({
   me, residents, villages, tab, onTab, onProfileSaved, onVisit, villageId, initialSection,
 }: { me: Resident; residents: Resident[]; villages: VillageInfo[]; tab: BoardTab; onTab: (t: BoardTab) => void; onProfileSaved: () => Promise<void>; onVisit: (userId: string, villageId: string) => void; villageId: string; initialSection?: Section | null }) {
-  const [roomView, setRoomView] = useState<"view" | "decorate" | null>(null);
+  const [roomView, setRoomView] = useState<"decorate" | null>(null);
   const [section, setSection] = useState<Section>(initialSection ?? "journal");   // 알림을 눌러 들어오면 그 알림이 가리키는 항목을 바로 연다
   const [focus, setFocus] = useState(false);
   const [letter, setLetter] = useState(false);
@@ -64,28 +64,15 @@ export default function StudyRoomWork({
   return (
     <div className={`grid gap-5 ${focus ? "" : "lg:grid-cols-[250px_minmax(0,1fr)_360px]"}`}>
       {roomView && (
-        <Modal title={roomView === "view" ? labTitle(me.profile) : "내 연구실 꾸미기"} tone="butter" wide onClose={() => setRoomView(null)}>
-          {roomView === "view" ? (
-            <div className="space-y-3">
-              <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} onPortal={() => { setRoomView(null); setPortal(true); }} />
-              <div className="flex gap-1">
-                <button type="button" className="btn btn-primary" onClick={() => setRoomView("decorate")}>꾸미기</button>
-                <button type="button" className="btn" onClick={() => setRoomView(null)}>닫기</button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="-m-3"><LabDecorator me={me} onSaved={onProfileSaved} /></div>
-            </div>
-          )}
+        <Modal title="내 연구실 꾸미기" tone="butter" wide onClose={() => setRoomView(null)}>
+          <div className="-m-3"><LabDecorator me={me} onSaved={onProfileSaved} /></div>
         </Modal>
       )}
       {!focus && (
         <div className="order-2 space-y-4 lg:order-1">
           <Window title={labTitle(me.profile)} tone="butter">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("view")} onPortal={() => setPortal(true)} />
+                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
             <div className="flex justify-center px-2 pt-1"><button type="button" className="btn btn-sm" onClick={() => setRoomView("decorate")}>꾸미기</button></div>
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {SECTIONS.map((s) => (
