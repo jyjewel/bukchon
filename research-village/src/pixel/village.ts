@@ -614,9 +614,9 @@ export function bicheondangGrid(lit: boolean): Grid {
   // 처마선: 가운데는 낮고 양 끝으로 갈수록 곡선으로 들린다
   const eave = (x: number) => 30 - Math.round(5 * Math.pow(Math.abs(x - 51.5) / 52, 2.6));
   // 팔작지붕: 낮고 넓게, 처마 끝만 살짝 들린다(각진 마루선 없이 매끈하게)
-  const top = 5, bend = 15;   // 위쪽은 가파르고 bend 아래로 완만하게 퍼진다
-  for (let y = 0; y <= 25; y++) {
-    const half = y <= bend ? Math.round(31 + y * 0.2) : Math.round(34 + ((y - bend) / (25 - bend)) * 18);
+  const top = 8, bend = 12;   // 위쪽은 가파르고 bend 아래로 완만하게 퍼진다
+  for (let y = 0; y <= 22; y++) {
+    const half = y <= bend ? Math.round(31 + y * 0.2) : Math.round(34 + ((y - bend) / (22 - bend)) * 18);
     for (let x = Math.max(0, 52 - half); x < Math.min(LIB_W, 52 + half); x++) {
       if (top + y > eave(x)) continue;
       let c = tile;
@@ -627,7 +627,7 @@ export function bicheondangGrid(lit: boolean): Grid {
     }
   }
   for (let k = 0; k < 90; k++) { const rx = 8 + ((k * 37) % 88), ry = 10 + ((k * 53) % 20); if (get(g, rx, ry) === tile) px(g, rx, ry, k % 3 ? tileL : "#dfe5ea"); }   // 기와 위 서리
-  rect(g, 17, 3, 70, 3, tileL); rect(g, 17, 5, 70, 1, tileD);   // 용마루 한 줄
+  rect(g, 17, 6, 70, 3, tileL); rect(g, 17, 8, 70, 1, tileD);   // 용마루 한 줄
   // 처마 끝: 겹처마(부연) 한 줄과 서까래 끝
   for (let x = 0; x < LIB_W; x++) { const e = eave(x); rect(g, x, e + 1, 1, 2, tileD); px(g, x, e + 3, x % 3 === 0 ? "#d9c9a0" : "#9a8a64"); }
   // 처마 아래 그늘진 들보
