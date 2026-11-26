@@ -255,7 +255,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         // 크리스마스 달: 분수 자리에 커다란 트리가 서고, 가로등까지 전구 줄이 이어진다
         const base = { x: PLAZA.x, y: PLAZA.y + 12 };
         items.push({ y: base.y, draw: () => { shadow(base.x, base.y, 24); b.drawImage(xtree[Math.floor(tick / 8) % 4], base.x - TREE_BASE.x, base.y - TREE_BASE.y); } });
-        items.push({ y: base.y + 0.5, draw: () => drawLightStrings(b, tick, base, LAMPS) });
+        items.push({ y: base.y + 0.5, draw: () => drawLightStrings(b, tick, base, LAMPS, phase !== "day") });
       } else items.push({ y: PLAZA.y + 6, draw: () => b.drawImage(fountain[slow % 4], PLAZA.x - 19, PLAZA.y - 24) });
       items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x - 44, PLAZA.y + 18) });
       items.push({ y: PLAZA.y + 30, draw: () => b.drawImage(bench, PLAZA.x + 20, PLAZA.y + 18) });
