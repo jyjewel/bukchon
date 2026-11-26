@@ -97,10 +97,10 @@ export function groundGrid(season: Season, cover = 1): Grid {
     if (n > 0.985) c = s.grassD;
     else if (n < 0.012) c = s.grassL;
     if (season === "winter" && cover < 1) {
-      // 눈이 녹은 정도: 얼룩 없이 바닥 전체가 눈빛에서 잔디색으로 고르게 옮겨 간다(잔디 무늬는 그대로)
-      const sp = SEASONS.spring;
-      const gc = blotch > 0.9 ? sp.grassL : blotch < -1.1 ? sp.grassD : sp.grass;
-      c = mixHex(c, n > 0.985 ? sp.grassD : n < 0.012 ? sp.grassL : gc, 1 - cover);
+      // 눈이 녹은 정도: 얼룩 없이 바닥 전체가 눈빛에서 카키색 잔디로 고르게 옮겨 간다
+      const nn = hash(x, y);
+      const khaki = nn > 0.8 ? "#8a8c64" : nn < 0.15 ? "#b2b48c" : "#9c9f76";   // 눈 녹은 뒤의 톤 다운된 카키 잔디
+      c = mixHex(c, khaki, 1 - cover);
     }
     g.d[y * W + x] = c;
   }
