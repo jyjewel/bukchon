@@ -1,5 +1,6 @@
 "use client";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { letterGrid } from "@/pixel/owl";
 import { LETTER } from "@/lib/welcome";
 import PixelArt from "./PixelArt";
@@ -27,9 +28,33 @@ export default function WelcomeLetter({ onClose, first = false }: { onClose: () 
   );
 }
 
+export interface MailLetter { id: string; title: string; body: string; icon: string; created_at: string }
+
+/** 부엉이가 가져다 준 운영자 편지 한 통 */
+export function MailLetterModal({ mail, onClose, saved = false }: { mail: MailLetter; onClose: () => void; saved?: boolean }) {
+  return (
+    <Modal title={`${mail.icon} ${mail.title}`} tone="butter" onClose={onClose} wide>
+      <div className="space-y-3">
+        <p className="whitespace-pre-wrap break-words text-sm leading-7">{mail.body}</p>
+        {saved && <p className="text-xs text-ink-soft">이 편지는 ‘내 연구실 → 편지 서랍’에 넣어 둘게요. 언제든 다시 꺼내 보세요.</p>}
+        <button type="button" className="btn btn-primary" onClick={onClose}>{saved ? "서랍에 넣어 둘게요" : "닫기"}</button>
+      </div>
+    </Modal>
+  );
+}
+
 /** 연구실 서랍 화면: 보관된 편지를 눌러 다시 읽는다 */
 export function LetterDrawer({ onOpen, cards = [], onOpenCard }: { onOpen: () => void; cards?: { year: number }[]; onOpenCard?: (year: number) => void }) {
   const art = useMemo(() => letterGrid(), []);
+  // 운영자가 마을 모두에게 보낸 편지(설날 소식 등)
+  const [mails, setMails] = useState<MailLetter[]>([]);
+  const [open, setOpen] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    supabase().from("mail_letters").select("id, title, body, icon, created_at").order("created_at", { ascending: false }).limit(50).then(({ data }) => { if (alive && data) setMails(data as MailLetter[]); });
+    return () => { alive = false; };
+  }, []);
+  const mail = mails.find((m) => m.id === open) ?? null;
   return (
     <section aria-label="편지 서랍">
       <div className="space-y-3 p-3">
@@ -38,6 +63,12 @@ export function LetterDrawer({ onOpen, cards = [], onOpenCard }: { onOpen: () =>
           <PixelArt art={art} scale={3} label="편지 도트 그림" />
           <span><span className="block font-display">마을에서 온 사용법 편지</span><span className="block text-xs text-ink-soft">부엉이가 가져다 준 편지 · 눌러서 다시 읽기</span></span>
         </button>
+        {mails.map((m) => (
+          <button key={m.id} type="button" className="card flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fff3c4]" onClick={() => setOpen(m.id)}>
+            <span aria-hidden className="flex w-[66px] justify-center text-3xl">{m.icon}</span>
+            <span><span className="block font-display">{m.title}</span><span className="block text-xs text-ink-soft">부엉이가 가져다 준 편지 · {new Date(m.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })} · 눌러서 읽기</span></span>
+          </button>
+        ))}
         {cards.map((c) => (
           <button key={c.year} type="button" className="card flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#fff3c4]" onClick={() => onOpenCard?.(c.year)}>
             <span aria-hidden className="flex w-[66px] justify-center text-3xl">💌</span>
@@ -45,6 +76,7 @@ export function LetterDrawer({ onOpen, cards = [], onOpenCard }: { onOpen: () =>
           </button>
         ))}
       </div>
+      {mail && <MailLetterModal mail={mail} onClose={() => setOpen(null)} />}
     </section>
   );
 }
