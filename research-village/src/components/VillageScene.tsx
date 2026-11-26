@@ -43,7 +43,7 @@ export interface SceneProps {
   truck?: "night" | "morning" | null;
   onTruck?: () => void;
   /** 도서관 건물 모양(마을 장이 바꾼다) */
-  libraryStyle?: LibraryStyle;
+  libraryStyle?: LibraryStyle | "castle";
   /** 소원구슬을 눌렀을 때 */
   onOrb?: () => void;
   /** 마을 게시판 옆에 뜨는 안 읽은 새 글 수 */
@@ -352,7 +352,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         });
       }
       const libLit = night || residents.some((r) => r.shown === "library");
-      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${xmas}`, () => xmas ? (capped ? snowCap(castleGrid(libLit), 0.6, false) : castleGrid(libLit)) : capped ? snowCap(libraryGrid(libLit, libraryStyle), 0.4, false) : libraryGrid(libLit, libraryStyle)), LIBRARY.x - (xmas ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (xmas ? CASTLE_H : LIB_H) + 2) });
+      const castle = libraryStyle === "castle" || (xmas && libraryStyle === "classic");   // 마법의 성: 마을 장이 고르거나, 크리스마스 기간엔 기본 도서관 대신
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${castle}${capped}`, () => { const g0 = castle ? castleGrid(libLit) : libraryGrid(libLit, libraryStyle as LibraryStyle); return capped ? snowCap(g0, castle ? 0.6 : 0.4, false) : g0; }), LIBRARY.x - (castle ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (castle ? CASTLE_H : LIB_H) + 2) });
 
       if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
       if (xmas && !reduced) items.push({ y: 401, draw: () => drawOwl(b, tick, W) });
@@ -590,6 +591,8 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
   }, [clock, truck, libraryStyle, monFont]);
 
   const bySlot = new Map(residents.map((r) => [r.slot, r]));
+  const castleLib = libraryStyle === "castle" || (clock.xmas && libraryStyle === "classic");
+  const libHit = castleLib ? pct(LIBRARY.x - CASTLE_W / 2, LIBRARY.y - CASTLE_H + 4, CASTLE_W, CASTLE_H - 4) : pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4);
   return (
     <div ref={wrapRef} className="scene relative w-full" style={{ aspectRatio: `${W} / ${H}` }} role="group" aria-label={`마을 지도 — ${SEASONS[clock.season].label}, ${PHASE_LABEL[clock.phase]}`}>
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden onClick={(e) => {
@@ -601,7 +604,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
 
       <button type="button" className="scene-hit" style={pct(PLAZA.x - PLAZA.rx, PLAZA.y - PLAZA.ry, PLAZA.rx * 2, PLAZA.ry * 2)} aria-label="마을 광장 — 눌러서 열기" onClick={() => onPlace("plaza")}>
       </button>
-      <button type="button" className="scene-hit" style={pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4)} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
+      <button type="button" className="scene-hit" style={libHit} aria-label="공동 도서관 — 눌러서 열기" onClick={() => onPlace("library")}>
       </button>
 
       <button type="button" className="scene-hit" style={pct(ORB_POS.x - 10, ORB_POS.y - ORB_H, 20, ORB_H + 1)} aria-label="소원구슬 — 눌러서 소원 빌기" onClick={() => onOrb?.()} />

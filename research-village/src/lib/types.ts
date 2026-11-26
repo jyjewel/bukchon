@@ -68,7 +68,7 @@ export interface Village {
   id: string;
   name: string;
   theme: string;
-  library_style: "classic" | "bicheondang";
+  library_style: "classic" | "bicheondang" | "castle";
   gate_locked?: boolean;
 }
 

@@ -14,7 +14,8 @@ import MovingCakes from "./MovingCakes";
 import { UPDATES } from "@/lib/updates";
 import UpdateGroups from "./UpdateGroups";
 import PixelArt from "./PixelArt";
-import { libraryGrid, type LibraryStyle } from "@/pixel/village";
+import { libraryGrid } from "@/pixel/village";
+import { castleGrid } from "@/pixel/magic";
 import { detachPush } from "@/lib/push";
 import { Notice, Window } from "./ui";
 
@@ -45,7 +46,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
     setMsg(error ? { kind: "error", text: errorMessage(error) } : { kind: "ok", text: ok });
     await Promise.all([loadInvite(), reload()]);
   };
-  const libraries = useMemo(() => ({ classic: libraryGrid(true, "classic"), bicheondang: libraryGrid(true, "bicheondang") }), []);
+  const libraries = useMemo(() => ({ classic: libraryGrid(true, "classic"), bicheondang: libraryGrid(true, "bicheondang"), castle: castleGrid(true) }), []);
   const expired = invite?.expired ?? false;
   const copy = async () => {
     if (!invite) return;
@@ -72,7 +73,7 @@ function AdminPanel({ village, residents, myId, reload }: { village: Village; re
         <section className="dotted space-y-2 pt-3" aria-label="마을 건물">
           <h3 className="label">마을 건물 · 도서관 <span className="text-ink-soft">(마을 장만 바꿀 수 있어요)</span></h3>
           <div className="flex flex-wrap gap-3">
-            {([["classic", "기본 도서관"], ["bicheondang", "성균관대 비천당"]] as [LibraryStyle, string][]).map(([id, label]) => (
+            {([["classic", "기본 도서관"], ["bicheondang", "성균관대 비천당"], ["castle", "마법의 성"]] as [Village["library_style"], string][]).map(([id, label]) => (
               <button key={id} type="button" aria-pressed={village.library_style === id} disabled={busy}
                 onClick={() => void act(() => supabase().from("villages").update({ library_style: id }).eq("id", village.id), `도서관이 ‘${label}’(으)로 바뀌었어요.`)}
                 className={`card px-2 pb-2 pt-2 text-center ${village.library_style === id ? "card-on" : "hover:bg-[#fff3c4]"}`}>
