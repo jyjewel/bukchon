@@ -938,6 +938,19 @@ await t("공부 시계 재생/일시정지: 이미 그 상태면 다시 눌러�
   assert.match((await outside[0].c.rpc("desk_set", { p_village: village, p_run: true })).error?.message ?? "", /not_member/);
 });
 
+await t("대화는 마을이 달라도 두 사람 사이에 하나로 이어진다", async () => {
+  ok(await m3.c.from("research_status").update({ status: "open" }).eq("user_id", m3.id));
+  const first = ok(await m1.c.rpc("request_chat", { p_village: village, p_target: m3.id }));
+  const v2 = ok(await outside[0].c.rpc("create_village", { p_name: "대화 합치기 마을" }));
+  const code3 = ok(await outside[0].c.rpc("create_invite", { p_village: v2 }));
+  ok(await m1.c.rpc("join_village", { p_code: code3 })); ok(await m3.c.rpc("join_village", { p_code: code3 }));   // 둘이 두 번째 마을에도 산다
+  ok(await m3.c.from("research_status").update({ status: "open" }).eq("user_id", m3.id));
+  const again = ok(await m1.c.rpc("request_chat", { p_village: v2, p_target: m3.id }));
+  assert.equal(again.id, first.id);                                                                 // 다른 마을에서 신청해도 같은 대화
+  assert.ok(ok(await m1.c.from("conversations").select("id")).some((c) => c.id === first.id));       // 마을로 거르지 않고 내 대화가 모두 보인다
+  ok(await m1.c.rpc("leave_village", { p_village: v2 })); ok(await m3.c.rpc("leave_village", { p_village: v2 })); ok(await outside[0].c.rpc("leave_village", { p_village: v2 }));
+});
+
 await t("공부 시간은 마을과 상관없이 사람마다 하나: 두 마을에 속한 사람의 시계는 어느 도서관에서 재든 같다", async () => {
   const code2 = ok(await outside[0].c.rpc("create_invite", { p_village: ok(await outside[0].c.rpc("create_village", { p_name: "시계 합치기 마을" })) }));
   const v2 = ok(await m1.c.rpc("join_village", { p_code: code2 }));                              // m1 은 두 마을에 속한다

@@ -17,7 +17,12 @@ const STATUS_TEXT: Record<Conversation["status"], string> = { pending: "신청 �
 export default function ChatView({
   chat, residents, myId, selectedId, onSelect,
 }: { chat: Chat; residents: Resident[]; myId: string; selectedId: string | null; onSelect: (id: string | null) => void }) {
-  const who = (c: Conversation) => residents.find((r) => r.user_id === (c.user_a === myId ? c.user_b : c.user_a));
+  /** 대화 상대: 이 마을 주민이면 그대로, 다른 마을 사람이면 따로 읽어 둔 프로필에서 */
+  const who = (c: Conversation) => {
+    const id = c.user_a === myId ? c.user_b : c.user_a;
+    const r = residents.find((x) => x.user_id === id);
+    return r ? { name: r.profile.display_name, avatar: r.profile.avatar } : chat.partners[id] ? { name: chat.partners[id].display_name, avatar: chat.partners[id].avatar } : undefined;
+  };
   const selected = chat.convs.find((c) => c.id === selectedId) ?? null;
   const { convs } = chat;
   const live = convs.filter((c) => c.status === "pending" || c.status === "active");
@@ -27,9 +32,9 @@ export default function ChatView({
     return (
       <li key={c.id}>
         <button type="button" onClick={() => onSelect(c.id)} className={`card flex w-[calc(100%-6px)] items-center gap-2 p-2 text-left text-sm ${selectedId === c.id ? "card-on" : ""}`}>
-          {other && <CharacterIcon avatar={other.profile.avatar} size={38} />}
+          {other && <CharacterIcon avatar={other.avatar} size={38} />}
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-display">{other?.profile.display_name ?? "떠난 주민"}</span>
+            <span className="block truncate font-display">{other?.name ?? "떠난 주민"}</span>
             <span className="text-xs text-ink-soft">{c.status === "pending" && c.user_b === myId ? "대화를 신청했어요" : STATUS_TEXT[c.status]}</span>
           </span>
           {(chat.unreadOf(c) || (c.status === "pending" && c.user_b === myId)) && <span className="chip" style={{ background: "#d9547a", color: "#fff" }}>새</span>}
@@ -55,13 +60,13 @@ export default function ChatView({
   );
 }
 
-function Room({ conv, other, myId, chat }: { conv: Conversation; other?: Resident; myId: string; chat: Chat }) {
+function Room({ conv, other, myId, chat }: { conv: Conversation; other?: { name: string }; myId: string; chat: Chat }) {
   const { messages } = useMessages(conv.id, conv.status === "active" || conv.status === "ended");
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const name = other?.profile.display_name ?? "떠난 주민";
+  const name = other?.name ?? "떠난 주민";
   const incomingRequest = conv.status === "pending" && conv.user_b === myId;
   const lastId = messages[messages.length - 1]?.id;
 

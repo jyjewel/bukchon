@@ -122,7 +122,7 @@ const me = v.me!;
   }, []);
   const onIncoming = useCallback((conv: Conversation) => { if (statusRef.current !== "focus") setToast({ kind: "chat", conv }); }, []);
   const notifs = useNotifications(me.user_id, onNew);
-  const chat = useChat(me.user_id, village.id, onIncoming);
+  const chat = useChat(me.user_id, onIncoming);
   const lib = useLibrary(village.id);
   const goals = useStudyGoals(village.id);
   // 공동 목표를 다 이루면 광장에 모여 한바탕 잔치(홈 화면을 보고 있을 때만, 이룬 지 1분 반 안이면)
@@ -376,20 +376,21 @@ const me = v.me!;
             <Window key="chat" title="대화" tone="rose" as="aside" controls={foldChat}>
               <ul className="space-y-1 p-2 text-sm">
                 {chat.pendingIncoming.map((c) => {
-                  const other = byId.get(c.user_a);
+                  const otherName = byId.get(c.user_a)?.profile.display_name ?? chat.partners[c.user_a]?.display_name;
                   return (
                     <li key={c.id} className="card flex items-center gap-2 p-2">
-                      <span className="flex-1 truncate">{other?.profile.display_name ?? "누군가"}님이 대화를 신청했어요</span>
+                      <span className="flex-1 truncate">{otherName ?? "누군가"}님이 대화를 신청했어요</span>
                       <button type="button" className="btn btn-sm btn-primary" onClick={() => openChat(c.id)}>보기</button>
                     </li>
                   );
                 })}
                 {chat.convs.filter((c) => c.status === "active").slice(0, 4).map((c) => {
-                  const other = byId.get(c.user_a === me.user_id ? c.user_b : c.user_a);
+                  const otherId = c.user_a === me.user_id ? c.user_b : c.user_a;
+                  const otherName = byId.get(otherId)?.profile.display_name ?? chat.partners[otherId]?.display_name;
                   return (
                     <li key={c.id}>
                       <button type="button" className="flex w-full items-center gap-2 p-1.5 text-left hover:bg-[#fff3c4]" onClick={() => openChat(c.id)}>
-                        <span className="flex-1 truncate">{other?.profile.display_name ?? "떠난 주민"}님과 대화 중</span>
+                        <span className="flex-1 truncate">{otherName ?? "떠난 주민"}님과 대화 중</span>
                         {chat.unreadOf(c) && <span className="chip" style={{ background: "#d9547a", color: "#fff" }}>새</span>}
                       </button>
                     </li>

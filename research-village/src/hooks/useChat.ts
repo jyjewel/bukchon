@@ -2,11 +2,14 @@
 import { stopPoll, visibleInterval } from "@/lib/poll";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import type { ChatMessage, Conversation } from "@/lib/types";
+import type { Avatar, ChatMessage, Conversation } from "@/lib/types";
 
-/** 1:1 대화. 신청·수락 상태와 읽지 않은 메시지를 실시간으로 따라간다. */
-export function useChat(userId: string, villageId: string, onIncoming: (c: Conversation) => void) {
+export interface ChatPartner { display_name: string; avatar: Avatar }
+
+/** 1:1 대화. 마을과 상관없이 내가 나눈 모든 대화를 모아 보고, 신청·수락 상태와 읽지 않은 메시지를 실시간으로 따라간다. */
+export function useChat(userId: string, onIncoming: (c: Conversation) => void) {
   const [convs, setConvs] = useState<Conversation[]>([]);
+  const [partners, setPartners] = useState<Record<string, ChatPartner>>({});
   const [loaded, setLoaded] = useState(false);
   const seen = useRef(new Map<string, string | null>());
   const first = useRef(true);
@@ -16,7 +19,7 @@ export function useChat(userId: string, villageId: string, onIncoming: (c: Conve
   }, [onIncoming]);
 
   const load = useCallback(async () => {
-    const { data } = await supabase().from("conversations").select("*").eq("village_id", villageId).order("updated_at", { ascending: false });
+    const { data } = await supabase().from("conversations").select("*").order("updated_at", { ascending: false });
     if (!data) return;
     const list = data as Conversation[];
     // 새로 도착한 메시지를 감지해 알린다 (처음 불러올 때는 제외)
@@ -28,7 +31,13 @@ export function useChat(userId: string, villageId: string, onIncoming: (c: Conve
     first.current = false;
     setConvs(list);
     setLoaded(true);
-  }, [villageId, userId]);
+    // 다른 마을 사람과의 대화도 이름·모습이 보이게, 대화 상대의 프로필을 따로 읽는다(함께 사는 마을이 있으면 읽힌다)
+    const ids = [...new Set(list.map((c) => (c.user_a === userId ? c.user_b : c.user_a)))];
+    if (ids.length) {
+      const { data: ps } = await supabase().from("profiles").select("id, display_name, avatar").in("id", ids);
+      if (ps) setPartners(Object.fromEntries((ps as { id: string; display_name: string; avatar: Avatar }[]).map((p) => [p.id, { display_name: p.display_name, avatar: p.avatar }])));
+    }
+  }, [userId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 처음 한 번 불러온다
@@ -54,7 +63,7 @@ export function useChat(userId: string, villageId: string, onIncoming: (c: Conve
   );
   const pendingIncoming = useMemo(() => convs.filter((c) => c.status === "pending" && c.user_b === userId), [convs, userId]);
   const badge = pendingIncoming.length + convs.filter(unreadOf).length;
-  return { convs, loaded, reload: load, unreadOf, pendingIncoming, badge };
+  return { convs, partners, loaded, reload: load, unreadOf, pendingIncoming, badge };
 }
 
 /** 한 대화방의 메시지 (실시간) */
