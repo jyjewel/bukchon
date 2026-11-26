@@ -74,7 +74,7 @@ export default function PublicJournal({
         </p>
       ) : (
         <>
-        <JournalCalendar today={dateKey()} selected={cur.log_date} logs={list} onPick={setSel} note="색이 칠해진 날은 공개한 일지가 있는 날이에요." />
+        <JournalCalendar today={dateKey()} selected={cur.log_date} logs={list} onPick={setSel} />
         <ul className="space-y-2">
           {shown.map((l) => {
             const rs = reactions.filter((r) => r.log_date === l.log_date);

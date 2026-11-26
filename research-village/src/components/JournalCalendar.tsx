@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 /** 달력: 일지를 쓴 날은 색이 칠해지고, 날짜를 누르면 그날 일지가 열린다 */
-export default function JournalCalendar({ today, selected, logs, onPick, note = "색이 칠해진 날은 일지를 쓴 날이에요." }: { today: string; selected: string; logs: { log_date: string }[]; onPick: (d: string) => void; note?: string }) {
+export default function JournalCalendar({ today, selected, logs, onPick }: { today: string; selected: string; logs: { log_date: string }[]; onPick: (d: string) => void }) {
   const [month, setMonth] = useState(selected.slice(0, 7));
   const [y, m] = month.split("-").map(Number);
   const byDate = new Map(logs.map((l) => [l.log_date, l]));
@@ -31,7 +31,7 @@ export default function JournalCalendar({ today, selected, logs, onPick, note = 
           );
         })}
       </div>
-      <p className="mt-1 text-xs text-ink-soft">{note}</p>
+      
     </div>
   );
 }
