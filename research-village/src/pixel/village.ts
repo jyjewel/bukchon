@@ -67,6 +67,11 @@ export const SEASONS: Record<Season, SeasonPalette> = {
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 const STONE = "#d8d0c2", STONE_D = "#b4a999", STONE_L = "#efe9dc";
 
+function mixHex(a: string, b: string, t: number): string {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+
 // ───────────────────────── 바닥 ─────────────────────────
 function stampLine(mask: Uint8Array, x1: number, y1: number, x2: number, y2: number, r: number) {
   const n = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
@@ -92,11 +97,10 @@ export function groundGrid(season: Season, cover = 1): Grid {
     if (n > 0.985) c = s.grassD;
     else if (n < 0.012) c = s.grassL;
     if (season === "winter" && cover < 1) {
-      // 눈이 녹은 곳: 큰 얼룩 모양으로 풀빛 맨땅이 드러나고, 눈 가장자리는 질척한 색
-      const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.14;
-      const limit = 0.12 + cover * 0.88;
-      if (pat > limit) c = hash(x, y) > 0.8 ? "#8a8c64" : hash(x, y) < 0.15 ? "#b2b48c" : "#9c9f76";
-      else if (pat > limit - 0.05) c = "#cdd9d6";
+      // 눈이 녹은 정도: 얼룩 없이 바닥 전체가 눈빛에서 카키색 잔디로 고르게 옮겨 간다
+      const nn = hash(x, y);
+      const khaki = nn > 0.8 ? "#8a8c64" : nn < 0.15 ? "#b2b48c" : "#9c9f76";   // 눈 녹은 뒤의 톤 다운된 카키 잔디
+      c = mixHex(c, khaki, 1 - cover);
     }
     g.d[y * W + x] = c;
   }
