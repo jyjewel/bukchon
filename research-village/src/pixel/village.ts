@@ -615,10 +615,11 @@ export function bicheondangGrid(lit: boolean): Grid {
   const eave = (x: number) => 30 - Math.round(5 * Math.pow(Math.abs(x - 51.5) / 52, 2.6));
   // 팔작지붕: 낮고 넓게, 처마 끝만 살짝 들린다(각진 마루선 없이 매끈하게)
   const top = 8, bend = 12;   // 위쪽은 가파르고 bend 아래로 완만하게 퍼진다
-  for (let y = 0; y <= 22; y++) {
-    const half = y <= bend ? Math.round(31 + y * 0.2) : Math.round(34 + ((y - bend) / (22 - bend)) * 18);
+  for (let y = -3; y <= 22; y++) {
+    const half = y <= bend ? Math.round(31 + Math.max(y, 0) * 0.2) : Math.round(34 + ((y - bend) / (22 - bend)) * 18);
     for (let x = Math.max(0, 52 - half); x < Math.min(LIB_W, 52 + half); x++) {
       if (top + y > eave(x)) continue;
+      if (top + y < top - Math.round(3 * Math.pow(Math.abs(x - 51.5) / 34, 2.2))) continue;   // 맨 위도 처마처럼 완만한 곡선
       let c = tile;
       if (y === bend + 1) c = tileL;
       else if (y % 4 === 3) c = tileD;
