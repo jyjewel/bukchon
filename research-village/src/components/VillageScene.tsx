@@ -124,10 +124,10 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
     const wintry = vSeason === "winter";
     const capped = wintry && cover >= 0.4;     // 지붕에 눈이 쌓일 만큼 쌓였을 때만
     const bare = wintry && cover < 0.4;       // 눈이 많이 녹은 날의 나무 잎
-    const BARE: [string, string, string][] = [["#6f8f74", "#8fae92", "#527358"], ["#7a9468", "#9cb585", "#5b7550"], ["#6a8a7e", "#8aab9d", "#4f6d62"]];
+    const AUT = SEASONS.autumn;               // 눈이 다 녹으면 나무·덤불도 가을 단풍으로 돌아온다
     const ground = bake(groundGrid(vSeason, wintry ? cover : 1));
-    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(bare ? treeGrid(BARE[(v + i) % 3], v + i, "summer") : treeGrid(SEASONS[vSeason].leaves[(v + i) % pal.leaves.length], v + i, vSeason)) }));
-    const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
+    const trees = TREES.map(([x, y, v], i) => ({ x, y, c: bake(bare ? treeGrid(AUT.leaves[(v + i) % AUT.leaves.length], v + i, "autumn") : treeGrid(SEASONS[vSeason].leaves[(v + i) % pal.leaves.length], v + i, vSeason)) }));
+    const bushes = BUSHES.map(([x, y], i) => ({ x, y, c: bake(bare ? bushGrid(AUT.bush, i, AUT.flowers[i % AUT.flowers.length]) : bushGrid(pal.bush, i, pal.flowers[i % pal.flowers.length])) }));
     const fountain = [0, 1, 2, 3].map((f) => bake(fountainGrid(f)));
     const candleImg = bake(candleGrid());
     const xtree = xmas ? [0, 1, 2, 3].map((f) => bake(christmasTreeGrid(f))) : [];
