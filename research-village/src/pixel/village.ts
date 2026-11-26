@@ -67,6 +67,11 @@ export const SEASONS: Record<Season, SeasonPalette> = {
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 const STONE = "#d8d0c2", STONE_D = "#b4a999", STONE_L = "#efe9dc";
 
+function mixHex(a: string, b: string, t: number): string {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+
 // ───────────────────────── 바닥 ─────────────────────────
 function stampLine(mask: Uint8Array, x1: number, y1: number, x2: number, y2: number, r: number) {
   const n = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
@@ -89,17 +94,17 @@ export function groundGrid(season: Season, cover = 1): Grid {
     const blotch = Math.sin(x * 0.045 + Math.sin(y * 0.05) * 2) + Math.cos(y * 0.06 + Math.sin(x * 0.03) * 2.5);
     let c = blotch > 0.9 ? s.grassL : blotch < -1.1 ? s.grassD : s.grass;
     const n = hash(x, y);
-    if (season !== "winter") { if (n > 0.985) c = s.grassD; else if (n < 0.012) c = s.grassL; }   // 겨울엔 잔 무늬를 빼서 바닥을 차분하게
+    if (n > 0.985) c = s.grassD;
+    else if (n < 0.012) c = s.grassL;
     if (season === "winter" && cover < 1) {
-      // 눈이 녹은 곳: 큰 얼룩 모양으로 풀빛 맨땅이 드러나고, 눈 가장자리는 질척한 색
-      const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.03;
-      const limit = 0.12 + cover * 0.88;
-      if (pat > limit) c = "#a3a67e";
-      else if (pat > limit - 0.05) c = "#cdd9d6";
+      // 눈이 녹은 정도: 얼룩 없이 바닥 전체가 눈빛에서 잔디색으로 고르게 옮겨 간다(잔디 무늬는 그대로)
+      const sp = SEASONS.spring;
+      const gc = blotch > 0.9 ? sp.grassL : blotch < -1.1 ? sp.grassD : sp.grass;
+      c = mixHex(c, n > 0.985 ? sp.grassD : n < 0.012 ? sp.grassL : gc, 1 - cover);
     }
     g.d[y * W + x] = c;
   }
-  for (let i = 0; i < (season === "winter" ? 0 : 150); i++) {
+  for (let i = 0; i < 150; i++) {
     const x = Math.floor(r() * (W - 4)), y = Math.floor(r() * (H - 4)) + 2;
     px(g, x, y, s.grassD); px(g, x + 1, y - 1, s.grassD); px(g, x + 2, y, s.grassD); px(g, x + 1, y, s.grassL);
   }
@@ -152,7 +157,7 @@ export function groundGrid(season: Season, cover = 1): Grid {
   disc(g, POND.x - 12, POND.y + 6, 2.500, 1.300, "#62b866");
 
   // 꽃
-  for (let i = 0; i < (season === "winter" ? 0 : 70); i++) {
+  for (let i = 0; i < 70; i++) {
     const x = Math.floor(r() * (W - 6)) + 3, y = Math.floor(r() * (H - 6)) + 3;
     if (path[y * W + x] || g.d[y * W + x]?.startsWith("#e") && season !== "winter" && g.d[y * W + x] !== s.grass) continue;
     const base = g.d[y * W + x];
