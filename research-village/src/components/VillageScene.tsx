@@ -652,7 +652,6 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         return (
           <span key={`vinyl-${h.slot}`} className="scene-vinyl" aria-hidden style={{ left: `${(pos.x / W) * 100}%`, top: `${((pos.y - 24) / H) * 100}%` }}>
             <span className="scene-vinyl-big">임대문의</span>
-            <span className="scene-vinyl-sub">빈집</span>
           </span>
         );
       })}
