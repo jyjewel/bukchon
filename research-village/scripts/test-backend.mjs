@@ -1071,6 +1071,19 @@ await t("쪽지 보관함: 간식을 먹어도 받은 한마디는 남고, 받�
   assert.equal(ok(await m2.c.from("gift_notes").select("id").eq("id", kept[0].id)).length, 0);
 });
 
+await t("편지 서랍: 운영자 편지는 읽기만 되고, 산타 쪽지는 쪽지 보관함에 들어가지 않는다", async () => {
+  assert.ok((await m1.c.from("mail_letters").insert({ title: "직접 쓴 편지", body: "내용" })).error);                 // 운영자만 올린다
+  if (process.env.SUPABASE_SERVICE_KEY) {
+    const sv = createClient(url, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+    ok(await sv.from("mail_letters").insert({ title: "설날 설빔 소식", body: "설날을 맞아 설빔 소품을 풀었어요.", icon: "🎎" }));
+    const seen = ok(await m2.c.from("mail_letters").select("title, icon").eq("title", "설날 설빔 소식"));
+    assert.equal(seen.length, 1);                                                                                     // 모든 주민이 읽는다
+    ok(await sv.from("mail_letters").delete().eq("title", "설날 설빔 소식"));
+    ok(await sv.from("gifts").insert({ from_user: m2.id, to_user: m2.id, kind: "coffee", note: "🎅 산타가 두고 갔어요" }));
+    assert.equal(ok(await m2.c.from("gift_notes").select("id").like("note", "🎅%")).length, 0);                        // 산타 쪽지는 보관하지 않는다
+  }
+});
+
 await t("연구실 이름: 내가 정하면 같은 마을 이웃에게도 그 이름으로 읽히고, 20자를 넘기거나 남의 것은 못 바꾼다", async () => {
   ok(await m1.c.from("profiles").update({ lab_name: "고전 시가 연구소" }).eq("id", m1.id));
   assert.equal(ok(await m2.c.from("profiles").select("lab_name").eq("id", m1.id).single()).lab_name, "고전 시가 연구소");   // 이웃이 읽는다

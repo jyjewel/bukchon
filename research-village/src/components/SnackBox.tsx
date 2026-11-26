@@ -31,7 +31,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
     let alive = true;
     supabase().from("gift_notes").select("id, kind, from_user, note, created_at").eq("to_user", myId).order("created_at", { ascending: false }).limit(200)
       .then(async ({ data }) => {
-        const list = (data as Note[]) ?? [];
+        const list = ((data as Note[]) ?? []).filter((n) => !n.note.startsWith("🎅"));   // 산타 쪽지는 편지 서랍의 산타 카드로
         const ids = [...new Set(list.map((n) => n.from_user).filter((x): x is string => Boolean(x)))];
         if (ids.length) {
           const { data: ps } = await supabase().from("profiles").select("id, display_name").in("id", ids);   // 다른 마을 사람의 이름도 읽는다
@@ -49,9 +49,8 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
   const noteGroups = useMemo(() => {
     const m = new Map<string, { key: string; name: string; notes: Note[] }>();
     for (const n of notes ?? []) {
-      const santa = n.note.startsWith("🎅");
-      const key = santa ? "santa" : n.from_user ?? "unknown";
-      if (!m.has(key)) m.set(key, { key, name: santa ? "🎅 산타" : `${(n.from_user && (senderNames[n.from_user] ?? residents.find((r) => r.user_id === n.from_user)?.profile.display_name)) || "이웃마을 주민"}님`, notes: [] });
+      const key = n.from_user ?? "unknown";
+      if (!m.has(key)) m.set(key, { key, name: `${(n.from_user && (senderNames[n.from_user] ?? residents.find((r) => r.user_id === n.from_user)?.profile.display_name)) || "이웃마을 주민"}님`, notes: [] });
       m.get(key)!.notes.push(n);
     }
     return [...m.values()];
@@ -107,7 +106,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                     {g.notes.map((n) => (
                       <li key={n.id} className="flex items-start gap-2 text-sm">
                         <span className="shrink-0 text-xs text-ink-soft">{new Date(n.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</span>
-                        <span className="min-w-0 flex-1 break-words">“{n.note.startsWith("🎅") ? n.note.slice(2).trim() : n.note}”</span>
+                        <span className="min-w-0 flex-1 break-words">“{n.note}”</span>
                         <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="쪽지 지우기" onClick={() => void removeNote(n.id)}>지우기</button>
                       </li>
                     ))}
