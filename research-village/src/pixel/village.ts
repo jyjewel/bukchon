@@ -647,11 +647,11 @@ function bicheondangBody(lit: boolean): Grid {
   rect(g, 26, 82, 52, 2, "#aeb2bb");
   return g;
 }
-export const BICHEON_W = 128;
-export const BICHEON_H = 89;
-/** 지붕을 120%로 키운 비천당: 몸통은 그대로, 지붕만 크게 */
+export const BICHEON_W = 120;
+export const BICHEON_H = 87;
+/** 지붕을 110%로 키운 비천당: 몸통은 그대로, 지붕만 크게 */
 export function bicheondangGrid(lit: boolean): Grid {
-  const OX = 12, OY = 5, S = 1.2;
+  const OX = 8, OY = 3, S = 1.1;
   const g = grid(BICHEON_W, BICHEON_H);
   stamp(g, bicheondangBody(lit), OX, OY);
   const tile = "#98a0a8", tileD = "#737b85", tileL = "#c3cad0";
