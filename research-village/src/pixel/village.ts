@@ -1,6 +1,6 @@
 import type { Season } from "@/lib/time";
 import type { HouseStyle, HouseType, ResearchState } from "@/lib/types";
-import { INK, disc, fade, fromRows, grid, hash, outline, px, rect, rng, shade, type Grid } from "./core";
+import { INK, disc, fade, fromRows, get, grid, hash, outline, px, rect, rng, shade, type Grid } from "./core";
 
 /** 마을 지도의 논리 해상도 (도트 단위) */
 export const W = 432;
@@ -610,7 +610,7 @@ export function bubbleGrid(state: ResearchState): Grid {
 /** 성균관대 비천당: 회청색 기와의 팔작지붕(처마 끝이 곡선으로 들림), 단청 두른 공포, 붉은 기둥, 띠살 창호, 월대와 계단이 있는 한옥 (도서관 자리에 서는 건물) */
 export function bicheondangGrid(lit: boolean): Grid {
   const g = grid(LIB_W, LIB_H);
-  const tile = "#6a7186", tileD = "#4d5468", tileL = "#8a92a8", white = "#f0ead8", paper = lit ? "#ffe07a" : "#f4ecd6", paperD = lit ? "#d9a53f" : "#bfae88";
+  const tile = "#98a0a8", tileD = "#737b85", tileL = "#c3cad0", white = "#f0ead8", paper = lit ? "#ffe07a" : "#33c6b1", paperD = lit ? "#d9a53f" : "#e6fbf5";
   // 처마선: 가운데는 낮고 양 끝으로 갈수록 곡선으로 들린다
   const eave = (x: number) => 30 - Math.round(5 * Math.pow(Math.abs(x - 51.5) / 52, 2.6));
   // 팔작지붕: 위가 좁고 아래로 휘어 퍼진다
@@ -624,13 +624,10 @@ export function bicheondangGrid(lit: boolean): Grid {
       px(g, x, 4 + y, c);
     }
   }
+  for (let k = 0; k < 90; k++) { const rx = 8 + ((k * 37) % 88), ry = 6 + ((k * 53) % 24); if (get(g, rx, ry) === tile) px(g, rx, ry, k % 3 ? tileL : "#dfe5ea"); }   // 기와 위 서리
   // 추녀마루: 지붕 꼭대기에서 모서리로 내려오는 두 줄
   for (let k = 0; k <= 26; k++) { const x = 38 - Math.round(k * 1.45), y = 5 + k; if (y <= eave(x)) { px(g, x, y, tileL); px(g, x + 1, y, tileL); } const x2 = 66 + Math.round(k * 1.45); if (y <= eave(x2)) { px(g, x2, y, tileL); px(g, x2 - 1, y, tileL); } }
   rect(g, 37, 3, 30, 2, tileL); rect(g, 35, 2, 4, 3, tileD); rect(g, 65, 2, 4, 3, tileD); px(g, 35, 1, tileD); px(g, 68, 1, tileD); px(g, 34, 2, tileD); px(g, 69, 2, tileD);   // 용마루와 끝 장식
-  // 합각(작은 박공 면): 흰 벽에 갈색 무늬
-  for (let y = 7; y <= 16; y++) { const half = Math.round(2 + (y - 7) * 1.15); rect(g, 52 - half, y, half * 2, 1, white); }
-  for (let y = 9; y <= 15; y += 3) rect(g, 52 - Math.round(1 + (y - 7) * 0.9), y, Math.round(2 + (y - 7) * 1.8), 1, "#cdbf9a");
-  disc(g, 51.5, 12.5, 2, 2, "#8a3a2a"); px(g, 51, 12, "#e0a45c"); px(g, 52, 13, "#e0a45c");
   // 처마 끝: 겹처마(부연) 한 줄과 서까래 끝
   for (let x = 0; x < LIB_W; x++) { const e = eave(x); rect(g, x, e + 1, 1, 2, tileD); px(g, x, e + 3, x % 3 === 0 ? "#d9c9a0" : "#9a8a64"); }
   // 단청 두른 공포 층
@@ -645,15 +642,15 @@ export function bicheondangGrid(lit: boolean): Grid {
   const cols = [6, 24, 41, 59, 76, 94];
   for (let i = 0; i < cols.length - 1; i++) {
     const x0 = cols[i] + 4, x1 = cols[i + 1];
-    if (i === 2) {
+    if (i === 2 && false) {
       rect(g, x0, 43, x1 - x0, 26, lit ? "#5a3a2a" : "#2a2433");
       if (lit) { rect(g, x0 + 2, 45, x1 - x0 - 4, 22, "#ffd98a"); rect(g, x0 + 2, 45, x1 - x0 - 4, 3, "#fff0c4"); }
       rect(g, x0 + Math.floor((x1 - x0) / 2) - 1, 43, 1, 26, "#6b3a2a");
     } else {
       rect(g, x0, 43, x1 - x0, 26, paper);
       for (let x = x0 + 2; x < x1; x += 2) rect(g, x, 43, 1, 19, paperD);        // 가는 세로살
-      rect(g, x0, 43, x1 - x0, 1, "#7a4a30"); rect(g, x0, 48, x1 - x0, 1, "#7a4a30"); rect(g, x0, 60, x1 - x0, 1, "#7a4a30");   // 띠살: 위쪽 가로살 두 줄과 중간대
-      rect(g, x0, 62, x1 - x0, 7, "#8a5a3a"); rect(g, x0 + 1, 63, x1 - x0 - 2, 5, "#a8713f");                                  // 아래는 나무 판
+      rect(g, x0, 43, x1 - x0, 1, "#a8402a"); rect(g, x0, 48, x1 - x0, 1, "#a8402a"); rect(g, x0, 60, x1 - x0, 1, "#a8402a");   // 띠살: 위쪽 가로살 두 줄과 중간대
+      rect(g, x0, 62, x1 - x0, 7, "#9a3a28"); rect(g, x0 + 1, 63, x1 - x0 - 2, 5, "#b5472f");                                  // 아래는 나무 판
       px(g, x0 + Math.floor((x1 - x0) / 2), 65, "#d9b070");
     }
   }
