@@ -18,7 +18,7 @@ import { ORB_H, ORB_POS, ORB_W, newMarkGrid, orbPedestalGrid, orbSphereGrid } fr
 import { RACCOON_POS, TRUCK_AWNING_Y, TRUCK_H, TRUCK_POS, TRUCK_REST_SPOTS, TRUCK_W, TRUCK_WINDOW, ladleGrid, raccoonGrid, truckGrid } from "@/pixel/truck";
 import { AV_CX, AV_H, avatarGrid } from "@/pixel/avatar";
 import {
-  BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_META, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
+  BICHEON_H, BICHEON_W, BOARD, BUSHES, DESK_POS, H, HOUSE_H, HOUSE_META, HOUSE_POS, LAMPS, LIBRARY, LIBRARY_SPOTS, LIB_H, LIB_W, PLAZA, POND, REST_SPOTS, SEASONS, TREES, TREE_H, W,
   benchGrid, boardGrid, bubbleGrid, bushGrid, chairGrid, deskGrid, fountainGrid, groundGrid, houseGrid, houseTypeOf, lampGrid, libraryGrid, treeGrid, type LibraryStyle,
 } from "@/pixel/village";
 
@@ -352,8 +352,9 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
         });
       }
       const libLit = night || residents.some((r) => r.shown === "library");
+      const bich = libraryStyle === "bicheondang";
       const castle = libraryStyle === "castle" || (xmas && libraryStyle === "classic");   // 마법의 성: 마을 장이 고르거나, 크리스마스 기간엔 기본 도서관 대신
-      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${castle}${capped}`, () => { const g0 = castle ? castleGrid(libLit) : libraryGrid(libLit, libraryStyle as LibraryStyle); return capped ? snowCap(g0, castle ? 0.6 : 0.4, false) : g0; }), LIBRARY.x - (castle ? CASTLE_W : LIB_W) / 2, LIBRARY.y - (castle ? CASTLE_H : LIB_H) + 2) });
+      items.push({ y: LIBRARY.y, draw: () => b.drawImage(sp(`lib${libLit}${libraryStyle}${castle}${capped}`, () => { const g0 = castle ? castleGrid(libLit) : libraryGrid(libLit, libraryStyle as LibraryStyle); return capped ? snowCap(g0, castle ? 0.6 : 0.4, false) : g0; }), LIBRARY.x - (castle ? CASTLE_W : bich ? BICHEON_W : LIB_W) / 2, LIBRARY.y - (castle ? CASTLE_H : bich ? BICHEON_H : LIB_H) + 2) });
 
       if (xmas) for (const c of CANDLES) items.push({ y: 400, draw: () => drawCandle(b, candleImg, c, tick) });
       if (xmas && !reduced) items.push({ y: 401, draw: () => drawOwl(b, tick, W) });
@@ -592,7 +593,7 @@ export default function VillageScene({ houses, residents, myId, onCharacter, onH
 
   const bySlot = new Map(residents.map((r) => [r.slot, r]));
   const castleLib = libraryStyle === "castle" || (clock.xmas && libraryStyle === "classic");
-  const libHit = castleLib ? pct(LIBRARY.x - CASTLE_W / 2, LIBRARY.y - CASTLE_H + 4, CASTLE_W, CASTLE_H - 4) : pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4);
+  const libHit = castleLib ? pct(LIBRARY.x - CASTLE_W / 2, LIBRARY.y - CASTLE_H + 4, CASTLE_W, CASTLE_H - 4) : (libraryStyle === "bicheondang" ? pct(LIBRARY.x - BICHEON_W / 2, LIBRARY.y - BICHEON_H + 4, BICHEON_W, BICHEON_H - 4) : pct(LIBRARY.x - LIB_W / 2, LIBRARY.y - LIB_H + 4, LIB_W, LIB_H - 4));
   return (
     <div ref={wrapRef} className="scene relative w-full" style={{ aspectRatio: `${W} / ${H}` }} role="group" aria-label={`마을 지도 — ${SEASONS[clock.season].label}, ${PHASE_LABEL[clock.phase]}`}>
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden onClick={(e) => {

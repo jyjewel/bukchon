@@ -1,6 +1,6 @@
 import type { Season } from "@/lib/time";
 import type { HouseStyle, HouseType, ResearchState } from "@/lib/types";
-import { INK, disc, fade, fromRows, grid, hash, outline, px, rect, rng, shade, type Grid } from "./core";
+import { INK, disc, fade, fromRows, get, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 /** 마을 지도의 논리 해상도 (도트 단위) */
 export const W = 432;
@@ -608,52 +608,27 @@ export function bubbleGrid(state: ResearchState): Grid {
 }
 
 /** 성균관대 비천당: 회청색 기와의 팔작지붕(처마 끝이 곡선으로 들림), 단청 두른 공포, 붉은 기둥, 띠살 창호, 월대와 계단이 있는 한옥 (도서관 자리에 서는 건물) */
-export function bicheondangGrid(lit: boolean): Grid {
+function bicheondangBody(lit: boolean): Grid {
   const g = grid(LIB_W, LIB_H);
-  const tile = "#6a7186", tileD = "#4d5468", tileL = "#8a92a8", white = "#f0ead8", paper = lit ? "#ffe07a" : "#f4ecd6", paperD = lit ? "#d9a53f" : "#bfae88";
-  // 처마선: 가운데는 낮고 양 끝으로 갈수록 곡선으로 들린다
-  const eave = (x: number) => 30 - Math.round(5 * Math.pow(Math.abs(x - 51.5) / 52, 2.6));
-  // 팔작지붕: 위가 좁고 아래로 휘어 퍼진다
-  for (let y = 0; y <= 27; y++) {
-    const half = Math.round(15 + Math.pow(y / 27, 1.1) * 37);
-    for (let x = Math.max(0, 52 - half); x < Math.min(LIB_W, 52 + half); x++) {
-      if (4 + y > eave(x)) continue;
-      let c = tile;
-      if (y % 4 === 3) c = tileD;
-      else if ((x + Math.floor(y / 4) * 2) % 5 === 0) c = tileD;
-      px(g, x, 4 + y, c);
-    }
-  }
-  // 추녀마루: 지붕 꼭대기에서 모서리로 내려오는 두 줄
-  for (let k = 0; k <= 26; k++) { const x = 38 - Math.round(k * 1.45), y = 5 + k; if (y <= eave(x)) { px(g, x, y, tileL); px(g, x + 1, y, tileL); } const x2 = 66 + Math.round(k * 1.45); if (y <= eave(x2)) { px(g, x2, y, tileL); px(g, x2 - 1, y, tileL); } }
-  rect(g, 37, 3, 30, 2, tileL); rect(g, 35, 2, 4, 3, tileD); rect(g, 65, 2, 4, 3, tileD); px(g, 35, 1, tileD); px(g, 68, 1, tileD); px(g, 34, 2, tileD); px(g, 69, 2, tileD);   // 용마루와 끝 장식
-  // 합각(작은 박공 면): 흰 벽에 갈색 무늬
-  for (let y = 7; y <= 16; y++) { const half = Math.round(2 + (y - 7) * 1.15); rect(g, 52 - half, y, half * 2, 1, white); }
-  for (let y = 9; y <= 15; y += 3) rect(g, 52 - Math.round(1 + (y - 7) * 0.9), y, Math.round(2 + (y - 7) * 1.8), 1, "#cdbf9a");
-  disc(g, 51.5, 12.5, 2, 2, "#8a3a2a"); px(g, 51, 12, "#e0a45c"); px(g, 52, 13, "#e0a45c");
-  // 처마 끝: 겹처마(부연) 한 줄과 서까래 끝
-  for (let x = 0; x < LIB_W; x++) { const e = eave(x); rect(g, x, e + 1, 1, 2, tileD); px(g, x, e + 3, x % 3 === 0 ? "#d9c9a0" : "#9a8a64"); }
-  // 단청 두른 공포 층
-  rect(g, 5, 34, 94, 6, "#5a2f26");
-  for (let x = 6; x < 98; x += 6) {
-    rect(g, x, 35, 2, 4, "#3f9a8a"); rect(g, x + 2, 35, 2, 4, "#c4483f"); rect(g, x + 4, 35, 2, 4, "#4a6fb0");
-    px(g, x, 37, "#f4efe0"); px(g, x + 3, 36, "#f4efe0"); px(g, x + 5, 37, "#f4efe0");
-  }
-  rect(g, 5, 40, 94, 2, "#8a3a2a"); rect(g, 5, 40, 94, 1, "#a8503a");
+  const white = "#f0ead8", paper = lit ? "#ffe07a" : "#33c6b1", paperD = lit ? "#d9a53f" : "#e6fbf5";
+  // 처마 아래 그늘진 들보
+  rect(g, 13, 34, 78, 6, "#3a2622"); rect(g, 13, 34, 78, 1, "#241613"); rect(g, 13, 39, 78, 1, "#7a3326");
+  for (let x = 18; x <= 82; x += 8) { rect(g, x, 35, 4, 3, "#4a2f29"); }
+  rect(g, 13, 40, 78, 2, "#8a3a2a"); rect(g, 13, 40, 78, 1, "#a8503a");
   // 기둥과 띠살 창호
-  rect(g, 7, 42, 90, 28, "#2a2433");
-  const cols = [6, 24, 41, 59, 76, 94];
+  rect(g, 15, 42, 74, 28, "#2a2433");
+  const cols = [13, 28, 43, 57, 72, 87];
   for (let i = 0; i < cols.length - 1; i++) {
     const x0 = cols[i] + 4, x1 = cols[i + 1];
-    if (i === 2) {
+    if (i === 2 && false) {
       rect(g, x0, 43, x1 - x0, 26, lit ? "#5a3a2a" : "#2a2433");
       if (lit) { rect(g, x0 + 2, 45, x1 - x0 - 4, 22, "#ffd98a"); rect(g, x0 + 2, 45, x1 - x0 - 4, 3, "#fff0c4"); }
       rect(g, x0 + Math.floor((x1 - x0) / 2) - 1, 43, 1, 26, "#6b3a2a");
     } else {
       rect(g, x0, 43, x1 - x0, 26, paper);
       for (let x = x0 + 2; x < x1; x += 2) rect(g, x, 43, 1, 19, paperD);        // 가는 세로살
-      rect(g, x0, 43, x1 - x0, 1, "#7a4a30"); rect(g, x0, 48, x1 - x0, 1, "#7a4a30"); rect(g, x0, 60, x1 - x0, 1, "#7a4a30");   // 띠살: 위쪽 가로살 두 줄과 중간대
-      rect(g, x0, 62, x1 - x0, 7, "#8a5a3a"); rect(g, x0 + 1, 63, x1 - x0 - 2, 5, "#a8713f");                                  // 아래는 나무 판
+      rect(g, x0, 43, x1 - x0, 1, "#a8402a"); rect(g, x0, 48, x1 - x0, 1, "#a8402a"); rect(g, x0, 60, x1 - x0, 1, "#a8402a");   // 띠살: 위쪽 가로살 두 줄과 중간대
+      rect(g, x0, 62, x1 - x0, 7, "#9a3a28"); rect(g, x0 + 1, 63, x1 - x0 - 2, 5, "#b5472f");                                  // 아래는 나무 판
       px(g, x0 + Math.floor((x1 - x0) / 2), 65, "#d9b070");
     }
   }
@@ -665,10 +640,44 @@ export function bicheondangGrid(lit: boolean): Grid {
   rect(g, 43, 42, 18, 7, "#1f1a22"); rect(g, 43, 42, 18, 1, "#e8c24a"); rect(g, 43, 48, 18, 1, "#e8c24a"); rect(g, 43, 42, 1, 7, "#e8c24a"); rect(g, 60, 42, 1, 7, "#e8c24a");
   for (const gx of [45, 50, 55]) { rect(g, gx, 44, 4, 1, "#e8c24a"); rect(g, gx + 1, 44, 1, 3, "#e8c24a"); rect(g, gx + 3, 45, 1, 2, "#e8c24a"); rect(g, gx, 46, 3, 1, "#e8c24a"); }
   // 월대(기단)와 계단
-  rect(g, 2, 71, 100, 5, "#b9bdc6"); rect(g, 2, 71, 100, 1, "#d6d9e0"); rect(g, 2, 75, 100, 1, "#8a8e99");
-  for (let x = 6; x < 100; x += 12) rect(g, x, 72, 1, 3, "#9a9eaa");
+  rect(g, 11, 71, 82, 5, "#b9bdc6"); rect(g, 11, 71, 82, 1, "#d6d9e0"); rect(g, 11, 75, 82, 1, "#8a8e99");
+  for (let x = 15; x < 92; x += 12) rect(g, x, 72, 1, 3, "#9a9eaa");
   rect(g, 34, 76, 36, 3, "#d0d4da"); rect(g, 34, 78, 36, 1, "#9a9eaa");
   rect(g, 30, 79, 44, 3, "#c0c4cc"); rect(g, 30, 81, 44, 1, "#9a9eaa");
   rect(g, 26, 82, 52, 2, "#aeb2bb");
+  return g;
+}
+export const BICHEON_W = 120;
+export const BICHEON_H = 87;
+/** 지붕을 110%로 키운 비천당: 몸통은 그대로, 지붕만 크게 */
+export function bicheondangGrid(lit: boolean): Grid {
+  const OX = 8, OY = 3, S = 1.1;
+  const g = grid(BICHEON_W, BICHEON_H);
+  stamp(g, bicheondangBody(lit), OX, OY);
+  const tile = "#98a0a8", tileD = "#737b85", tileL = "#c3cad0";
+  const eave = (u: number) => 30 - Math.round(5 * Math.pow(Math.abs(u - 51.5) / 52, 2.6));   // 원래 좌표의 처마선
+  const top = 8, bend = 12, baseY = 30 + OY + 3;   // 지붕을 몸통 쪽으로 3칸 내림
+  const eaveY = (X: number) => baseY - Math.round((30 - eave((X - OX - 52) / S + 52)) * S);
+  for (let X = 0; X < BICHEON_W; X++) {
+    const u = (X - OX - 52) / S + 52;
+    const e = eaveY(X);
+    for (let Y = 0; Y <= e; Y++) {
+      const yo = 30 - (baseY - Y) / S;                  // 원래 좌표의 행
+      const y = Math.round(yo) - top;
+      if (y > 22) continue;
+      const half = y <= bend ? Math.round(31 + Math.max(y, 0) * 0.2) : Math.round(34 + ((y - bend) / (22 - bend)) * 18);
+      if (u < 52 - half || u >= 52 + half) continue;
+      if (yo < top - Math.round(3 * Math.pow(Math.abs(u - 51.5) / 34, 2.2))) continue;   // 맨 위도 처마처럼 완만한 곡선
+      let c = tile;
+      if (y === bend + 1) c = tileL;
+      else if (Y % 4 === 3) c = tileD;
+      else if ((X + Math.floor(Y / 4) * 2) % 5 === 0) c = tileD;
+      px(g, X, Y, c);
+    }
+    // 처마 끝: 겹처마 한 줄과 서까래 끝
+    rect(g, X, e + 1, 1, 2, tileD); px(g, X, e + 3, X % 3 === 0 ? "#d9c9a0" : "#9a8a64");
+  }
+  for (let k = 0; k < 110; k++) { const rx = 10 + ((k * 37) % 108), ry = 8 + ((k * 53) % 26); if (get(g, rx, ry) === tile) px(g, rx, ry, k % 3 ? tileL : "#dfe5ea"); }   // 기와 위 서리
   return outline(g);
 }
+
