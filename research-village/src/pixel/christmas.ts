@@ -64,8 +64,29 @@ export function christmasTreeGrid(frame: number): Grid {
   garland(33, 15, "#ffd860", 0); garland(52, 22, "#ff6b7a", 1); garland(66, 28, "#ffd860", 2); garland(42, 18, "#ff6b7a", 3);
   // 별 (크고 빛남)
   const star = frame % 2 === 0 ? "#fff6a0" : "#ffe34a";
-  rect(g, CX2 - 1, 0, 3, 12, star); rect(g, CX2 - 6, 5, 13, 3, star); rect(g, CX2 - 3, 3, 7, 8, star); rect(g, CX2 - 4, 4, 9, 5, star);
-  px(g, CX2, 0, "#ffffff"); px(g, CX2 - 1, 5, "#ffffff"); px(g, CX2 + 1, 6, "#fff1b0");
+  const STAR = [
+    "       X       ",
+    "      XXX      ",
+    "      XXX      ",
+    "     XXXXX     ",
+    "XXXXXXXXXXXXXXX",
+    " XXXXXXXXXXXXX ",
+    "   XXXXXXXXX   ",
+    "    XXXXXXX    ",
+    "    XXXXXXX    ",
+    "   XXXX XXXX   ",
+    "   XXX   XXX   ",
+    "  XX       XX  ",
+  ];
+  const on = (c: number, r: number) => STAR[r]?.[c] === "X";
+  STAR.forEach((row, r) => {
+    for (let c = 0; c < row.length; c++) {
+      if (!on(c, r)) continue;
+      const edge = !on(c - 1, r) || !on(c + 1, r) || !on(c, r - 1) || !on(c, r + 1);
+      px(g, CX2 - 7 + c, r, edge ? "#e0a21a" : star);
+    }
+  });
+  px(g, CX2, 2, "#ffffff"); px(g, CX2 - 1, 4, "#ffffff"); px(g, CX2 - 3, 5, "#fff6c8"); px(g, CX2, 5, "#ffffff");
   // 장식 공 (3×3, 하이라이트)
   const ORN: [number, number, string][] = [
     [35, 20, "#ff5a5a"], [30, 31, "#ffd23f"], [41, 32, "#5ab0ff"], [34, 40, "#ff8ac2"], [26, 45, "#ff5a5a"], [44, 46, "#ffd23f"],
