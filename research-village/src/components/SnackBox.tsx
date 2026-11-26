@@ -12,7 +12,7 @@ const SNACKS = ["mochi", "yakgwa", "tangerine", "apple", "minishell", "bungeoppa
 const TTEOKS = ["siru", "rainbow", "songpyeon"];
 const KEEP_MS = 3 * 86400_000;
 interface Row { id: string; kind: string; from_user: string; note: string; created_at: string }
-interface Note { id: string; kind: string; from_user: string | null; note: string; created_at: string }
+interface Note { id: string; kind: string; from_user: string | null; note: string; created_at: string; gift_id: string | null }
 
 /** 간식 상자: 이웃이 건네 준 커피·간식을 모두 모아 보여 준다(책상 위에는 하루만 올라가지만 여기엔 남는다) */
 export default function SnackBox({ residents, myId }: { residents: Resident[]; myId: string }) {
@@ -29,7 +29,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
   const [notes, setNotes] = useState<Note[] | null>(null);   // 쪽지 보관함: 간식이 사라져도 한마디는 남는다
   useEffect(() => {
     let alive = true;
-    supabase().from("gift_notes").select("id, kind, from_user, note, created_at").eq("to_user", myId).order("created_at", { ascending: false }).limit(200)
+    supabase().from("gift_notes").select("id, kind, from_user, note, created_at, gift_id").eq("to_user", myId).order("created_at", { ascending: false }).limit(200)
       .then(async ({ data }) => {
         const list = ((data as Note[]) ?? []).filter((n) => !n.note.startsWith("🎅"));   // 산타 쪽지는 편지 서랍의 산타 카드로
         const ids = [...new Set(list.map((n) => n.from_user).filter((x): x is string => Boolean(x)))];
@@ -41,6 +41,13 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
       });
     return () => { alive = false; };
   }, [myId]);
+  const keep = async (r: Row) => {
+    const { error } = await supabase().rpc("keep_gift_note", { p_gift: r.id });
+    if (error) return setMsg({ ok: false, text: "보관하지 못했어요. 이미 사라졌을 수 있어요." });
+    const { data } = await supabase().from("gift_notes").select("id, kind, from_user, note, created_at, gift_id").eq("to_user", myId).order("created_at", { ascending: false }).limit(200);
+    if (data) setNotes(data as Note[]);
+    setMsg({ ok: true, text: "한마디를 쪽지 보관함에 넣어 뒀어요 ✉" });
+  };
   const removeNote = async (id: string) => {
     setNotes((cur) => cur?.filter((n) => n.id !== id) ?? cur);
     await supabase().from("gift_notes").delete().eq("id", id);
@@ -66,10 +73,11 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
   const counts = new Map<string, number>();
   rows?.forEach((r) => counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1));
   const icon = (kind: string) => SNACKS.includes(kind) || TTEOKS.includes(kind) ? <PixelArt art={arts[kind]} scale={2} label={`${giftOf(kind)?.label ?? "간식"} 도트 그림`} /> : <span aria-hidden className="text-2xl">{giftOf(kind)?.icon ?? "🎁"}</span>;
+  const smallIcon = (kind: string) => SNACKS.includes(kind) || TTEOKS.includes(kind) ? <PixelArt art={arts[kind]} scale={1} label={`${giftOf(kind)?.label ?? "간식"} 아이콘`} /> : <span aria-hidden className="text-sm leading-none">{giftOf(kind)?.icon ?? "🎁"}</span>;
   return (
     <section aria-label="간식 상자">
       <div className="space-y-3 p-3">
-        <p className="text-sm text-ink-soft">이웃이 건네 준 커피와 간식이 여기 모여요. 간식은 받은 지 3일이 지나면 저절로 사라지지만, 한마디는 아래 쪽지 보관함에 남아요. 보낸 사람과 한마디는 나에게만 보여요.</p>
+        <p className="text-sm text-ink-soft">이웃이 건네 준 커피와 간식이 여기 모여요. 간식과 한마디는 먹거나 3일이 지나면 사라져요. 한마디를 남기고 싶으면 ‘보관’을 눌러 쪽지 보관함에 넣어 두세요. 보낸 사람과 한마디는 나에게만 보여요.</p>
         {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "" : "text-[#c0392b]"}`}>{msg.text}</p>}
         {rows === null && <p className="text-sm text-ink-soft">상자를 여는 중…</p>}
         {rows?.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 간식이 없어요.</p>}
@@ -87,6 +95,11 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                     <span className="block break-words text-sm">{r.note.startsWith("🎅") ? <>🎅 산타{r.note.slice(2) ? <>: “{r.note.slice(2).trim()}”</> : ""}</> : <>{who(r.from_user)}님{r.note ? <>: “{r.note}”</> : ""}</>}</span>
                   </span>
                   <span className="shrink-0 text-xs text-ink-soft">{relativeTime(r.created_at)}</span>
+                  {r.note.trim() !== "" && !r.note.startsWith("🎅") && (
+                    notes?.some((n) => n.gift_id === r.id)
+                      ? <span className="chip shrink-0 text-xs">보관됨</span>
+                      : <button type="button" className="btn btn-sm shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"}의 한마디 보관하기`} onClick={() => void keep(r)}>보관</button>
+                  )}
                   <button type="button" className="btn btn-sm btn-mint shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"} 먹기`} onClick={() => void eat(r)}>먹기</button>
                 </li>
               ))}
@@ -106,7 +119,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                     {g.notes.map((n) => (
                       <li key={n.id} className="flex items-start gap-2 text-sm">
                         <span className="shrink-0 text-xs text-ink-soft">{new Date(n.created_at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</span>
-                        <span className="min-w-0 flex-1 break-words">“{n.note}”</span>
+                        <span className="min-w-0 flex-1 break-words"><span className="mr-1 inline-flex align-middle">{smallIcon(n.kind)}</span>“{n.note}”</span>
                         <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="쪽지 지우기" onClick={() => void removeNote(n.id)}>지우기</button>
                       </li>
                     ))}
