@@ -226,7 +226,7 @@ const me = v.me!;
     if (n.kind === "study_goal") return setView(n.summary.endsWith("|done") ? "home" : "library");
     if (n.kind === "chat_request") return openChat(chat.convs.find((c) => c.user_a === n.actor_id && c.status === "pending")?.id ?? null);
     if (n.kind === "gift" || n.kind === "moving_cake") return openMyRoom("snacks");                       // 받은 선물·이사 떡 → 간식 상자
-    if (n.room_owner_id === me.user_id && (n.kind === "journal_reaction" || n.kind === "journal_comment" || n.kind === "postit" || n.kind === "comment")) return openMyRoom("boards");   // 내 일지 반응·댓글, 내 화이트보드의 포스트잇·댓글 → 화이트보드
+    if (n.room_owner_id === me.user_id && (n.kind === "journal_reaction" || n.kind === "journal_comment" || n.kind === "postit" || n.kind === "postit_reply" || n.kind === "comment")) return openMyRoom("boards");   // 내 일지 반응·댓글, 내 화이트보드의 포스트잇·댓글 → 화이트보드
     if (n.kind === "journal_reaction" || n.kind === "journal_comment") return visit(n.room_owner_id, "whiteboard");
     if (n.kind === "gesture" || n.kind === "cheer" || n.kind === "nudge") return setView("home");
     if (n.kind === "book_tip") return openMyRoom("results");                                               // 추천받은 책 → 연구 성과(책장)

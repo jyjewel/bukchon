@@ -6,7 +6,7 @@ import { gestureOf, giftOf, reactionOf } from "@/lib/social";
 import { Window } from "./ui";
 
 /** 알림 문구 아래에 따로 보여 줄 글(포스트잇·댓글 내용 등). 코드값이 들어 있는 종류는 보여 주지 않는다. */
-export const showsSummary = (n: AppNotification) => ["postit", "comment", "journal_comment", "meeting"].includes(n.kind) && Boolean(n.summary);
+export const showsSummary = (n: AppNotification) => ["postit", "postit_reply", "comment", "journal_comment", "meeting"].includes(n.kind) && Boolean(n.summary);
 
 export function notifText(n: AppNotification, residents: Resident[], myId: string, names: Record<string, string> = {}): string {
   const nameOf = (id: string) => residents.find((r) => r.user_id === id)?.profile.display_name ?? names[id];
@@ -32,6 +32,7 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
   if (n.kind === "cheer") return `${actor}님이 내 마감 ‘${n.summary}’을(를) 응원해요. 파이팅!`;
   if (n.kind === "nudge") { const [title, due] = n.summary.split("|"); return due ? `${actor}님이 마감을 챙겨 보래요: ${title} (${due})` : `${actor}님이 요즘 어떻게 지내는지 궁금해해요. 마감 잘 챙기고 계시죠?`; }
   const roomOwner = n.room_owner_id === myId ? "내" : `${nameOf(n.room_owner_id) ?? ""}님의`;
+  if (n.kind === "postit_reply") return `${actor}님이 ${roomOwner} 화이트보드의 내 포스트잇에 답장했어요`;
   return n.kind === "postit" ? `${actor}님이 ${roomOwner} 화이트보드에 포스트잇을 붙였어요` : `${actor}님이 ${roomOwner} 화이트보드에 댓글을 남겼어요`;
 }
 

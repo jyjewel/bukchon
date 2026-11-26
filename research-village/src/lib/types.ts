@@ -148,6 +148,7 @@ export interface Postit {
   author_id: string;
   body: string;
   color: string;
+  reply_to: string | null;
   created_at: string;
 }
 export interface Achievement {
@@ -165,7 +166,7 @@ export interface AppNotification {
   user_id: string;
   village_id: string;
   actor_id: string;
-  kind: "postit" | "comment" | "chat_request" | "meeting" | "gesture" | "gift" | "book_tip" | "journal_reaction" | "journal_comment" | "cheer" | "nudge" | "moving_cake" | "award" | "moving_thanks" | "study_alarm" | "study_goal";
+  kind: "postit" | "comment" | "chat_request" | "meeting" | "gesture" | "gift" | "book_tip" | "journal_reaction" | "journal_comment" | "cheer" | "nudge" | "moving_cake" | "award" | "postit_reply" | "moving_thanks" | "study_alarm" | "study_goal";
   room_owner_id: string;
   summary: string;
   created_at: string;

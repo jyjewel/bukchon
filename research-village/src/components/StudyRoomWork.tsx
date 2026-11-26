@@ -65,7 +65,7 @@ export default function StudyRoomWork({
         <Modal title={roomView === "view" ? labTitle(me.profile) : "내 연구실 꾸미기"} tone="butter" wide onClose={() => setRoomView(null)}>
           {roomView === "view" ? (
             <div className="space-y-3">
-              <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
+              <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onPick={(t) => { onTab(t); setSection(t === "shelf" ? "results" : "boards"); setRoomView(null); }} onPortal={() => { setRoomView(null); setPortal(true); }} />
               <p className="text-xs text-ink-soft">화이트보드나 책장(연구 성과)을 누르면 그 화면으로, 벽 아래 포탈을 누르면 다른 연구실로 건너가요.</p>
               <div className="flex gap-1">
@@ -84,7 +84,7 @@ export default function StudyRoomWork({
       {!focus && (
         <div className="order-2 space-y-4 lg:order-1">
           <Window title={labTitle(me.profile)} tone="butter">
-              <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
+              <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
                 note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("view")} onPortal={() => setPortal(true)} />
             <p className="px-2 pt-1 text-center text-xs text-ink-soft">그림을 누르면 크게 보고 꾸밀 수 있어요</p>
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">

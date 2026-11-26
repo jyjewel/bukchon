@@ -40,6 +40,8 @@ export default function RoomBoards({
 
   // ── 포스트잇 (화이트보드에 붙는다) ──
   const [pi, setPi] = useState("");
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
   const [color, setColor] = useState(POSTIT_COLORS[0]);
   const postitsBlock = (
     <div className="space-y-3">
@@ -56,14 +58,43 @@ export default function RoomBoards({
         </div>
       </form>
       {room.postits.length > 0 && (
-        <ul className="space-y-1" aria-label="붙은 포스트잇">
-          {room.postits.map((p) => {
+        <ul className="space-y-2" aria-label="붙은 포스트잇">
+          {room.postits.filter((p) => !p.reply_to).map((p) => {
+            const replies = room.postits.filter((r) => r.reply_to === p.id).sort((x, y) => x.created_at.localeCompare(y.created_at));
             return (
-              <li key={p.id} className="flex items-start gap-2 text-sm" style={speakerStyle(p.author_id, owner.user_id, myId)}>
-                <span className="shrink-0 font-display">{speakerName(p.author_id, myId, who(p.author_id))}:</span>
-                <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
-                {(p.author_id === myId || isOwner) && (
-                  <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
+              <li key={p.id} className="text-sm">
+                <div className="flex items-start gap-2" style={speakerStyle(p.author_id, owner.user_id, myId)}>
+                  <span className="shrink-0 font-display">{speakerName(p.author_id, myId, who(p.author_id))}:</span>
+                  <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{p.body}</span>
+                  <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇에 답장" onClick={() => { setReplyTo(replyTo === p.id ? null : p.id); setReplyText(""); }}>답장</button>
+                  {(p.author_id === myId || isOwner) && (
+                    <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="포스트잇 떼기" onClick={() => void run(sb.from("postits").delete().eq("id", p.id))}>떼기</button>
+                  )}
+                </div>
+                {replies.length > 0 && (
+                  <ul className="ml-4 mt-1 space-y-1 border-l-2 border-[#e6d3a8] pl-2" aria-label="포스트잇 답장">
+                    {replies.map((r) => (
+                      <li key={r.id} className="flex items-start gap-2" style={speakerStyle(r.author_id, owner.user_id, myId)}>
+                        <span className="shrink-0">↳</span>
+                        <span className="shrink-0 font-display">{speakerName(r.author_id, myId, who(r.author_id))}:</span>
+                        <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{r.body}</span>
+                        {(r.author_id === myId || isOwner) && (
+                          <button type="button" className="shrink-0 text-xs text-ink-soft underline" aria-label="답장 지우기" onClick={() => void run(sb.from("postits").delete().eq("id", r.id))}>지우기</button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {replyTo === p.id && (
+                  <form className="ml-4 mt-1 flex items-start gap-1" onSubmit={async (e: FormEvent) => {
+                    e.preventDefault();
+                    const text = replyText.trim();
+                    if (text && (await run(sb.from("postits").insert({ owner_id: owner.user_id, author_id: myId, body: text, color: p.color, reply_to: p.id })))) { setReplyText(""); setReplyTo(null); }
+                  }}>
+                    <label className="sr-only" htmlFor={`pr-${p.id}`}>답장</label>
+                    <input id={`pr-${p.id}`} className="input" maxLength={140} autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="답장 쓰기" />
+                    <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!replyText.trim()}>보내기</button>
+                  </form>
                 )}
               </li>
             );

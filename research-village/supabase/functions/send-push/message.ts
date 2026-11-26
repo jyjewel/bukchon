@@ -1,6 +1,7 @@
 // 푸시 알림 문구. 잠금 화면에 보이므로 일지·메시지 같은 내용은 넣지 않고 "누가 무엇을 했는지"만 알린다.
 const TEXT: Record<string, string> = {
   postit: "화이트보드에 포스트잇을 붙였어요",
+  postit_reply: "내 포스트잇에 답장했어요",
   comment: "화이트보드에 댓글을 남겼어요",
   chat_request: "대화를 신청했어요",
   meeting: "Zoom 회의를 열었어요",

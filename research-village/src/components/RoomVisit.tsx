@@ -34,7 +34,7 @@ export default function RoomVisit({
         <div className="space-y-5">
         <Window title={labTitle(owner.profile)} tone="butter">
           <RoomCanvas
-            owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
+            owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
             note={inRoom || isGuest ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={(t) => { onTab(t); document.getElementById(t === "shelf" ? "visit-results" : "visit-board")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} onDesk={() => { if (give) setGiving(true); }} onPortal={() => setPortal(true)}
           />
           <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">{isGuest ? "친구 연구실을 구경 중이에요. 책상을 누르면 선물을 올리고, 화이트보드에 댓글과 포스트잇을 남길 수 있어요" : "책상을 누르면 커피나 간식을 올려 줄 수 있어요"}</p>
