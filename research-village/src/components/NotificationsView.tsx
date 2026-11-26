@@ -37,17 +37,17 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
 }
 
 export default function NotificationsView({
-  list, residents, myId, names, villages, villageId, onOpen, onReadAll, onThank,
-}: { list: AppNotification[]; residents: Resident[]; myId: string; names: Record<string, string>; villages: VillageInfo[]; villageId: string; onOpen: (n: AppNotification) => void; onReadAll: () => void; onThank: (n: AppNotification) => Promise<string | null> }) {
+  list, residents, myId, names, villages, villageId, onOpen, onReadAll, onRemove, onThank,
+}: { list: AppNotification[]; residents: Resident[]; myId: string; names: Record<string, string>; villages: VillageInfo[]; villageId: string; onOpen: (n: AppNotification) => void; onReadAll: () => void; onRemove: (ids: string[]) => void; onThank: (n: AppNotification) => Promise<string | null> }) {
   const [replied, setReplied] = useState<Record<string, string>>({});
   const unread = list.filter((n) => !n.read_at).length;
   return (
-    <Window title="알림" tone="mint" actions={<button type="button" className="btn btn-sm" disabled={!unread} onClick={onReadAll}>모두 읽음</button>}>
+    <Window title="알림" tone="mint" actions={<span className="flex gap-1"><button type="button" className="btn btn-sm" disabled={!unread} onClick={onReadAll}>모두 읽음</button><button type="button" className="btn btn-sm" disabled={!list.some((n) => n.read_at)} onClick={() => { if (window.confirm("읽은 알림을 모두 지울까요?")) onRemove(list.filter((n) => n.read_at).map((n) => n.id)); }}>읽은 알림 지우기</button></span>}>
       <ul className="p-2">
         {list.length === 0 && <li className="p-4 text-center text-sm text-ink-soft">아직 알림이 없어요.</li>}
         {list.map((n) => (
-          <li key={n.id}>
-            <button type="button" onClick={() => onOpen(n)} className={`card flex w-[calc(100%-6px)] items-start gap-3 p-2 text-left text-sm ${n.read_at ? "" : "card-on"}`}>
+          <li key={n.id} className="relative">
+            <button type="button" onClick={() => onOpen(n)} className={`card flex w-[calc(100%-6px)] items-start gap-3 p-2 text-left text-sm ${n.read_at ? "pr-14" : "card-on"}`}>
               <span className="mt-1 inline-block h-3 w-3 shrink-0" style={{ background: n.read_at ? "transparent" : "#d9547a" }} aria-hidden />
               <span className="min-w-0 flex-1">
                 <span className="block">{notifText(n, residents, myId, names)}{n.read_at ? "" : <span className="sr-only"> (새 알림)</span>}</span>
@@ -55,6 +55,7 @@ export default function NotificationsView({
                 <span className="text-xs text-ink-soft">{relativeTime(n.created_at)}{n.village_id !== villageId && villages.length > 1 ? ` · ${villages.find((x) => x.id === n.village_id)?.name ?? "다른 마을"}` : ""}</span>
               </span>
             </button>
+            {n.read_at && !n.id.startsWith("portal-") && <button type="button" className="absolute right-3 top-2 text-xs text-ink-soft underline" aria-label="이 알림 지우기" onClick={() => onRemove([n.id])}>지우기</button>}
             {n.kind === "moving_cake" && (
               <div className="px-3 pb-1">
                 <button type="button" className="btn btn-sm" disabled={Boolean(replied[n.id])} onClick={async () => { const e = await onThank(n); setReplied((r) => ({ ...r, [n.id]: e ?? "잘 먹겠다고 전했어요 🍡" })); }}>{replied[n.id] ?? "잘 먹을게요"}</button>

@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-26-wish-notif-reply", date: "11월 26일", title: "[소원] 읽은 알림을 지울 수 있고, 일지·화이트보드 댓글에 대댓글을 달 수 있어요", body: "" },
   { id: "2026-11-26-snowball", date: "11월 26일", title: "[소원] 던지기에 눈덩이가 생겼어요. 이웃에게 눈싸움을 걸어 보세요", body: "" },
   { id: "2026-11-26-study-clock-merge", date: "11월 26일", title: "공부 시간은 오전 6시에 바뀌고, 마을이 여럿이어도 도서관 시계 하나로 합쳐져요", body: "" },
   { id: "2026-11-26-journal-calendar", date: "11월 26일", title: "일지를 달력으로 볼 수 있어요. 쓴 날을 누르면 그날 일지가 열려요", body: "" },

@@ -140,6 +140,7 @@ export interface WhiteboardComment {
   item_id: string;
   author_id: string;
   body: string;
+  reply_to: string | null;
   created_at: string;
 }
 export interface Postit {
