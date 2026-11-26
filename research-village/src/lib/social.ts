@@ -46,7 +46,6 @@ export const REACTIONS = [
 ] as const;
 
 export const gestureOf = (id: string): { id: string; hit: string } | undefined => GESTURES.find((g) => g.id === id) ?? OLD_GESTURES.find((g) => g.id === id);
-export const isGesture = (id: string): id is GestureId => GESTURES.some((g) => g.id === id);
 /** 이사 떡 (건네기 메뉴에는 없고, 이사 떡 돌리기로만 가는 선물) */
 export const TTEOK = [
   { id: "siru", label: "팥시루떡", icon: "🍡" },

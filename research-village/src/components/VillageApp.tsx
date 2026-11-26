@@ -39,7 +39,7 @@ import ChristmasGift from "./ChristmasGift";
 import { useChristmas } from "@/hooks/useChristmas";
 import { xmasPhase } from "@/lib/christmas";
 import StudyAlarmDialog from "./StudyAlarmDialog";
-import { awayDays, isGesture } from "@/lib/social";
+import { awayDays } from "@/lib/social";
 import { lastSeenLabel } from "@/lib/time";
 import { Notice, Window } from "./ui";
 
@@ -485,7 +485,7 @@ const me = v.me!;
       })()}
       {view === "library" && <main><LibraryView lib={lib} goals={goals} onGoalDone={() => setView("home")} villageId={village.id} me={me} residents={v.residents} isAdmin={me.role === "admin"} /></main>}
       {view === "chat" && <main><ChatView chat={chat} residents={v.residents} myId={me.user_id} selectedId={chatId} onSelect={setChatId} /></main>}
-      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification} onReply={(n) => give(n.actor_id).onGesture(isGesture(n.summary) ? n.summary : "thesis")}
+      {view === "alerts" && <main><NotificationsView list={notifs.list} residents={v.residents} myId={me.user_id} names={notifs.names} villages={v.villages} villageId={village.id} onOpen={openNotification}
                 onThank={async (n) => {
                   const { error } = await supabase().rpc("thank_moving_cake", { p_village: n.village_id, p_target: n.actor_id });
                   return error && !errorMessage(error).includes("already_thanked") ? errorMessage(error) : null;

@@ -37,8 +37,8 @@ export function notifText(n: AppNotification, residents: Resident[], myId: strin
 }
 
 export default function NotificationsView({
-  list, residents, myId, names, villages, villageId, onOpen, onReadAll, onReply, onThank,
-}: { list: AppNotification[]; residents: Resident[]; myId: string; names: Record<string, string>; villages: VillageInfo[]; villageId: string; onOpen: (n: AppNotification) => void; onReadAll: () => void; onReply: (n: AppNotification) => Promise<string | null>; onThank: (n: AppNotification) => Promise<string | null> }) {
+  list, residents, myId, names, villages, villageId, onOpen, onReadAll, onThank,
+}: { list: AppNotification[]; residents: Resident[]; myId: string; names: Record<string, string>; villages: VillageInfo[]; villageId: string; onOpen: (n: AppNotification) => void; onReadAll: () => void; onThank: (n: AppNotification) => Promise<string | null> }) {
   const [replied, setReplied] = useState<Record<string, string>>({});
   const unread = list.filter((n) => !n.read_at).length;
   return (
@@ -58,11 +58,6 @@ export default function NotificationsView({
             {n.kind === "moving_cake" && (
               <div className="px-3 pb-1">
                 <button type="button" className="btn btn-sm" disabled={Boolean(replied[n.id])} onClick={async () => { const e = await onThank(n); setReplied((r) => ({ ...r, [n.id]: e ?? "잘 먹겠다고 전했어요 🍡" })); }}>{replied[n.id] ?? "잘 먹을게요"}</button>
-              </div>
-            )}
-            {n.kind === "gesture" && (
-              <div className="px-3 pb-1">
-                <button type="button" className="btn btn-sm" disabled={Boolean(replied[n.id])} onClick={async () => { const e = await onReply(n); setReplied((r) => ({ ...r, [n.id]: e ?? "되받아쳤어요!" })); }}>{replied[n.id] ?? "되받아치기"}</button>
               </div>
             )}
           </li>
