@@ -77,7 +77,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
   return (
     <section aria-label="간식 상자">
       <div className="space-y-3 p-3">
-        <p className="text-sm text-ink-soft">이웃이 건네 준 커피와 간식이 여기 모여요. 간식과 한마디는 먹거나 3일이 지나면 사라져요. 한마디를 남기고 싶으면 ‘보관하기’를 눌러 쪽지 보관함에 넣어 두세요. 보낸 사람과 한마디는 나에게만 보여요.</p>
+        <p className="text-sm text-ink-soft">이웃이 건네 준 커피와 간식이 여기 모여요. 간식과 한마디는 먹거나 3일이 지나면 사라져요. 한마디를 남기고 싶으면 ‘보관’을 눌러 쪽지 보관함에 넣어 두세요. 보낸 사람과 한마디는 나에게만 보여요.</p>
         {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "" : "text-[#c0392b]"}`}>{msg.text}</p>}
         {rows === null && <p className="text-sm text-ink-soft">상자를 여는 중…</p>}
         {rows?.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 간식이 없어요.</p>}
@@ -98,7 +98,7 @@ export default function SnackBox({ residents, myId }: { residents: Resident[]; m
                   {r.note.trim() !== "" && !r.note.startsWith("🎅") && (
                     notes?.some((n) => n.gift_id === r.id)
                       ? <span className="chip shrink-0 text-xs">보관됨</span>
-                      : <button type="button" className="btn btn-sm shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"}의 한마디 보관하기`} onClick={() => void keep(r)}>보관하기</button>
+                      : <button type="button" className="btn btn-sm shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"}의 한마디 보관하기`} onClick={() => void keep(r)}>보관</button>
                   )}
                   <button type="button" className="btn btn-sm btn-mint shrink-0" aria-label={`${giftOf(r.kind)?.label ?? "간식"} 먹기`} onClick={() => void eat(r)}>먹기</button>
                 </li>
