@@ -513,6 +513,21 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
     px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
     stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "poodle") {
+    // 갈색 푸들: 곱슬곱슬한 몸털, 동그란 머리 방울과 퐁퐁 솟은 귀, 다리 끝과 꼬리 끝의 털 방울
+    const br = "#8a5a3a", brL = "#a8744a", brD = "#6e4529";
+    const d = grid(17, 14);
+    disc(d, 10, 8, 5, 3.4, br); rect(d, 5, 6, 3, 3, br);                                                       // 몸
+    for (const [x, y] of [[8, 6], [11, 5], [13, 7], [9, 9], [12, 9], [7, 8], [10, 7], [14, 9]]) px(d, x, y, brL);  // 곱슬 무늬
+    for (const [x, y] of [[9, 8], [12, 8], [8, 10], [13, 6]]) px(d, x, y, brD);
+    disc(d, 4, 5, 2.8, 2.6, br); disc(d, 4, 2, 2.4, 2.1, brL); px(d, 3, 1, br); px(d, 5, 2, br);               // 머리와 머리 방울
+    disc(d, 1.5, 6, 1.6, 2.4, br); disc(d, 7, 6, 1.4, 2.3, br); px(d, 1, 5, brL); px(d, 7, 5, brL);            // 퐁퐁 귀
+    rect(d, 1, 6, 2, 2, "#c49a6c"); px(d, 0, 6, "#3a2a33");                                                      // 가는 주둥이와 코
+    px(d, 3, 4, "#3a2a33"); px(d, 5, 4, "#3a2a33"); px(d, 2, 8, "#e0605a");                                      // 눈과 혀
+    rect(d, 6, 10, 1, 2, "#c49a6c"); rect(d, 9, 10, 1, 2, "#c49a6c"); rect(d, 12, 10, 1, 2, "#c49a6c"); rect(d, 14, 10, 1, 2, "#c49a6c");  // 가는 다리
+    disc(d, 6.5, 12, 1.4, 1.1, br); disc(d, 9.5, 12, 1.4, 1.1, br); disc(d, 12.5, 12, 1.4, 1.1, br); disc(d, 14.5, 12, 1.4, 1.1, br);         // 다리 끝 털 방울
+    px(d, 14, 6, br); disc(d, 15, 4.5, 1.7, 1.7, brL);                                                           // 꼬리와 꼬리 방울
+    stamp(g, outline(d), 100, 60);
   } else if (st.pet === "squirrel") {
     // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
     const q = grid(13, 12);
