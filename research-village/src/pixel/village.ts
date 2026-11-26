@@ -627,7 +627,6 @@ export function bicheondangGrid(lit: boolean): Grid {
     }
   }
   for (let k = 0; k < 90; k++) { const rx = 8 + ((k * 37) % 88), ry = 10 + ((k * 53) % 20); if (get(g, rx, ry) === tile) px(g, rx, ry, k % 3 ? tileL : "#dfe5ea"); }   // 기와 위 서리
-  rect(g, 17, 6, 70, 3, tileL); rect(g, 17, 8, 70, 1, tileD);   // 용마루 한 줄
   // 처마 끝: 겹처마(부연) 한 줄과 서까래 끝
   for (let x = 0; x < LIB_W; x++) { const e = eave(x); rect(g, x, e + 1, 1, 2, tileD); px(g, x, e + 3, x % 3 === 0 ? "#d9c9a0" : "#9a8a64"); }
   // 처마 아래 그늘진 들보
