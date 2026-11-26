@@ -9,7 +9,6 @@ import type { Desk } from "@/hooks/useLibraryDesk";
 import { clockHM } from "@/hooks/useLibraryDesk";
 
 export type HallPanel = "books" | "schedules" | "goals" | "zoom" | "cabinet" | "clock";
-const SAND_SECONDS = 3600;   // 공부 한 시간마다 기지개를 켠다
 
 /** 도서관 홀: 뒤쪽 큰 도서관과 앞쪽 열람 탁자. 물건을 누르면 기능이 열리고, 내 모래시계를 누르면 공부가 시작된다. */
 export default function LibraryHall({ medals, goalTitles, goalCount, residents, myId, desks, secondsOf, onOpen }: {
@@ -62,9 +61,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
         const r = residents.find((x) => x.slot === slot);
         const d = r ? desks.find((x) => x.user_id === r.user_id) : undefined;
         const running = Boolean(d?.running);
-        const sinceSec = running && d?.since ? (ms - new Date(d.since).getTime()) / 1000 : 0;
-        const cycle = sinceSec % SAND_SECONDS;
-        const st: SeatState = !r ? "empty" : running ? (sinceSec >= SAND_SECONDS && cycle < 25 ? "done" : "study") : (r.shown === "library" ? "seated" : "empty");
+        const st: SeatState = !r ? "empty" : running ? "study" : (r.shown === "library" ? "seated" : "empty");
         return { slot, r, st };
       });
       for (const row of [0, 1]) {      // 뒷줄 → 앞줄 순서로 그려서 앞줄 책상이 뒷줄 위에 겹친다
@@ -77,7 +74,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
       }
       if (phase === "night" || phase === "dusk") {   // 저녁·밤에는 홀 전체가 은은하게 어두워진다
         b.globalCompositeOperation = "multiply"; b.fillStyle = phase === "night" ? "#9aa6d4" : "#e0c8c0"; b.fillRect(0, 0, HALL_W, HALL_H); b.globalCompositeOperation = "source-over";
-        for (const s of seats) if (s.st === "study" || s.st === "done") { const { cx, ty } = seatPos(s.slot); drawLampGlow(b, cx, ty, phase === "night" ? 0.38 : 0.22); }
+        for (const s of seats) if (s.st === "study") { const { cx, ty } = seatPos(s.slot); drawLampGlow(b, cx, ty, phase === "night" ? 0.38 : 0.22); }
       }
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, cv.width, cv.height);
