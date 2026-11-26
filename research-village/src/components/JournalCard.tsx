@@ -81,7 +81,6 @@ function JournalEditor({ userId, date, villages, onSaved }: { userId: string; da
 }
 
 function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: string; date: string; villages: VillageInfo[]; loaded: Loaded; onSaved: () => void }) {
-  const [savedAt, setSavedAt] = useState<string | null>(loaded.updatedAt);
   const auto = useAutosave<Fields>({
     userId, kind: "journal", docKey: date, snapshotKey: () => date,
     initial: { fields: loaded.fields, id: loaded.rev === null ? null : date, rev: loaded.rev },
@@ -103,7 +102,7 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
       if (!data || data.length === 0) return { conflict: true };
       return { ok: true, id: date, rev: data[0].rev as number };
     },
-    onSaved: () => { setSavedAt(new Date().toISOString()); onSaved(); },
+    onSaved,
   });
   const { fields } = auto;
   const isPublic = fields.shared.length > 0;
@@ -119,7 +118,6 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
 
   return (
     <>
-      <p className="font-display">{date === dateKey() ? "오늘" : "지난 일지"} · {dateLabel(date)}{savedAt && <span className="font-body text-xs text-ink-soft"> · 마지막 저장 {timeLabel(savedAt)}</span>}</p>
       <label className="sr-only" htmlFor="journal-body">일지</label>
       <textarea
         id="journal-body" className="input big-write" rows={8} maxLength={20000} value={fields.body}
