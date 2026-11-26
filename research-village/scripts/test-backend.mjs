@@ -540,7 +540,9 @@ await t("마을 건물(도서관 모양)은 마을 장만 바꿀 수 있다", as
   assert.equal(ok(await a.c.from("villages").update({ library_style: "bicheondang" }).eq("id", village).select()).length, 1);
   assert.equal(ok(await m2.c.from("villages").select("library_style").eq("id", village).single()).library_style, "bicheondang");
   // 정해진 모양만
-  assert.ok((await a.c.from("villages").update({ library_style: "castle" }).eq("id", village)).error);
+  assert.ok((await a.c.from("villages").update({ library_style: "palace" }).eq("id", village)).error);
+  assert.equal(ok(await a.c.from("villages").update({ library_style: "castle" }).eq("id", village).select()).length, 1);        // 마법의 성은 고를 수 있다
+  ok(await a.c.from("villages").update({ library_style: "bicheondang" }).eq("id", village));
 });
 
 await t("연구실 좋아하는 책장: 주인만 꽂고, 이웃은 구경, 한 단 14권·모두 40권", async () => {
