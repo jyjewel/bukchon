@@ -37,6 +37,32 @@ export function petSprite(kind: string): Grid | null {
     ], { s: "#f8d3b2", k: INK, h: "#ffffff", p: "#f59aa0", r: "#f06a7a", m: "#c0504d", d: "#e8b48a", w: "#ffffff", g: "#d8dee9" },
     (put) => { put(8, 13, "#e8eef8"); put(5, 13, "#d8dee9"); put(6, 13, "#f2c64e"); put(5, 14, "#e8eef8"); });
   }
+  if (kind === "poodle") {
+    // 갈색 푸들: 앉아서 정면을 보는 모습. 곱슬한 머리 털, 양옆으로 늘어진 풍성한 귀, 연한 주둥이와 까만 코, 목줄, 모은 앞발
+    return sprite([
+      "....lfff",
+      "...fflff",
+      "..fflfff",
+      ".effffll",
+      "eeffffff",
+      "eefffkff",
+      "eefffkff",
+      "eeeffmmn",
+      "eeefmmmm",
+      "eeeffmmm",
+      ".eefffff",
+      "..cccccc",
+      "..fffffl",
+      ".ffffflm",
+      "fffflmmm",
+      "ffffmmmm",
+      "fffffmmm",
+      "ffffffdd",
+      "ffffffdd",
+      ".ffffldd",
+      ".llllldd",
+    ], { f: "#c98a4e", l: "#e2ac72", d: "#9a6330", e: "#b9763d", m: "#f2d6ae", k: INK, n: "#5a3a2a", c: "#3a2a33" }, undefined, 2);
+  }
   return null;
 }
 

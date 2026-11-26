@@ -64,7 +64,7 @@ export default function LibraryHall({ medals, goalTitles, goalCount, residents, 
         const running = Boolean(d?.running);
         const sinceSec = running && d?.since ? (ms - new Date(d.since).getTime()) / 1000 : 0;
         const cycle = sinceSec % SAND_SECONDS;
-        const st: SeatState = !r ? "empty" : running ? (sinceSec >= SAND_SECONDS && cycle < 25 ? "done" : "study") : (r.shown === "library" ? "seated" : "empty");
+        const st: SeatState = !r ? "empty" : running ? (sinceSec >= SAND_SECONDS && cycle < 25 ? "done" : "study") : (d || r.shown === "library" ? "seated" : "empty");
         return { slot, r, st };
       });
       for (const row of [0, 1]) {      // 뒷줄 → 앞줄 순서로 그려서 앞줄 책상이 뒷줄 위에 겹친다

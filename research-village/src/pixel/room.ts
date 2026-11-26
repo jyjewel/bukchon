@@ -513,6 +513,9 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     rect(dog, 12, 2, 2, 2, "#d9a066"); px(dog, 13, 1, "#d9a066");
     px(dog, 2, 4, "#3a2a33"); px(dog, 4, 4, "#3a2a33"); px(dog, 1, 5, "#3a2a33"); px(dog, 2, 6, "#e0605a");
     stamp(g, outline(dog), 103, 69);
+  } else if (st.pet === "poodle") {
+    const poodle = petSprite("poodle");
+    if (poodle) stamp(g, poodle, 100, 76 - poodle.h);
   } else if (st.pet === "squirrel") {
     // 다람쥐: 등에 검은 줄무늬, 크고 복슬한 꼬리, 도토리를 들고 있다
     const q = grid(13, 12);
