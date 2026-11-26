@@ -89,18 +89,17 @@ export function groundGrid(season: Season, cover = 1): Grid {
     const blotch = Math.sin(x * 0.045 + Math.sin(y * 0.05) * 2) + Math.cos(y * 0.06 + Math.sin(x * 0.03) * 2.5);
     let c = blotch > 0.9 ? s.grassL : blotch < -1.1 ? s.grassD : s.grass;
     const n = hash(x, y);
-    if (n > 0.985) c = s.grassD;
-    else if (n < 0.012) c = s.grassL;
+    if (season !== "winter") { if (n > 0.985) c = s.grassD; else if (n < 0.012) c = s.grassL; }   // 겨울엔 잔 무늬를 빼서 바닥을 차분하게
     if (season === "winter" && cover < 1) {
       // 눈이 녹은 곳: 큰 얼룩 모양으로 풀빛 맨땅이 드러나고, 눈 가장자리는 질척한 색
-      const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.14;
+      const pat = (Math.sin(x * 0.06 + Math.sin(y * 0.07) * 2.2) + Math.cos(y * 0.075 + Math.sin(x * 0.045) * 2.4) + 2) / 4 + (hash(x + 7, y + 3) - 0.5) * 0.03;
       const limit = 0.12 + cover * 0.88;
-      if (pat > limit) c = hash(x, y) > 0.8 ? "#8a8c64" : hash(x, y) < 0.15 ? "#b2b48c" : "#9c9f76";
+      if (pat > limit) c = "#a3a67e";
       else if (pat > limit - 0.05) c = "#cdd9d6";
     }
     g.d[y * W + x] = c;
   }
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < (season === "winter" ? 0 : 150); i++) {
     const x = Math.floor(r() * (W - 4)), y = Math.floor(r() * (H - 4)) + 2;
     px(g, x, y, s.grassD); px(g, x + 1, y - 1, s.grassD); px(g, x + 2, y, s.grassD); px(g, x + 1, y, s.grassL);
   }
@@ -153,7 +152,7 @@ export function groundGrid(season: Season, cover = 1): Grid {
   disc(g, POND.x - 12, POND.y + 6, 2.500, 1.300, "#62b866");
 
   // 꽃
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < (season === "winter" ? 0 : 70); i++) {
     const x = Math.floor(r() * (W - 6)) + 3, y = Math.floor(r() * (H - 6)) + 3;
     if (path[y * W + x] || g.d[y * W + x]?.startsWith("#e") && season !== "winter" && g.d[y * W + x] !== s.grass) continue;
     const base = g.d[y * W + x];
