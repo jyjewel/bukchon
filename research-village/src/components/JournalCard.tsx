@@ -12,9 +12,9 @@ function shift(key: string, days: number): string {
   return dateKey(new Date(y, m - 1, d + days));
 }
 
-interface Fields extends Record<string, unknown> { body: string; shared: string[] }
+interface Fields extends Record<string, unknown> { body: string; shared: string[]; friends: boolean }
 interface Loaded { fields: Fields; rev: number | null; updatedAt: string | null }
-interface PastLog { log_date: string; body: string; shared_villages: string[]; updated_at: string }
+interface PastLog { log_date: string; body: string; shared_villages: string[]; shared_friends: boolean; updated_at: string }
 
 /**
  * 오늘의 일지. 날짜를 골라 지난 일지도 볼 수 있다. 입력은 자동 저장되고(이 기기에도 임시 보관),
@@ -26,7 +26,7 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
   const [past, setPast] = useState<PastLog[]>([]);
 
   const loadPast = useCallback(async () => {
-    const { data } = await supabase().from("daily_logs").select("log_date, body, shared_villages, updated_at").eq("user_id", userId).neq("body", "").order("log_date", { ascending: false }).limit(500);
+    const { data } = await supabase().from("daily_logs").select("log_date, body, shared_villages, shared_friends, updated_at").eq("user_id", userId).neq("body", "").order("log_date", { ascending: false }).limit(500);
     if (data) setPast(data as PastLog[]);
   }, [userId]);
   useEffect(() => {
@@ -58,9 +58,9 @@ function JournalEditor({ userId, date, villages, onSaved }: { userId: string; da
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   useEffect(() => {
     let cancelled = false;
-    supabase().from("daily_logs").select("body, rev, shared_villages, updated_at").eq("user_id", userId).eq("log_date", date).maybeSingle().then(({ data, error }) => {
+    supabase().from("daily_logs").select("body, rev, shared_villages, shared_friends, updated_at").eq("user_id", userId).eq("log_date", date).maybeSingle().then(({ data, error }) => {
       if (cancelled || error) return;
-      setLoaded({ fields: { body: data?.body ?? "", shared: (data?.shared_villages as string[]) ?? [] }, rev: data?.rev ?? null, updatedAt: (data?.updated_at as string | undefined) ?? null });
+      setLoaded({ fields: { body: data?.body ?? "", shared: (data?.shared_villages as string[]) ?? [], friends: Boolean(data?.shared_friends) }, rev: data?.rev ?? null, updatedAt: (data?.updated_at as string | undefined) ?? null });
     });
     return () => { cancelled = true; };
   }, [userId, date]);
@@ -72,20 +72,20 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
   const auto = useAutosave<Fields>({
     userId, kind: "journal", docKey: date, snapshotKey: () => date,
     initial: { fields: loaded.fields, id: loaded.rev === null ? null : date, rev: loaded.rev },
-    isEmpty: (f) => f.body.trim() === "" && f.shared.length === 0,
+    isEmpty: (f) => f.body.trim() === "" && f.shared.length === 0 && !f.friends,
     toSnapshot: (f) => ({ title: "", category: "", body: f.body }),
     fetchServer: async () => {
-      const { data } = await supabase().from("daily_logs").select("body, rev, shared_villages").eq("user_id", userId).eq("log_date", date).maybeSingle();
-      return data ? { fields: { body: data.body as string, shared: data.shared_villages as string[] }, rev: data.rev as number } : null;
+      const { data } = await supabase().from("daily_logs").select("body, rev, shared_villages, shared_friends").eq("user_id", userId).eq("log_date", date).maybeSingle();
+      return data ? { fields: { body: data.body as string, shared: data.shared_villages as string[], friends: Boolean(data.shared_friends) }, rev: data.rev as number } : null;
     },
     persist: async (f, _id, rev): Promise<PersistResult> => {
       const sb = supabase();
       if (rev === null) {
-        const { data, error } = await sb.from("daily_logs").insert({ user_id: userId, log_date: date, body: f.body, shared_villages: f.shared }).select("rev").single();
+        const { data, error } = await sb.from("daily_logs").insert({ user_id: userId, log_date: date, body: f.body, shared_villages: f.shared, shared_friends: f.friends }).select("rev").single();
         if (error) return error.code === "23505" ? { conflict: true } : { error: error.message };
         return { ok: true, id: date, rev: data.rev as number };
       }
-      const { data, error } = await sb.from("daily_logs").update({ body: f.body, shared_villages: f.shared }).eq("user_id", userId).eq("log_date", date).eq("rev", rev).select("rev");
+      const { data, error } = await sb.from("daily_logs").update({ body: f.body, shared_villages: f.shared, shared_friends: f.friends }).eq("user_id", userId).eq("log_date", date).eq("rev", rev).select("rev");
       if (error) return { error: error.message };
       if (!data || data.length === 0) return { conflict: true };
       return { ok: true, id: date, rev: data[0].rev as number };
@@ -93,11 +93,12 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
     onSaved,
   });
   const { fields } = auto;
-  const isPublic = fields.shared.length > 0;
+  const isPublic = fields.shared.length > 0 || fields.friends;
   const setPublic = (on: boolean) => {
-    if (!on) return auto.set({ shared: [] });
-    if (!window.confirm("공개하면 선택한 마을 주민이 이 일지를 읽을 수 있어요. 공개한 뒤에 고친 내용도 바로 보여요. 공개할까요?")) return;
+    if (!on) return auto.set({ shared: [], friends: false });
+    if (!window.confirm("공개하면 선택한 마을 주민과 친구가 이 일지를 읽을 수 있어요. 공개한 뒤에 고친 내용도 바로 보여요. 공개할까요?")) return;
     if (villages.length) auto.set({ shared: [villages[0].id] });
+    else auto.set({ friends: true });
   };
   const toggleVillage = (id: string) => {
     const next = fields.shared.includes(id) ? fields.shared.filter((x) => x !== id) : [...fields.shared, id];
@@ -119,15 +120,18 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
           <legend className="label">공개 범위</legend>
           <div className="flex flex-wrap items-center gap-1.5">
             <button type="button" aria-pressed={!isPublic} className={`btn btn-sm ${!isPublic ? "btn-primary" : ""}`} onClick={() => setPublic(false)}>나만 보기</button>
-            <button type="button" aria-pressed={isPublic} className={`btn btn-sm ${isPublic ? "btn-primary" : ""}`} onClick={() => !isPublic && setPublic(true)}>마을 주민에게 공개</button>
+            <button type="button" aria-pressed={isPublic} className={`btn btn-sm ${isPublic ? "btn-primary" : ""}`} onClick={() => !isPublic && setPublic(true)}>공개</button>
           </div>
-          {isPublic && villages.length > 1 && (
-            <div className="mt-1 flex flex-wrap gap-1.5" role="group" aria-label="공개할 마을">
+          {isPublic && (
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1" role="group" aria-label="공개할 대상">
               {villages.map((v) => (
                 <label key={v.id} className="flex items-center gap-1 text-xs">
                   <input type="checkbox" checked={fields.shared.includes(v.id)} onChange={() => toggleVillage(v.id)} /> {v.name}
                 </label>
               ))}
+              <label className="flex items-center gap-1 text-xs">
+                <input type="checkbox" checked={fields.friends} onChange={() => auto.set({ friends: !fields.friends })} /> 친구
+              </label>
             </div>
           )}
         </fieldset>
