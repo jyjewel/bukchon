@@ -933,7 +933,9 @@ await t("공부 시계 재생/일시정지: 이미 그 상태면 다시 눌러�
   assert.equal(ok(await m2.c.rpc("desk_set", { p_village: village, p_run: true })).running, true);        // 이미 재는 중에 재생을 또 눌러도 멈추지 않는다
   const since2 = ok(await m1.c.rpc("library_desks", { p_village: village })).find((r) => r.user_id === m2.id)?.since;
   assert.equal(since1, since2);
+  assert.equal(ok(await m2.c.from("research_status").select("status").eq("village_id", village).eq("user_id", m2.id).single()).status, "library");   // 앉아 있다
   assert.equal(ok(await m2.c.rpc("desk_set", { p_village: village, p_run: false })).running, false);
+  assert.notEqual(ok(await m2.c.from("research_status").select("status").eq("village_id", village).eq("user_id", m2.id).single()).status, "library");   // 일시정지하면 자리에서 일어난다
   assert.equal(ok(await m2.c.rpc("desk_set", { p_village: village, p_run: false })).running, false);       // 멈춘 걸 또 멈춰도 그대로
   assert.match((await outside[0].c.rpc("desk_set", { p_village: village, p_run: true })).error?.message ?? "", /not_member/);
 });
