@@ -53,12 +53,6 @@ export function useNotifications(userId: string, onNew: (n: AppNotification) => 
     },
     [],
   );
-  /** 읽은 알림만 지운다(안 읽은 알림은 못 지운다) */
-  const removeRead = useCallback(async (ids: string[]) => {
-    if (!ids.length) return;
-    setList((prev) => prev.filter((n) => !(ids.includes(n.id) && n.read_at)));
-    await supabase().from("notifications").delete().in("id", ids).not("read_at", "is", null);
-  }, []);
   const unread = list.filter((n) => !n.read_at).length;
-  return { list, names, unread, markRead, removeRead, reload: load };
+  return { list, names, unread, markRead, reload: load };
 }
