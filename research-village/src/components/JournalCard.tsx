@@ -53,7 +53,7 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
   );
 }
 
-/** 달력: 일지를 쓴 날은 색이 칠해지고(공개한 날은 파란 점), 날짜를 누르면 그날 일지가 열린다 */
+/** 달력: 일지를 쓴 날은 색이 칠해지고, 날짜를 누르면 그날 일지가 열린다 */
 function JournalCalendar({ today, selected, logs, onPick }: { today: string; selected: string; logs: PastLog[]; onPick: (d: string) => void }) {
   const [month, setMonth] = useState(selected.slice(0, 7));
   const [y, m] = month.split("-").map(Number);
@@ -77,14 +77,13 @@ function JournalCalendar({ today, selected, logs, onPick }: { today: string; sel
           const log = byDate.get(d), future = d > today, on = d === selected;
           return (
             <button key={d} type="button" disabled={future} onClick={() => onPick(d)} aria-label={`${m}월 ${Number(d.slice(8))}일${log ? " 일지 있음" : ""}${log && log.shared_villages.length ? " (공개)" : ""}`} aria-pressed={on}
-              className={`relative h-9 rounded-md border text-sm ${on ? "border-[#3a2a33] bg-[#ffe07a] font-display" : log ? "border-[#e0c98a] bg-[#fff3c4]" : "border-transparent"} ${d === today && !on ? "ring-1 ring-[#e07a8a]" : ""} ${future ? "opacity-30" : ""}`}>
+              className={`h-9 rounded-md border text-sm ${on ? "border-[#3a2a33] bg-[#ffe07a] font-display" : log ? "border-[#e0c98a] bg-[#fff3c4]" : "border-transparent"} ${d === today && !on ? "ring-1 ring-[#e07a8a]" : ""} ${future ? "opacity-30" : ""}`}>
               {Number(d.slice(8))}
-              {log && log.shared_villages.length > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#5f8fd6]" />}
             </button>
           );
         })}
       </div>
-      <p className="mt-1 text-xs text-ink-soft">색이 칠해진 날은 일지를 쓴 날이에요. 파란 점은 이웃에게 공개한 날이에요.</p>
+      <p className="mt-1 text-xs text-ink-soft">색이 칠해진 날은 일지를 쓴 날이에요.</p>
     </div>
   );
 }
@@ -166,6 +165,7 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
             </div>
           )}
           {isPublic && villages.length === 1 && <p className="mt-1 text-xs text-ink-soft">{villages[0].name} 주민이 읽을 수 있어요.</p>}
+          {isPublic && villages.length > 1 && <p className="mt-1 text-xs text-ink-soft">{fields.shared.length ? `${villages.filter((v) => fields.shared.includes(v.id)).map((v) => v.name).join(", ")} 주민이 읽을 수 있어요.` : "공개할 마을을 골라 주세요."}</p>}
         </fieldset>
       </div>
     </>
