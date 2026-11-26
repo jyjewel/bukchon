@@ -81,7 +81,7 @@ export default function PublicJournal({
             const cs = comments.filter((c) => c.log_date === l.log_date);
             return (
               <li key={l.log_date}>
-                <div className="px-box p-2" style={{ background: "#fff8e4", ["--bd" as string]: "#8a8fa3" }}>
+                <div className="px-box p-2" style={{ background: "#ffffff", ["--bd" as string]: "#8a8fa3" }}>
                   <p className="font-display text-sm">{dateLabel(l.log_date)} <span className="font-body text-xs text-ink-soft">· {timeLabel(l.updated_at)} 올림{cs.length ? ` · 댓글 ${cs.length}` : ""}</span></p>
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{l.body}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="일지 반응">
