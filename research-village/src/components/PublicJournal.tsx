@@ -89,9 +89,9 @@ export default function PublicJournal({
                       const n = rs.filter((x) => x.emoji === r.id).length;
                       const mine = rs.some((x) => x.emoji === r.id && x.user_id === myId);
                       return (
-                        <button key={r.id} type="button" aria-pressed={mine} aria-label={`${r.label}${n > 0 ? ` ${n}` : ""}`} className={`btn btn-sm inline-flex items-center gap-1 ${mine ? "btn-primary" : ""}`}
+                        <button key={r.id} type="button" aria-pressed={mine} aria-label={`${r.label}${n > 0 ? ` ${n}` : ""}`} className={`btn btn-sm !min-h-[22px] !px-1.5 inline-flex items-center gap-1 ${mine ? "btn-primary" : ""}`}
                           title={`${r.label}${rs.filter((x) => x.emoji === r.id).length ? ` · ${rs.filter((x) => x.emoji === r.id).map((x) => names[x.user_id] ?? "").filter(Boolean).join(", ")}` : ""}`} onClick={() => void react(l.log_date, r.id)}>
-                          <PixelIcon name={r.icon} scale={2} />{n > 0 && <span className="font-display text-xs">{n}</span>}
+                          <PixelIcon name={r.icon} scale={1.5} />{n > 0 && <span className="font-display text-xs">{n}</span>}
                         </button>
                       );
                     })}
