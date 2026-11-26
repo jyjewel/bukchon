@@ -22,7 +22,7 @@ export default function StudyClockPanel({ desk, seconds, onTurn }: { desk: Desk 
             </button>
           </div>
         </div>
-        <p className="text-xs text-ink-soft">시간은 한국 날짜 기준으로 날마다 0부터 다시 시작해요.</p>
+        <p className="text-xs text-ink-soft">시간은 오전 6시에 0부터 다시 시작해요.</p>
       </div>
     </Window>
   );
