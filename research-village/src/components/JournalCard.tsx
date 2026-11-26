@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { dateKey, dateLabel } from "@/lib/time";
+import { dateKey, dateLabel, timeLabel } from "@/lib/time";
 import { useAutosave, type PersistResult } from "@/hooks/useAutosave";
 import type { VillageInfo } from "@/lib/types";
 import { DocTools, SaveStatusBar } from "./DocTools";
@@ -12,8 +12,8 @@ function shift(key: string, days: number): string {
 }
 
 interface Fields extends Record<string, unknown> { body: string; shared: string[] }
-interface Loaded { fields: Fields; rev: number | null }
-interface PastLog { log_date: string; body: string; shared_villages: string[] }
+interface Loaded { fields: Fields; rev: number | null; updatedAt: string | null }
+interface PastLog { log_date: string; body: string; shared_villages: string[]; updated_at: string }
 
 /**
  * 오늘의 일지. 날짜를 골라 지난 일지도 볼 수 있다. 입력은 자동 저장되고(이 기기에도 임시 보관),
@@ -25,7 +25,7 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
   const [past, setPast] = useState<PastLog[]>([]);
 
   const loadPast = useCallback(async () => {
-    const { data } = await supabase().from("daily_logs").select("log_date, body, shared_villages").eq("user_id", userId).neq("body", "").order("log_date", { ascending: false }).limit(500);
+    const { data } = await supabase().from("daily_logs").select("log_date, body, shared_villages, updated_at").eq("user_id", userId).neq("body", "").order("log_date", { ascending: false }).limit(500);
     if (data) setPast(data as PastLog[]);
   }, [userId]);
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function JournalCard({ userId, villages, initialDate }: { userId:
             {past.map((l) => (
               <li key={l.log_date}>
                 <button type="button" className={`card w-[calc(100%-6px)] px-2 py-1 text-left text-xs ${l.log_date === date ? "card-on" : ""}`} onClick={() => setDate(l.log_date)}>
-                  <span className="font-display">{l.log_date} {dateLabel(l.log_date).split(" ").pop()}</span>
+                  <span className="font-display">{l.log_date} {dateLabel(l.log_date).split(" ").pop()} {timeLabel(l.updated_at)}</span>
                   {l.shared_villages.length > 0 && <span className="chip ml-1">공개</span>}
                   {" · "}<span className="text-ink-soft">{l.body.replace(/\s+/g, " ").slice(0, 40)}</span>
                 </button>
@@ -70,9 +70,9 @@ function JournalEditor({ userId, date, villages, onSaved }: { userId: string; da
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   useEffect(() => {
     let cancelled = false;
-    supabase().from("daily_logs").select("body, rev, shared_villages").eq("user_id", userId).eq("log_date", date).maybeSingle().then(({ data, error }) => {
+    supabase().from("daily_logs").select("body, rev, shared_villages, updated_at").eq("user_id", userId).eq("log_date", date).maybeSingle().then(({ data, error }) => {
       if (cancelled || error) return;
-      setLoaded({ fields: { body: data?.body ?? "", shared: (data?.shared_villages as string[]) ?? [] }, rev: data?.rev ?? null });
+      setLoaded({ fields: { body: data?.body ?? "", shared: (data?.shared_villages as string[]) ?? [] }, rev: data?.rev ?? null, updatedAt: (data?.updated_at as string | undefined) ?? null });
     });
     return () => { cancelled = true; };
   }, [userId, date]);
@@ -81,6 +81,7 @@ function JournalEditor({ userId, date, villages, onSaved }: { userId: string; da
 }
 
 function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: string; date: string; villages: VillageInfo[]; loaded: Loaded; onSaved: () => void }) {
+  const [savedAt, setSavedAt] = useState<string | null>(loaded.updatedAt);
   const auto = useAutosave<Fields>({
     userId, kind: "journal", docKey: date, snapshotKey: () => date,
     initial: { fields: loaded.fields, id: loaded.rev === null ? null : date, rev: loaded.rev },
@@ -102,7 +103,7 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
       if (!data || data.length === 0) return { conflict: true };
       return { ok: true, id: date, rev: data[0].rev as number };
     },
-    onSaved,
+    onSaved: () => { setSavedAt(new Date().toISOString()); onSaved(); },
   });
   const { fields } = auto;
   const isPublic = fields.shared.length > 0;
@@ -118,7 +119,7 @@ function JournalForm({ userId, date, villages, loaded, onSaved }: { userId: stri
 
   return (
     <>
-      <p className="font-display">{date === dateKey() ? "오늘" : "지난 일지"} · {dateLabel(date)}</p>
+      <p className="font-display">{date === dateKey() ? "오늘" : "지난 일지"} · {dateLabel(date)}{savedAt && <span className="font-body text-xs text-ink-soft"> · 마지막 저장 {timeLabel(savedAt)}</span>}</p>
       <label className="sr-only" htmlFor="journal-body">일지</label>
       <textarea
         id="journal-body" className="input big-write" rows={8} maxLength={20000} value={fields.body}
