@@ -18,6 +18,7 @@ import RoomCanvas from "./RoomCanvas";
 import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
 import WindowColumn from "./WindowColumn";
+import NameTags from "./NameTags";
 import SnackBox from "./SnackBox";
 import PortalDialog from "./LabPortal";
 import { labTitle } from "@/lib/labName";
@@ -25,13 +26,14 @@ import { SantaCard } from "./ChristmasGift";
 import { useChristmas } from "@/hooks/useChristmas";
 import WelcomeLetter, { LetterDrawer } from "./WelcomeLetter";
 
-export type Section = "journal" | "notes" | "diary" | "boards" | "results" | "shelf" | "archive" | "drawer" | "snacks";
+export type Section = "journal" | "notes" | "diary" | "boards" | "results" | "tags" | "shelf" | "archive" | "drawer" | "snacks";
 const SECTIONS: { id: Section; label: string }[] = [
   { id: "journal", label: "오늘의 일지" },
   { id: "notes", label: "연구노트" },
   { id: "diary", label: "다이어리" },
   { id: "boards", label: "화이트보드" },
   { id: "results", label: "연구 성과" },
+  { id: "tags", label: "학회 명찰" },
   { id: "shelf", label: "좋아하는 책" },
   { id: "archive", label: "찾기 · 내보내기" },
   { id: "drawer", label: "편지 서랍" },
@@ -96,6 +98,7 @@ export default function StudyRoomWork({
         )}
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm btn-xs" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" || section === "results" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
+            {section === "tags" && <NameTags userId={me.user_id} mine />}
             {section === "snacks" && <SnackBox residents={residents} myId={me.user_id} />}
             {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} cards={xmas.rows} onOpenCard={setCardYear} />}
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}

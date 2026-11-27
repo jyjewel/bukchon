@@ -5,6 +5,7 @@ import { errorMessage, supabase } from "@/lib/supabase";
 import { relativeTime } from "@/lib/time";
 import { useNews } from "@/hooks/useNews";
 import type { NewsCategory, Resident } from "@/lib/types";
+import ConferenceHost from "./ConferenceHost";
 import { Modal, Notice } from "./ui";
 
 const deadlineLabel = (d: string) => {
@@ -24,6 +25,8 @@ export default function PlazaNews({
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confCode, setConfCode] = useState("");
+  const [confMsg, setConfMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
 
   const submit = async (e: FormEvent) => {
@@ -39,6 +42,17 @@ export default function PlazaNews({
     setTitle(""); setLink(""); setDeadline(""); setBody("");
     await news.reload();
   };
+  const checkin = async (e: FormEvent) => {
+    e.preventDefault();
+    const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim() });
+    if (error) {
+      const m = error.message;
+      return setConfMsg({ ok: false, text: m.includes("invalid_code") ? "코드가 맞지 않아요. 현장에서 받은 6자리 코드를 다시 확인해 주세요." : m.includes("not_today") ? "아직 열리지 않았거나 지난 학회예요. 행사일과 다음 날까지만 입력할 수 있어요." : errorMessage(error) });
+    }
+    const r = data as { title: string; role: string };
+    setConfCode("");
+    setConfMsg({ ok: true, text: `‘${r.title}’ 참석을 확인했어요! ‘내 연구실 → 학회 명찰’에 명찰이 생겼어요.` });
+  };
   const remove = async (id: string) => {
     if (!window.confirm("이 소식을 지울까요?")) return;
     const { error } = await supabase().from("news_posts").delete().eq("id", id);
@@ -53,6 +67,16 @@ export default function PlazaNews({
           <p className="font-display text-lg">새로운 소식을 알려주세요!</p>
           <p className="mt-1 text-sm">학회·학술대회 공고, 채용공고, 연구비·공모사업, 학술 뉴스… 이웃 연구자에게 도움이 될 소식을 올려 주세요.</p>
         </div>
+
+        <form onSubmit={checkin} className="card space-y-1 p-3" style={{ background: "#f6f2ff" }}>
+          <label className="label" htmlFor="conf-code">학회 참석 확인</label>
+          <div className="flex items-start gap-1">
+            <input id="conf-code" className="input !uppercase" maxLength={6} value={confCode} onChange={(e) => setConfCode(e.target.value)} placeholder="현장에서 받은 6자리 코드" autoComplete="off" />
+            <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 6}>참석 확인</button>
+          </div>
+          {confMsg && <p role={confMsg.ok ? "status" : "alert"} className={`text-sm ${confMsg.ok ? "" : "text-[#c0392b]"}`}>{confMsg.text}</p>}
+          <p className="text-xs text-ink-soft">학회 현장에서 개최자가 알려 주는 코드(또는 QR)로 참석을 남기면 학회 명찰이 생겨요.</p>
+        </form>
 
         <form onSubmit={submit} className="card space-y-2 p-3">
           <div className="flex flex-wrap items-center" role="group" aria-label="소식 종류">
@@ -91,6 +115,7 @@ export default function PlazaNews({
                 <p className="flex flex-wrap items-center gap-1">
                   <span className="chip" style={{ background: c?.color }}>{c?.label}</span>
                   {p.deadline && <span className="chip">마감 {deadlineLabel(p.deadline)}</span>}
+                  {p.event_date && <span className="chip" style={{ background: "#e6ccf7" }}>행사 {deadlineLabel(p.event_date)}</span>}
                   <span className="flex-1" />
                   <span className="text-xs text-ink-soft">{who(p.author_id)} · {relativeTime(p.created_at)}</span>
                 </p>
@@ -100,6 +125,7 @@ export default function PlazaNews({
                   {p.link_url && <a className="text-sm text-[#2f6fd0] underline" href={p.link_url} target="_blank" rel="noopener noreferrer">링크 열기</a>}
                   {(p.author_id === myId || isAdmin) && <button type="button" className="btn btn-sm btn-danger" onClick={() => void remove(p.id)}>지우기</button>}
                 </div>
+                {p.category === "conference" && p.author_id === myId && <ConferenceHost postId={p.id} eventDate={p.event_date} onChanged={() => void news.reload()} />}
               </li>
             );
           })}
