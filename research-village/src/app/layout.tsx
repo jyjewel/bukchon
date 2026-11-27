@@ -11,6 +11,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#f8f4e8",
+  colorScheme: "only light",   // 갤럭시 등에서 브라우저가 웹페이지를 멋대로 어둡게 바꾸지 않게
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

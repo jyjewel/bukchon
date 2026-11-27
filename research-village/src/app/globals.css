@@ -40,7 +40,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: only light;
   background-color: #f8f4e8;   /* 아이폰에서 화면 가장자리가 까맣게 비치는 걸 막는다 */
   font-size: 15px;
   -webkit-text-size-adjust: 100%;   /* 아이폰이 앱·브라우저마다 글자를 제멋대로 키우거나 줄이지 않게 */
