@@ -1,4 +1,5 @@
 "use client";
+import { threadOf } from "@/lib/thread";
 import { speakerName, speakerStyle } from "@/lib/tone";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -106,7 +107,15 @@ export default function PublicJournal({
                   </div>
                   <ul className="mt-2 space-y-1" aria-label="일지 댓글">
                     {cs.filter((c) => !c.reply_to).map((c) => {
-                      const replies = cs.filter((r) => r.reply_to === c.id);
+                      const replies = threadOf(cs, c.id);
+                      const nameOf = (id: string) => names[cs.find((x) => x.id === id)?.author_id ?? ""] ?? "이웃마을 주민";
+                      const replyForm = (parentId: string) => (
+                        <form className="ml-4 mt-1 flex items-start gap-1" onSubmit={(e) => { e.preventDefault(); void sendReply(l.log_date, parentId); }}>
+                          <label className="sr-only" htmlFor={`jr-${parentId}`}>답글</label>
+                          <input id={`jr-${parentId}`} className="input" maxLength={500} autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="답글 쓰기" />
+                          <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!replyText.trim()}>보내기</button>
+                        </form>
+                      );
                       return (
                         <li key={c.id} className="text-sm">
                           <div className="flex items-start gap-2" style={speakerStyle(c.author_id, ownerId, myId)}>
@@ -117,20 +126,18 @@ export default function PublicJournal({
                           {replies.length > 0 && (
                             <ul className="ml-4 mt-1 space-y-1">
                               {replies.map((r) => (
-                                <li key={r.id} className="flex items-start gap-2" style={speakerStyle(r.author_id, ownerId, myId)}>
-                                  <span className="min-w-0 flex-1 break-words">↳ <span className="font-display">{speakerName(r.author_id, myId, names[r.author_id] ?? "이웃마을 주민")}:</span> {r.body} <span className="text-xs text-ink-soft">{relativeTime(r.created_at)}</span></span>
-                                  {(r.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="답글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", r.id); await load(); }}>지우기</button>}
+                                <li key={r.id}>
+                                  <div className="flex items-start gap-2" style={speakerStyle(r.author_id, ownerId, myId)}>
+                                    <span className="min-w-0 flex-1 break-words">↳ <span className="font-display">{speakerName(r.author_id, myId, names[r.author_id] ?? "이웃마을 주민")}:</span> {r.reply_to !== c.id && <span className="text-ink-soft">@{nameOf(r.reply_to!)} </span>}{r.body} <span className="text-xs text-ink-soft">{relativeTime(r.created_at)}</span></span>
+                                    <button type="button" className="text-xs text-ink-soft underline" onClick={() => { setReplyTo(replyTo === r.id ? null : r.id); setReplyText(""); }}>답글</button>
+                                    {(r.author_id === myId || isOwner) && <button type="button" className="text-xs text-ink-soft underline" aria-label="답글 지우기" onClick={async () => { await supabase().from("journal_comments").delete().eq("id", r.id); await load(); }}>지우기</button>}
+                                  </div>
+                                  {replyTo === r.id && replyForm(r.id)}
                                 </li>
                               ))}
                             </ul>
                           )}
-                          {replyTo === c.id && (
-                            <form className="ml-4 mt-1 flex items-start gap-1" onSubmit={(e) => { e.preventDefault(); void sendReply(l.log_date, c.id); }}>
-                              <label className="sr-only" htmlFor={`jr-${c.id}`}>답글</label>
-                              <input id={`jr-${c.id}`} className="input" maxLength={500} autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="답글 쓰기" />
-                              <button type="submit" className="btn btn-sm btn-mint mt-[5px] shrink-0 whitespace-nowrap" disabled={!replyText.trim()}>보내기</button>
-                            </form>
-                          )}
+                          {replyTo === c.id && replyForm(c.id)}
                         </li>
                       );
                     })}

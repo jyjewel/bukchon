@@ -1024,26 +1024,26 @@ await t("친구 링크: 코드로 서로 친구가 되고, 마을이 달라도 �
   assert.ok(!ok(await outside[0].c.rpc("list_friends")).some((f) => f.user_id === a.id));         // 삭제하면 양쪽에서 사라진다
 });
 
-await t("포스트잇 답장: 연구실을 볼 수 있는 사람이 답하고, 원래 쓴 사람에게 알림이 가고, 한 단계만 된다", async () => {
+await t("포스트잇 답장: 연구실을 볼 수 있는 사람이 답하고, 원래 쓴 사람에게 알림이 가고, 답장에도 답장할 수 있다", async () => {
   const pid = ok(await m2.c.from("postits").insert({ owner_id: m1.id, body: "논문 잘 봤어요", color: "#ffe58a" }).select("id").single()).id;
   ok(await m1.c.from("postits").insert({ owner_id: m1.id, body: "고마워요!", color: "#ffe58a", reply_to: pid }));                   // 방 주인이 답장
   const rn = ok(await m2.c.from("notifications").select("kind, summary, room_owner_id").eq("user_id", m2.id).eq("kind", "postit_reply"));
   assert.ok(rn.length >= 1 && rn.some((n) => n.room_owner_id === m1.id));                                                         // 원래 쓴 사람에게 알림
   ok(await m3.c.from("postits").insert({ owner_id: m1.id, body: "저도 궁금해요", color: "#ffe58a", reply_to: pid }));               // 다른 이웃도 답한다
   const rid = ok(await m1.c.from("postits").select("id").eq("reply_to", pid).limit(1))[0].id;
-  assert.ok((await m1.c.from("postits").insert({ owner_id: m1.id, body: "답장에 답장", color: "#ffe58a", reply_to: rid })).error);   // 답장에는 답장 못 함
+  ok(await m1.c.from("postits").insert({ owner_id: m1.id, body: "답장에 답장", color: "#ffe58a", reply_to: rid }));                  // 답장에도 답장할 수 있다
   assert.ok((await m1.c.from("postits").insert({ owner_id: m2.id, body: "다른 방에 답장", color: "#ffe58a", reply_to: pid })).error);   // 다른 연구실의 포스트잇에는 못 함
   assert.ok((await outside[0].c.from("postits").insert({ owner_id: m1.id, body: "남이 답장", color: "#ffe58a", reply_to: pid })).error);   // 볼 수 없는 사람은 못 함
   ok(await m2.c.from("postits").delete().eq("id", pid));                                                                          // 원래 포스트잇을 떼면 답장도 같이 사라진다
   assert.equal(ok(await m1.c.from("postits").select("id").eq("reply_to", pid)).length, 0);
 });
 
-await t("댓글 대댓글: 화이트보드·공개 일지 댓글에 한 단계로 답하고, 다른 글의 댓글이나 답글에는 못 단다", async () => {
+await t("댓글 대댓글: 화이트보드·공개 일지 댓글에 답하고(답글에도 답글 가능), 다른 글의 댓글에는 못 단다", async () => {
   const item = ok(await m1.c.from("whiteboard_items").insert({ body: "대댓글 시험 고민" }).select("id").single()).id;
   const c1 = ok(await m2.c.from("whiteboard_comments").insert({ item_id: item, author_id: m2.id, body: "첫 댓글" }).select("id").single()).id;
   ok(await m1.c.from("whiteboard_comments").insert({ item_id: item, author_id: m1.id, body: "대댓글이에요", reply_to: c1 }));
   const rid = ok(await m1.c.from("whiteboard_comments").select("id").eq("reply_to", c1).limit(1))[0].id;
-  assert.ok((await m3.c.from("whiteboard_comments").insert({ item_id: item, author_id: m3.id, body: "답글에 답글", reply_to: rid })).error);   // 한 단계만
+  ok(await m3.c.from("whiteboard_comments").insert({ item_id: item, author_id: m3.id, body: "답글에 답글", reply_to: rid }));   // 답글에도 답글을 달 수 있다
   const item2 = ok(await m1.c.from("whiteboard_items").insert({ body: "다른 고민" }).select("id").single()).id;
   assert.ok((await m1.c.from("whiteboard_comments").insert({ item_id: item2, author_id: m1.id, body: "엉뚱한 곳", reply_to: c1 })).error);   // 다른 글의 댓글엔 못 단다
   assert.ok(ok(await m2.c.from("notifications").select("kind").eq("user_id", m2.id).eq("kind", "comment")).length >= 1);   // 첫 댓글을 쓴 사람에게 알림
