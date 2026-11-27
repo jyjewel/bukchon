@@ -26,6 +26,7 @@ export default function PlazaNews({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [confCode, setConfCode] = useState("");
+  const [confTalk, setConfTalk] = useState("");
   const [confRole, setConfRole] = useState<"attendee" | "discussant" | "presenter">("attendee");
   const [confMsg, setConfMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
@@ -45,14 +46,14 @@ export default function PlazaNews({
   };
   const checkin = async (e: FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim(), p_role: confRole });
+    const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim(), p_role: confRole, p_talk: confRole === "attendee" ? null : confTalk.trim() || null });
     if (error) {
       const m = error.message;
       return setConfMsg({ ok: false, text: m.includes("invalid_code") ? "암호가 맞지 않아요. 현장에서 들은 암호를 다시 확인해 주세요." : m.includes("not_today") ? "아직 열리지 않았거나 지난 학회예요. 행사일과 다음 날까지만 입력할 수 있어요." : errorMessage(error) });
     }
     const r = data as { title: string; role: string };
-    setConfCode("");
-    setConfMsg({ ok: true, text: `‘${r.title}’ 참석을 확인했어요! ‘내 연구실 → 학회 명찰’에 명찰이 생겼어요.` });
+    setConfCode(""); setConfTalk("");
+    setConfMsg({ ok: true, text: `‘${r.title}’ 참석을 확인했어요! ‘내 연구실 → 뱃지 보관함’에 뱃지가 생겼어요.` });
   };
   const remove = async (id: string) => {
     if (!window.confirm("이 소식을 지울까요?")) return;
@@ -76,12 +77,15 @@ export default function PlazaNews({
               <label key={id} className="flex items-center gap-1"><input type="radio" name="conf-role" checked={confRole === id} onChange={() => setConfRole(id)} /> {label}</label>
             ))}
           </div>
+          {confRole !== "attendee" && (
+            <input className="input" maxLength={150} value={confTalk} onChange={(e) => setConfTalk(e.target.value)} aria-label="발표문 제목" placeholder={confRole === "presenter" ? "발표문 제목 (선택)" : "토론한 발표문 제목 (선택)"} autoComplete="off" />
+          )}
           <div className="flex items-start gap-1">
             <input id="conf-code" className="input" maxLength={20} value={confCode} onChange={(e) => setConfCode(e.target.value)} placeholder="현장에서 들은 암호 (예: 금색코끼리)" autoComplete="off" />
             <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 2}>참석 확인</button>
           </div>
           {confMsg && <p role={confMsg.ok ? "status" : "alert"} className={`text-sm ${confMsg.ok ? "" : "text-[#c0392b]"}`}>{confMsg.text}</p>}
-          <p className="text-xs text-ink-soft">학회 현장에서 게시자가 알려 주는 암호로 참석을 남기면 학회 명찰이 생겨요.</p>
+          <p className="text-xs text-ink-soft">학회 현장에서 게시자가 알려 주는 암호로 참석을 남기면 학회 뱃지가 생겨요.</p>
         </form>
 
         <form onSubmit={submit} className="card space-y-2 p-3">

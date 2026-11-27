@@ -25,6 +25,7 @@ export default function NameTags({ userId, mine = false, title }: { userId: stri
             <span className="min-w-0 flex-1">
               <span className="block break-words font-display">{t.title}</span>
               <span className="text-xs text-ink-soft">{dayLabel(t.event_date)} · {roleLabel(t.role)}</span>
+              {t.talk_title && <span className="block break-words text-sm">“{t.talk_title}”</span>}
             </span>
           </li>
         ))}

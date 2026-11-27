@@ -7,4 +7,4 @@ export const CONF_ROLES: { id: ConfRole; label: string; badge: string }[] = [
   { id: "host", label: "게시자", badge: "자주색 뱃지" },
 ];
 export const roleLabel = (r: string) => CONF_ROLES.find((x) => x.id === r)?.label ?? "참석";
-export interface NameTag { id: string; conference_id: string; title: string; event_date: string; role: ConfRole; checked_at: string }
+export interface NameTag { id: string; conference_id: string; title: string; event_date: string; role: ConfRole; talk_title: string | null; checked_at: string }

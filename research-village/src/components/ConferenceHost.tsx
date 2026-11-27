@@ -5,7 +5,7 @@ import { dateKey } from "@/lib/time";
 import { roleLabel, type ConfRole } from "@/lib/conference";
 import { Notice } from "./ui";
 
-interface Attendee { user_id: string; display_name: string; role: ConfRole; checked_at: string }
+interface Attendee { user_id: string; display_name: string; role: ConfRole; talk_title: string | null; checked_at: string }
 
 /** 학회 게시자 칸: 참석 확인을 켜고, 현장에서 알려 줄 암호와 참석자 명단·역할을 다룬다 */
 export default function ConferenceHost({ postId, eventDate, onChanged }: { postId: string; eventDate: string | null; onChanged: () => void }) {
@@ -53,7 +53,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
           <ul className="space-y-1" aria-label="참석자">
             {people.map((p) => (
               <li key={p.user_id} className="flex items-center gap-2 text-sm">
-                <span className="min-w-0 flex-1 truncate">{p.display_name}</span>
+                <span className="min-w-0 flex-1 break-words">{p.display_name}{p.talk_title && <span className="text-xs text-ink-soft"> · “{p.talk_title}”</span>}</span>
                 <span className="chip shrink-0">{roleLabel(p.role)}</span>
               </li>
             ))}

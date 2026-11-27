@@ -1124,6 +1124,9 @@ await t("학회 명찰: 게시자가 참석 확인을 켜면 현장 코드로 �
   const list = ok(await m1.c.rpc("conference_attendees", { p_post: post }));
   assert.equal(list.length, 3); assert.equal(list[0].role, "host");                                                 // 게시자 + 참석자 둘
   assert.equal(ok(await m2.c.rpc("conference_attendees", { p_post: post })).length, 0);                             // 게시자만 명단을 본다
+  ok(await m2.c.rpc("checkin_conference", { p_code: code, p_role: "presenter", p_talk: "  고려 후기 문집의 편찬  " }));
+  assert.equal(ok(await m2.c.from("conference_attendance").select("talk_title").eq("user_id", m2.id).eq("title", "시험 학회"))[0].talk_title, "고려 후기 문집의 편찬");   // 발표문 제목(앞뒤 공백 제거)
+  assert.match((await m2.c.rpc("checkin_conference", { p_code: code, p_role: "presenter", p_talk: "가".repeat(151) })).error?.message ?? "", /talk_too_long/);
   ok(await m2.c.rpc("checkin_conference", { p_code: code, p_role: "presenter" }));                               // 역할은 참석자가 스스로 고른다(다시 입력하면 바뀐다)
   assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id).eq("title", "시험 학회"))[0].role, "presenter");
   assert.ok((await m2.c.rpc("checkin_conference", { p_code: code, p_role: "host" })).error);                       // 게시자 역할은 고를 수 없다

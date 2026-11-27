@@ -25,6 +25,7 @@ create table public.conference_attendance (
   title text not null,
   event_date date not null,
   role text not null default 'attendee' check (role in ('attendee', 'discussant', 'presenter', 'host')),
+  talk_title text check (talk_title is null or char_length(talk_title) <= 150),
   checked_at timestamptz not null default now(),
   unique (conference_id, user_id)
 );
@@ -75,7 +76,7 @@ $$;
 
 -- 참석자: 현장에서 들은 암호를 입력해 참석을 남긴다(학회 당일과 다음 날까지). 역할(참석·토론·발표)은 본인이 고르고,
 -- 같은 학회는 한 장만 남는다(다시 입력하면 고른 역할만 바뀐다)
-create function public.checkin_conference(p_code text, p_role text default 'attendee') returns jsonb
+create function public.checkin_conference(p_code text, p_role text default 'attendee', p_talk text default null) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare v_uid uuid := public.require_user(); v_today date := (now() at time zone 'Asia/Seoul')::date; c public.conferences; a public.conference_attendance;
 begin
@@ -84,16 +85,19 @@ begin
     where code = regexp_replace(coalesce(p_code, ''), '\s', '', 'g') order by event_date desc limit 1;
   if not found then raise exception 'invalid_code'; end if;
   if v_today < c.event_date or v_today > c.event_date + 1 then raise exception 'not_today'; end if;
-  insert into public.conference_attendance (conference_id, user_id, title, event_date, role) values (c.id, v_uid, c.title, c.event_date, p_role)
-    on conflict (conference_id, user_id) do update set role = excluded.role where public.conference_attendance.role <> 'host';
+  p_talk := nullif(btrim(coalesce(p_talk, '')), '');
+  if p_role = 'attendee' then p_talk := null; end if;                      -- 발표문 제목은 토론·발표일 때만
+  if char_length(coalesce(p_talk, '')) > 150 then raise exception 'talk_too_long'; end if;
+  insert into public.conference_attendance (conference_id, user_id, title, event_date, role, talk_title) values (c.id, v_uid, c.title, c.event_date, p_role, p_talk)
+    on conflict (conference_id, user_id) do update set role = excluded.role, talk_title = excluded.talk_title where public.conference_attendance.role <> 'host';
   select * into a from public.conference_attendance where conference_id = c.id and user_id = v_uid;
-  return jsonb_build_object('title', a.title, 'event_date', a.event_date, 'role', a.role);
+  return jsonb_build_object('title', a.title, 'event_date', a.event_date, 'role', a.role, 'talk_title', a.talk_title);
 end $$;
 
 -- 게시자: 참석자 목록
-create function public.conference_attendees(p_post uuid) returns table (user_id uuid, display_name text, role text, checked_at timestamptz)
+create function public.conference_attendees(p_post uuid) returns table (user_id uuid, display_name text, role text, talk_title text, checked_at timestamptz)
 language sql stable security definer set search_path = '' as $$
-  select a.user_id, p.display_name, a.role, a.checked_at
+  select a.user_id, p.display_name, a.role, a.talk_title, a.checked_at
   from public.news_posts n
   join public.conferences c on c.id = n.conference_id and c.host_id = (select auth.uid())
   join public.conference_attendance a on a.conference_id = c.id
@@ -102,5 +106,5 @@ language sql stable security definer set search_path = '' as $$
   order by (a.role = 'host') desc, a.checked_at;
 $$;
 
-revoke all on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text), public.conference_attendees(uuid) from public, anon;
-grant execute on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text), public.conference_attendees(uuid) to authenticated;
+revoke all on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text, text), public.conference_attendees(uuid) from public, anon;
+grant execute on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text, text), public.conference_attendees(uuid) to authenticated;

@@ -8,7 +8,7 @@ export function useNameTags(userId: string) {
   const [tags, setTags] = useState<NameTag[] | null>(null);
   useEffect(() => {
     let alive = true;
-    supabase().from("conference_attendance").select("id, conference_id, title, event_date, role, checked_at").eq("user_id", userId).order("event_date", { ascending: false }).limit(100)
+    supabase().from("conference_attendance").select("id, conference_id, title, event_date, role, talk_title, checked_at").eq("user_id", userId).order("event_date", { ascending: false }).limit(100)
       .then(({ data }) => { if (alive) setTags((data as NameTag[]) ?? []); });
     return () => { alive = false; };
   }, [userId]);
