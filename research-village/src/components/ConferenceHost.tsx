@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { dateKey } from "@/lib/time";
-import { CONF_ROLES, type ConfRole } from "@/lib/conference";
+import { roleLabel, type ConfRole } from "@/lib/conference";
 import { Notice } from "./ui";
 
 interface Attendee { user_id: string; display_name: string; role: ConfRole; checked_at: string }
@@ -32,12 +32,6 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
     onChanged();
     await load();
   };
-  const setRole = async (userId: string, role: ConfRole) => {
-    setPeople((all) => all.map((p) => (p.user_id === userId ? { ...p, role } : p)));
-    const { error } = await supabase().rpc("set_conference_role", { p_post: postId, p_user: userId, p_role: role });
-    if (error) { setMsg(errorMessage(error)); await load(); }
-  };
-
   return (
     <div className="mt-2 space-y-2 rounded border border-line p-2" style={{ background: "#f6f2ff" }}>
       <p className="font-display text-sm">내가 게시한 학회 · 참석 암호</p>
@@ -60,11 +54,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
             {people.map((p) => (
               <li key={p.user_id} className="flex items-center gap-2 text-sm">
                 <span className="min-w-0 flex-1 truncate">{p.display_name}</span>
-                {p.role === "host" ? <span className="chip">게시자</span> : (
-                  <select className="input !w-auto" aria-label={`${p.display_name}님의 역할`} value={p.role} onChange={(e) => void setRole(p.user_id, e.target.value as ConfRole)}>
-                    {CONF_ROLES.filter((r) => r.id !== "host").map((r) => <option key={r.id} value={r.id}>{r.label}{r.id === "discussant" ? " (은색 뱃지)" : r.id === "presenter" ? " (금색 뱃지)" : ""}</option>)}
-                  </select>
-                )}
+                <span className="chip shrink-0">{roleLabel(p.role)}</span>
               </li>
             ))}
             {people.length <= 1 && <li className="text-xs text-ink-soft">아직 참석 확인한 사람이 없어요.</li>}

@@ -44,7 +44,7 @@ export default function RoomVisit({
         <div id="visit-results" className="order-3"><Window title={`${name}님의 연구 성과`} tone="lilac">
           <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} only="shelf" />
         </Window></div>
-        <div className="order-3"><NameTags userId={owner.user_id} title={`${name}님의 학회 명찰`} /></div>
+        <div className="order-3"><NameTags userId={owner.user_id} name={name} title={`${name}님의 학회 명찰`} /></div>
         </div>
         <div className="contents lg:block lg:space-y-5">
           <div id="visit-board" className="order-2"><Window title="구경하고 남기기" tone="sky">

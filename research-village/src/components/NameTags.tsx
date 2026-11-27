@@ -6,10 +6,11 @@ import { badgeGrid } from "@/pixel/badges";
 import PixelArt from "./PixelArt";
 import { Window } from "./ui";
 
+const STRIPE: Record<string, string> = { attendee: "#dfe3ea", discussant: "#aeb6c4", presenter: "#f2c744", host: "#a86fd6" };   // 명찰 아래 띠: 역할별 색
 const dayLabel = (d: string) => { const [y, m, day] = d.split("-").map(Number); return `${y}.${String(m).padStart(2, "0")}.${String(day).padStart(2, "0")}`; };
 
 /** 학회 명찰: 참석한 학회마다 날짜와 학회 이름이 적힌 명찰과 역할 뱃지가 붙는다 */
-export default function NameTags({ userId, mine = false, title }: { userId: string; mine?: boolean; title?: string }) {
+export default function NameTags({ userId, name, mine = false, title }: { userId: string; name: string; mine?: boolean; title?: string }) {
   const [tags, setTags] = useState<NameTag[] | null>(null);
   const arts = useMemo(() => Object.fromEntries(CONF_ROLES.map((r) => [r.id, badgeGrid(r.id)])), []);
   useEffect(() => {
@@ -22,16 +23,22 @@ export default function NameTags({ userId, mine = false, title }: { userId: stri
   if (tags.length === 0 && !mine) return null;   // 남의 연구실에서는 명찰이 있을 때만 보인다
   const body = (
     <section aria-label="학회 명찰" className="space-y-2 p-3">
-      {mine && <p className="text-sm text-ink-soft">학회 현장에서 들은 참석 암호를 마을 게시판에 입력하면 그 학회의 명찰이 생겨요. 토론자는 은색, 발표자는 금색, 게시자는 자주색 뱃지가 달려요.</p>}
+      {mine && <p className="text-sm text-ink-soft">학회 현장에서 들은 참석 암호를 마을 게시판에 입력하면 그 학회의 명찰이 생겨요. 참석자는 흰색, 토론자는 은색, 발표자는 금색, 게시자는 자주색 뱃지가 달려요.</p>}
       {tags.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 명찰이 없어요.</p>}
-      <ul className="space-y-2">
+      <ul className="space-y-2.5">
         {tags.map((t) => (
-          <li key={t.id} className="card flex items-center gap-3 px-3 py-2" style={{ background: "#fffdf6" }}>
-            <span className="flex w-12 shrink-0 justify-center"><PixelArt art={arts[t.role]} scale={3} label={`${roleLabel(t.role)} 뱃지`} /></span>
-            <span className="min-w-0 flex-1">
-              <span className="block break-words font-display">{t.title}</span>
-              <span className="text-xs text-ink-soft">{dayLabel(t.event_date)} · {roleLabel(t.role)}</span>
-            </span>
+          <li key={t.id} className="relative overflow-hidden rounded-lg border border-[#b8bec9] pl-7 pr-3 pt-2 shadow-[0_2px_0_rgba(58,42,51,0.25)]"
+            style={{ background: "linear-gradient(135deg, #ffffff 0%, #f1f3f7 60%, #ffffff 100%)", borderBottom: `6px solid ${STRIPE[t.role] ?? STRIPE.attendee}`, paddingBottom: 6 }}>
+            <span aria-hidden className="absolute left-2 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border border-[#b8bec9] bg-[#e6e8ee]" />
+            <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0))" }} />
+            <div className="relative flex items-center gap-3">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-display text-xl leading-tight">{name}</span>
+                <span className="block break-words text-xs text-ink-soft">{t.title}</span>
+                <span className="text-[11px] text-ink-soft">{dayLabel(t.event_date)} · {roleLabel(t.role)}</span>
+              </span>
+              <span className="flex shrink-0 justify-center"><PixelArt art={arts[t.role]} scale={3} label={`${roleLabel(t.role)} 뱃지`} /></span>
+            </div>
           </li>
         ))}
       </ul>

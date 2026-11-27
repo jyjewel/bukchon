@@ -1,5 +1,5 @@
 -- 학회 참석 명찰: 마을 게시판의 학회 소식에 '참석 확인'을 켜면, 게시자만 아는 현장 암호(금색코끼리 같은)를 입력한 사람에게 학회 명찰이 생긴다.
--- 역할: 참석자 · 토론자(은) · 발표자(금) · 게시자(자주). 게시자가 참석자의 역할을 정한다.
+-- 역할: 참석자(흰색) · 토론자(은) · 발표자(금) · 게시자(자주). 참석자가 암호를 입력할 때 참석/토론/발표 중 스스로 고른다.
 -- 같은 사람이 같은 학회(같은 제목·같은 행사일)를 여러 마을에 올려도 학회는 하나로 합쳐져, 암호도 명찰도 하나다.
 alter table public.news_posts add column event_date date;
 
@@ -73,17 +73,19 @@ language sql stable security definer set search_path = '' as $$
   where n.id = p_post and c.host_id = (select auth.uid());
 $$;
 
--- 참석자: 현장에서 들은 암호를 입력해 참석을 남긴다(학회 당일과 다음 날까지). 같은 학회는 한 번만 남는다
-create function public.checkin_conference(p_code text) returns jsonb
+-- 참석자: 현장에서 들은 암호를 입력해 참석을 남긴다(학회 당일과 다음 날까지). 역할(참석·토론·발표)은 본인이 고르고,
+-- 같은 학회는 한 장만 남는다(다시 입력하면 고른 역할만 바뀐다)
+create function public.checkin_conference(p_code text, p_role text default 'attendee') returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare v_uid uuid := public.require_user(); v_today date := (now() at time zone 'Asia/Seoul')::date; c public.conferences; a public.conference_attendance;
 begin
+  if p_role not in ('attendee', 'discussant', 'presenter') then raise exception 'invalid_role'; end if;
   select * into c from public.conferences
     where code = regexp_replace(coalesce(p_code, ''), '\s', '', 'g') order by event_date desc limit 1;
   if not found then raise exception 'invalid_code'; end if;
   if v_today < c.event_date or v_today > c.event_date + 1 then raise exception 'not_today'; end if;
-  insert into public.conference_attendance (conference_id, user_id, title, event_date, role) values (c.id, v_uid, c.title, c.event_date, 'attendee')
-    on conflict (conference_id, user_id) do nothing;
+  insert into public.conference_attendance (conference_id, user_id, title, event_date, role) values (c.id, v_uid, c.title, c.event_date, p_role)
+    on conflict (conference_id, user_id) do update set role = excluded.role where public.conference_attendance.role <> 'host';
   select * into a from public.conference_attendance where conference_id = c.id and user_id = v_uid;
   return jsonb_build_object('title', a.title, 'event_date', a.event_date, 'role', a.role);
 end $$;
@@ -100,17 +102,5 @@ language sql stable security definer set search_path = '' as $$
   order by (a.role = 'host') desc, a.checked_at;
 $$;
 
--- 게시자: 참석자를 토론자·발표자로 정한다(게시자 본인 역할은 바꾸지 못한다)
-create function public.set_conference_role(p_post uuid, p_user uuid, p_role text) returns void
-language plpgsql security definer set search_path = '' as $$
-declare v_uid uuid := public.require_user(); v_conf uuid;
-begin
-  if p_role not in ('attendee', 'discussant', 'presenter') then raise exception 'invalid_role'; end if;
-  select c.id into v_conf from public.news_posts n join public.conferences c on c.id = n.conference_id where n.id = p_post and c.host_id = v_uid;
-  if v_conf is null then raise exception 'not_found'; end if;
-  update public.conference_attendance set role = p_role where conference_id = v_conf and user_id = p_user and role <> 'host';
-  if not found then raise exception 'not_found'; end if;
-end $$;
-
-revoke all on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text), public.conference_attendees(uuid), public.set_conference_role(uuid, uuid, text) from public, anon;
-grant execute on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text), public.conference_attendees(uuid), public.set_conference_role(uuid, uuid, text) to authenticated;
+revoke all on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text), public.conference_attendees(uuid) from public, anon;
+grant execute on function public.enable_conference_checkin(uuid, date), public.conference_code(uuid), public.checkin_conference(text, text), public.conference_attendees(uuid) to authenticated;

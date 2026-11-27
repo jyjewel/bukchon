@@ -1124,11 +1124,11 @@ await t("학회 명찰: 게시자가 참석 확인을 켜면 현장 코드로 �
   const list = ok(await m1.c.rpc("conference_attendees", { p_post: post }));
   assert.equal(list.length, 3); assert.equal(list[0].role, "host");                                                 // 게시자 + 참석자 둘
   assert.equal(ok(await m2.c.rpc("conference_attendees", { p_post: post })).length, 0);                             // 게시자만 명단을 본다
-  assert.ok((await m2.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "presenter" })).error);   // 스스로 발표자가 될 수 없다
-  ok(await m1.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "presenter" }));
+  ok(await m2.c.rpc("checkin_conference", { p_code: code, p_role: "presenter" }));                               // 역할은 참석자가 스스로 고른다(다시 입력하면 바뀐다)
   assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id).eq("title", "시험 학회"))[0].role, "presenter");
-  assert.ok((await m1.c.rpc("set_conference_role", { p_post: post, p_user: m1.id, p_role: "attendee" })).error);     // 게시자 역할은 못 바꾼다
-  assert.ok((await m1.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "host" })).error);
+  assert.ok((await m2.c.rpc("checkin_conference", { p_code: code, p_role: "host" })).error);                       // 게시자 역할은 고를 수 없다
+  ok(await m1.c.rpc("checkin_conference", { p_code: code, p_role: "attendee" }));                                  // 게시자가 자기 학회에 입력해도 게시자 뱃지는 그대로
+  assert.equal(ok(await m1.c.from("conference_attendance").select("role").eq("user_id", m1.id).eq("title", "시험 학회"))[0].role, "host");
   assert.ok((await m2.c.from("conference_attendance").update({ role: "host" }).eq("user_id", m2.id)).error);          // 직접 고칠 수 없다
   assert.ok(ok(await m3.c.from("conference_attendance").select("id").eq("user_id", m2.id)).length === 1);          // 같은 마을 이웃은 명찰을 본다
   assert.equal(ok(await m1.c.from("news_posts").select("id").eq("id", post)).length, 1);
@@ -1145,12 +1145,11 @@ await t("학회 명찰: 같은 학회를 여러 마을에 올려도 암호·명�
   const c2 = ok(await m1.c.rpc("enable_conference_checkin", { p_post: p2, p_date: kst }));
   assert.equal(c1, c2);                                                                                           // 같은 암호
   ok(await m2.c.rpc("checkin_conference", { p_code: c1 }));
-  ok(await m2.c.rpc("checkin_conference", { p_code: c2 }));                                                       // 두 번 입력해도
+  ok(await m2.c.rpc("checkin_conference", { p_code: c2, p_role: "discussant" }));                                   // 두 번 입력해도
   assert.equal(ok(await m2.c.from("conference_attendance").select("id").eq("title", "합동 학술대회").eq("user_id", m2.id)).length, 1);   // 명찰은 하나
   assert.equal(ok(await m1.c.from("conference_attendance").select("id").eq("title", "합동 학술대회").eq("user_id", m1.id)).length, 1);   // 게시자 명찰도 하나
   assert.equal(ok(await m1.c.rpc("conference_attendees", { p_post: p2 })).length, 2);                              // 어느 마을 글에서 봐도 같은 명단
-  ok(await m1.c.rpc("set_conference_role", { p_post: p2, p_user: m2.id, p_role: "discussant" }));                  // 한쪽에서 정한 역할은 학회 전체에
-  assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("title", "합동 학술대회").eq("user_id", m2.id))[0].role, "discussant");
+  assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("title", "합동 학술대회").eq("user_id", m2.id))[0].role, "discussant");   // 마지막에 고른 역할
   ok(await m1.c.from("news_posts").delete().eq("id", p1)); ok(await m1.c.from("news_posts").delete().eq("id", p2));
   ok(await m1.c.rpc("leave_village", { p_village: v2 }));
 });
