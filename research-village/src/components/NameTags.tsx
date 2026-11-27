@@ -16,7 +16,6 @@ export default function NameTags({ userId, mine = false, title }: { userId: stri
   if (tags.length === 0 && !mine) return null;   // 남의 연구실에서는 뱃지가 있을 때만 보인다
   const body = (
     <section aria-label="뱃지 보관함" className="space-y-2 p-3">
-      {mine && <p className="text-sm text-ink-soft">학회 현장에서 들은 참석 암호를 마을 게시판에 입력하면 그 학회의 뱃지가 생겨요. 참석은 흰색, 토론은 은색, 발표는 금색, 학회를 연 개최자는 자주색이에요. 연구실의 뱃지 보관함에도 걸려요.</p>}
       {tags.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 뱃지가 없어요.</p>}
       <ul className="space-y-2">
         {tags.map((t) => (
