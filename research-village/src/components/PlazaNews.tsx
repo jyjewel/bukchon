@@ -75,7 +75,7 @@ export default function PlazaNews({
             <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 2}>참석 확인</button>
           </div>
           {confMsg && <p role={confMsg.ok ? "status" : "alert"} className={`text-sm ${confMsg.ok ? "" : "text-[#c0392b]"}`}>{confMsg.text}</p>}
-          <p className="text-xs text-ink-soft">학회 현장에서 개최자가 알려 주는 암호로 참석을 남기면 학회 명찰이 생겨요.</p>
+          <p className="text-xs text-ink-soft">학회 현장에서 게시자가 알려 주는 암호로 참석을 남기면 학회 명찰이 생겨요.</p>
         </form>
 
         <form onSubmit={submit} className="card space-y-2 p-3">

@@ -7,7 +7,7 @@ import { Notice } from "./ui";
 
 interface Attendee { user_id: string; display_name: string; role: ConfRole; checked_at: string }
 
-/** 학회 개최자 칸: 참석 확인을 켜고, 현장에서 보여 줄 코드(QR)와 참석자 명단·역할을 다룬다 */
+/** 학회 게시자 칸: 참석 확인을 켜고, 현장에서 알려 줄 암호와 참석자 명단·역할을 다룬다 */
 export default function ConferenceHost({ postId, eventDate, onChanged }: { postId: string; eventDate: string | null; onChanged: () => void }) {
   const [date, setDate] = useState(eventDate ?? dateKey());
   const [code, setCode] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
 
   return (
     <div className="mt-2 space-y-2 rounded border border-line p-2" style={{ background: "#f6f2ff" }}>
-      <p className="font-display text-sm">내가 연 학회 · 참석 암호</p>
+      <p className="font-display text-sm">내가 게시한 학회 · 참석 암호</p>
       {!code ? (
         <div className="flex flex-wrap items-end gap-2">
           <div>
@@ -48,7 +48,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
             <input id={`cd-${postId}`} type="date" className="input !w-auto" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <button type="button" className="btn btn-sm btn-primary" onClick={() => void enable()}>참석 확인 켜기</button>
-          <p className="w-full text-xs text-ink-soft">켜면 이 학회만의 특별한 암호(예: 금색코끼리)가 생겨요. 암호는 개최자인 나만 볼 수 있고, 참석자는 행사일과 다음 날까지 암호를 입력할 수 있어요.</p>
+          <p className="w-full text-xs text-ink-soft">켜면 이 학회만의 특별한 암호(예: 금색코끼리)가 생겨요. 암호는 게시자인 나만 볼 수 있고, 참석자는 행사일과 다음 날까지 암호를 입력할 수 있어요. 같은 제목·같은 행사일로 여러 마을에 올리면 암호와 명찰은 하나로 합쳐져요.</p>
         </div>
       ) : (
         <>
@@ -60,7 +60,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
             {people.map((p) => (
               <li key={p.user_id} className="flex items-center gap-2 text-sm">
                 <span className="min-w-0 flex-1 truncate">{p.display_name}</span>
-                {p.role === "host" ? <span className="chip">개최</span> : (
+                {p.role === "host" ? <span className="chip">게시자</span> : (
                   <select className="input !w-auto" aria-label={`${p.display_name}님의 역할`} value={p.role} onChange={(e) => void setRole(p.user_id, e.target.value as ConfRole)}>
                     {CONF_ROLES.filter((r) => r.id !== "host").map((r) => <option key={r.id} value={r.id}>{r.label}{r.id === "discussant" ? " (은색 뱃지)" : r.id === "presenter" ? " (금색 뱃지)" : ""}</option>)}
                   </select>

@@ -1106,15 +1106,15 @@ await t("편지 서랍: 운영자 편지는 읽기만 되고, 산타 쪽지는 �
   }
 });
 
-await t("학회 명찰: 개최자가 참석 확인을 켜면 현장 코드로 참석이 남고, 코드는 주민에게 안 보이며, 역할은 개최자만 정한다", async () => {
+await t("학회 명찰: 게시자가 참석 확인을 켜면 현장 코드로 참석이 남고, 코드는 주민에게 안 보이며, 역할은 게시자만 정한다", async () => {
   const kst = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
   const post = ok(await m1.c.from("news_posts").insert({ village_id: village, author_id: m1.id, category: "conference", title: "시험 학회", link_url: "https://example.com" }).select("id").single()).id;
-  assert.ok((await m2.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst })).error);                   // 개최자가 아니면 못 켠다
+  assert.ok((await m2.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst })).error);                   // 게시자가 아니면 못 켠다
   const code = ok(await m1.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst }));
   assert.match(code, /^(금색|은색|푸른|붉은|초록|보라|하얀|노란|분홍|주황)[가-힣]+$/);   // 색 + 동물 암호
   assert.equal(ok(await m1.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst })), code);              // 다시 켜도 같은 코드
-  assert.ok((await m2.c.from("conference_codes").select("code")).error);                                           // 코드는 주민이 직접 읽지 못한다
-  assert.equal(ok(await m2.c.rpc("conference_code", { p_post: post })), null);                                      // 개최자만 코드를 받는다
+  assert.ok((await m2.c.from("conferences").select("code")).error);                                                // 암호는 주민이 직접 읽지 못한다
+  assert.equal(ok(await m2.c.rpc("conference_code", { p_post: post })), null);                                      // 게시자만 코드를 받는다
   assert.equal(ok(await m1.c.rpc("conference_code", { p_post: post })), code);
   assert.match((await m2.c.rpc("checkin_conference", { p_code: "없는암호" })).error?.message ?? "", /invalid_code/);
   const got = ok(await m2.c.rpc("checkin_conference", { p_code: code.slice(0, 2) + " " + code.slice(2) }));        // 참석 확인(띄어 써도 된다)
@@ -1122,18 +1122,37 @@ await t("학회 명찰: 개최자가 참석 확인을 켜면 현장 코드로 �
   ok(await outside[0].c.rpc("checkin_conference", { p_code: code }));                                               // 다른 마을 사람도 현장에 있었다면 참석
   assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id)).length, 1);
   const list = ok(await m1.c.rpc("conference_attendees", { p_post: post }));
-  assert.equal(list.length, 3); assert.equal(list[0].role, "host");                                                 // 개최자 + 참석자 둘
-  assert.equal(ok(await m2.c.rpc("conference_attendees", { p_post: post })).length, 0);                             // 개최자만 명단을 본다
+  assert.equal(list.length, 3); assert.equal(list[0].role, "host");                                                 // 게시자 + 참석자 둘
+  assert.equal(ok(await m2.c.rpc("conference_attendees", { p_post: post })).length, 0);                             // 게시자만 명단을 본다
   assert.ok((await m2.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "presenter" })).error);   // 스스로 발표자가 될 수 없다
   ok(await m1.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "presenter" }));
-  assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id).eq("post_id", post))[0].role, "presenter");
-  assert.ok((await m1.c.rpc("set_conference_role", { p_post: post, p_user: m1.id, p_role: "attendee" })).error);     // 개최자 역할은 못 바꾼다
+  assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id).eq("title", "시험 학회"))[0].role, "presenter");
+  assert.ok((await m1.c.rpc("set_conference_role", { p_post: post, p_user: m1.id, p_role: "attendee" })).error);     // 게시자 역할은 못 바꾼다
   assert.ok((await m1.c.rpc("set_conference_role", { p_post: post, p_user: m2.id, p_role: "host" })).error);
   assert.ok((await m2.c.from("conference_attendance").update({ role: "host" }).eq("user_id", m2.id)).error);          // 직접 고칠 수 없다
   assert.ok(ok(await m3.c.from("conference_attendance").select("id").eq("user_id", m2.id)).length === 1);          // 같은 마을 이웃은 명찰을 본다
   assert.equal(ok(await m1.c.from("news_posts").select("id").eq("id", post)).length, 1);
   ok(await m1.c.from("news_posts").delete().eq("id", post));
   assert.equal(ok(await m2.c.from("conference_attendance").select("title").eq("user_id", m2.id)).length, 1);       // 소식을 지워도 명찰은 남는다
+});
+
+await t("학회 명찰: 같은 학회를 여러 마을에 올려도 암호·명찰은 하나다", async () => {
+  const kst = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  const v2 = ok(await m1.c.rpc("create_village", { p_name: "두 번째 방" }));
+  const p1 = ok(await m1.c.from("news_posts").insert({ village_id: village, author_id: m1.id, category: "conference", title: "합동 학술대회" }).select("id").single()).id;
+  const p2 = ok(await m1.c.from("news_posts").insert({ village_id: v2, author_id: m1.id, category: "conference", title: "합동  학술대회" }).select("id").single()).id;   // 띄어쓰기만 달라도 같은 학회
+  const c1 = ok(await m1.c.rpc("enable_conference_checkin", { p_post: p1, p_date: kst }));
+  const c2 = ok(await m1.c.rpc("enable_conference_checkin", { p_post: p2, p_date: kst }));
+  assert.equal(c1, c2);                                                                                           // 같은 암호
+  ok(await m2.c.rpc("checkin_conference", { p_code: c1 }));
+  ok(await m2.c.rpc("checkin_conference", { p_code: c2 }));                                                       // 두 번 입력해도
+  assert.equal(ok(await m2.c.from("conference_attendance").select("id").eq("title", "합동 학술대회").eq("user_id", m2.id)).length, 1);   // 명찰은 하나
+  assert.equal(ok(await m1.c.from("conference_attendance").select("id").eq("title", "합동 학술대회").eq("user_id", m1.id)).length, 1);   // 게시자 명찰도 하나
+  assert.equal(ok(await m1.c.rpc("conference_attendees", { p_post: p2 })).length, 2);                              // 어느 마을 글에서 봐도 같은 명단
+  ok(await m1.c.rpc("set_conference_role", { p_post: p2, p_user: m2.id, p_role: "discussant" }));                  // 한쪽에서 정한 역할은 학회 전체에
+  assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("title", "합동 학술대회").eq("user_id", m2.id))[0].role, "discussant");
+  ok(await m1.c.from("news_posts").delete().eq("id", p1)); ok(await m1.c.from("news_posts").delete().eq("id", p2));
+  ok(await m1.c.rpc("leave_village", { p_village: v2 }));
 });
 
 await t("학회 명찰: 당일과 다음 날이 지나면 참석을 남길 수 없다", async () => {
