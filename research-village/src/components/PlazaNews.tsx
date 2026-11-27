@@ -47,7 +47,7 @@ export default function PlazaNews({
     const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim() });
     if (error) {
       const m = error.message;
-      return setConfMsg({ ok: false, text: m.includes("invalid_code") ? "코드가 맞지 않아요. 현장에서 받은 6자리 코드를 다시 확인해 주세요." : m.includes("not_today") ? "아직 열리지 않았거나 지난 학회예요. 행사일과 다음 날까지만 입력할 수 있어요." : errorMessage(error) });
+      return setConfMsg({ ok: false, text: m.includes("invalid_code") ? "암호가 맞지 않아요. 현장에서 들은 암호를 다시 확인해 주세요." : m.includes("not_today") ? "아직 열리지 않았거나 지난 학회예요. 행사일과 다음 날까지만 입력할 수 있어요." : errorMessage(error) });
     }
     const r = data as { title: string; role: string };
     setConfCode("");
@@ -71,11 +71,11 @@ export default function PlazaNews({
         <form onSubmit={checkin} className="card space-y-1 p-3" style={{ background: "#f6f2ff" }}>
           <label className="label" htmlFor="conf-code">학회 참석 확인</label>
           <div className="flex items-start gap-1">
-            <input id="conf-code" className="input !uppercase" maxLength={6} value={confCode} onChange={(e) => setConfCode(e.target.value)} placeholder="현장에서 받은 6자리 코드" autoComplete="off" />
-            <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 6}>참석 확인</button>
+            <input id="conf-code" className="input" maxLength={20} value={confCode} onChange={(e) => setConfCode(e.target.value)} placeholder="현장에서 들은 암호 (예: 금색코끼리)" autoComplete="off" />
+            <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 2}>참석 확인</button>
           </div>
           {confMsg && <p role={confMsg.ok ? "status" : "alert"} className={`text-sm ${confMsg.ok ? "" : "text-[#c0392b]"}`}>{confMsg.text}</p>}
-          <p className="text-xs text-ink-soft">학회 현장에서 개최자가 알려 주는 코드(또는 QR)로 참석을 남기면 학회 명찰이 생겨요.</p>
+          <p className="text-xs text-ink-soft">학회 현장에서 개최자가 알려 주는 암호로 참석을 남기면 학회 명찰이 생겨요.</p>
         </form>
 
         <form onSubmit={submit} className="card space-y-2 p-3">

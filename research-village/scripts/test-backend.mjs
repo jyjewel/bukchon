@@ -1111,13 +1111,13 @@ await t("학회 명찰: 개최자가 참석 확인을 켜면 현장 코드로 �
   const post = ok(await m1.c.from("news_posts").insert({ village_id: village, author_id: m1.id, category: "conference", title: "시험 학회", link_url: "https://example.com" }).select("id").single()).id;
   assert.ok((await m2.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst })).error);                   // 개최자가 아니면 못 켠다
   const code = ok(await m1.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst }));
-  assert.match(code, /^[A-Z2-9]{6}$/);
+  assert.match(code, /^(금색|은색|푸른|붉은|초록|보라|하얀|노란|분홍|주황)[가-힣]+$/);   // 색 + 동물 암호
   assert.equal(ok(await m1.c.rpc("enable_conference_checkin", { p_post: post, p_date: kst })), code);              // 다시 켜도 같은 코드
   assert.ok((await m2.c.from("conference_codes").select("code")).error);                                           // 코드는 주민이 직접 읽지 못한다
   assert.equal(ok(await m2.c.rpc("conference_code", { p_post: post })), null);                                      // 개최자만 코드를 받는다
   assert.equal(ok(await m1.c.rpc("conference_code", { p_post: post })), code);
-  assert.match((await m2.c.rpc("checkin_conference", { p_code: "ZZZZZZ" })).error?.message ?? "", /invalid_code/);
-  const got = ok(await m2.c.rpc("checkin_conference", { p_code: code.toLowerCase() }));                             // 참석 확인(소문자도 된다)
+  assert.match((await m2.c.rpc("checkin_conference", { p_code: "없는암호" })).error?.message ?? "", /invalid_code/);
+  const got = ok(await m2.c.rpc("checkin_conference", { p_code: code.slice(0, 2) + " " + code.slice(2) }));        // 참석 확인(띄어 써도 된다)
   assert.equal(got.role, "attendee"); assert.equal(got.title, "시험 학회");
   ok(await outside[0].c.rpc("checkin_conference", { p_code: code }));                                               // 다른 마을 사람도 현장에 있었다면 참석
   assert.equal(ok(await m2.c.from("conference_attendance").select("role").eq("user_id", m2.id)).length, 1);

@@ -1,9 +1,8 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
+import { useCallback, useEffect, useState } from "react";
 import { errorMessage, supabase } from "@/lib/supabase";
 import { dateKey } from "@/lib/time";
-import { confLink, CONF_ROLES, type ConfRole } from "@/lib/conference";
+import { CONF_ROLES, type ConfRole } from "@/lib/conference";
 import { Notice } from "./ui";
 
 interface Attendee { user_id: string; display_name: string; role: ConfRole; checked_at: string }
@@ -14,7 +13,6 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
   const [code, setCode] = useState<string | null>(null);
   const [people, setPeople] = useState<Attendee[]>([]);
   const [msg, setMsg] = useState("");
-  const qr = useRef<HTMLCanvasElement>(null);
 
   const load = useCallback(async () => {
     const sb = supabase();
@@ -27,10 +25,6 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 처음 한 번 불러온다
     if (eventDate) void load();
   }, [eventDate, load]);
-  useEffect(() => {
-    if (code && qr.current) void QRCode.toCanvas(qr.current, confLink(code), { width: 132, margin: 1, color: { dark: "#3a2a33", light: "#ffffff" } });
-  }, [code]);
-
   const enable = async () => {
     setMsg("");
     const { error } = await supabase().rpc("enable_conference_checkin", { p_post: postId, p_date: date });
@@ -46,7 +40,7 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
 
   return (
     <div className="mt-2 space-y-2 rounded border border-line p-2" style={{ background: "#f6f2ff" }}>
-      <p className="font-display text-sm">내가 연 학회 · 참석 확인</p>
+      <p className="font-display text-sm">내가 연 학회 · 참석 암호</p>
       {!code ? (
         <div className="flex flex-wrap items-end gap-2">
           <div>
@@ -54,16 +48,13 @@ export default function ConferenceHost({ postId, eventDate, onChanged }: { postI
             <input id={`cd-${postId}`} type="date" className="input !w-auto" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <button type="button" className="btn btn-sm btn-primary" onClick={() => void enable()}>참석 확인 켜기</button>
-          <p className="w-full text-xs text-ink-soft">켜면 현장에서 보여 줄 코드와 QR이 생겨요. 참석자는 행사일과 다음 날까지 코드를 입력할 수 있어요.</p>
+          <p className="w-full text-xs text-ink-soft">켜면 이 학회만의 특별한 암호(예: 금색코끼리)가 생겨요. 암호는 개최자인 나만 볼 수 있고, 참석자는 행사일과 다음 날까지 암호를 입력할 수 있어요.</p>
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-3">
-            <canvas ref={qr} width={132} height={132} className="rounded border border-line" style={{ width: 132, height: 132 }} aria-label="참석 확인 QR 코드" />
-            <div className="space-y-1 text-sm">
-              <p>현장 코드: <b className="font-display text-xl tracking-widest">{code}</b></p>
-              <p className="text-xs text-ink-soft">행사일 {eventDate} · 현장에서 이 코드나 QR을 보여 주세요. 참석자는 게시판에서 코드를 입력하거나 QR을 찍어요.</p>
-            </div>
+          <div className="space-y-1 text-sm">
+            <p>참석 암호: <b className="font-display text-2xl tracking-wider">{code}</b></p>
+            <p className="text-xs text-ink-soft">행사일 {eventDate} · 현장에서 참석자에게만 알려 주세요. 참석자는 게시판의 “학회 참석 확인” 칸에 이 암호를 입력해요.</p>
           </div>
           <ul className="space-y-1" aria-label="참석자">
             {people.map((p) => (

@@ -8,4 +8,3 @@ export const CONF_ROLES: { id: ConfRole; label: string; badge: string }[] = [
 ];
 export const roleLabel = (r: string) => CONF_ROLES.find((x) => x.id === r)?.label ?? "참석";
 export interface NameTag { id: string; post_id: string | null; title: string; event_date: string; role: ConfRole; checked_at: string }
-export const confLink = (code: string) => `${typeof window === "undefined" ? "" : window.location.origin + window.location.pathname.replace(/\/$/, "")}/?conf=${code}`;

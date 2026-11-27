@@ -22,7 +22,7 @@ export default function NameTags({ userId, mine = false, title }: { userId: stri
   if (tags.length === 0 && !mine) return null;   // 남의 연구실에서는 명찰이 있을 때만 보인다
   const body = (
     <section aria-label="학회 명찰" className="space-y-2 p-3">
-      {mine && <p className="text-sm text-ink-soft">학회 현장에서 받은 참석 코드를 마을 게시판에 입력하면 그 학회의 명찰이 생겨요. 토론자는 은색, 발표자는 금색, 개최자는 자주색 뱃지가 달려요.</p>}
+      {mine && <p className="text-sm text-ink-soft">학회 현장에서 들은 참석 암호를 마을 게시판에 입력하면 그 학회의 명찰이 생겨요. 토론자는 은색, 발표자는 금색, 개최자는 자주색 뱃지가 달려요.</p>}
       {tags.length === 0 && <p className="text-center text-sm text-ink-soft">아직 받은 명찰이 없어요.</p>}
       <ul className="space-y-2">
         {tags.map((t) => (

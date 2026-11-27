@@ -2,10 +2,10 @@
 -- 역할: 참석자 · 토론자(은) · 발표자(금) · 개최자(자주). 개최자가 참석자의 역할을 정한다.
 alter table public.news_posts add column event_date date;
 
--- 참석 코드는 주민에게 보이면 안 되므로 소식 글과 따로 둔다(직접 읽을 수 없고, 개최자는 아래 함수로 받는다)
+-- 참석 암호는 주민에게 보이면 안 되므로 소식 글과 따로 둔다(직접 읽을 수 없고, 개최자는 아래 함수로 받는다)
 create table public.conference_codes (
   post_id uuid primary key references public.news_posts (id) on delete cascade,
-  code text not null unique
+  code text not null
 );
 alter table public.conference_codes enable row level security;
 revoke all on public.conference_codes from anon, authenticated, public;
@@ -26,9 +26,11 @@ revoke all on public.conference_attendance from anon, authenticated, public;
 grant select on public.conference_attendance to authenticated;
 create policy conf_att_select on public.conference_attendance for select to authenticated using (public.can_see_room(user_id));
 
+-- 참석 암호: '금색코끼리'처럼 색 + 동물. 개최자만 알고, 현장에서 참석자에게 알려 준다
 create function public._conf_code() returns text
 language sql volatile set search_path = '' as $$
-  select string_agg(substr('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 1 + floor(random() * 31)::int, 1), '') from generate_series(1, 6);
+  select (array['금색', '은색', '푸른', '붉은', '초록', '보라', '하얀', '노란', '분홍', '주황'])[1 + floor(random() * 10)::int]
+      || (array['코끼리', '고래', '여우', '토끼', '부엉이', '고양이', '펭귄', '사슴', '다람쥐', '거북이', '올빼미', '두루미', '해달', '수달', '곰', '호랑이', '나비', '돌고래', '기린', '참새'])[1 + floor(random() * 20)::int];
 $$;
 revoke all on function public._conf_code() from public, anon, authenticated;
 
@@ -44,12 +46,11 @@ begin
   if v_code is null then
     loop
       v_code := public._conf_code();
-      begin
-        insert into public.conference_codes (post_id, code) values (p_post, v_code);
-        exit;
-      exception when unique_violation then null;
-      end;
+      -- 아직 유효한(행사 전이거나 행사일 다음 날까지인) 다른 학회가 같은 암호를 쓰고 있으면 다시 뽑는다
+      exit when not exists (select 1 from public.conference_codes c join public.news_posts n on n.id = c.post_id
+                            where c.code = v_code and (n.event_date is null or n.event_date >= v_today - 1));
     end loop;
+    insert into public.conference_codes (post_id, code) values (p_post, v_code);
   end if;
   update public.news_posts set event_date = p_date where id = p_post;
   insert into public.conference_attendance (post_id, user_id, title, event_date, role) values (p_post, v_uid, p.title, p_date, 'host')
@@ -64,12 +65,13 @@ language sql stable security definer set search_path = '' as $$
   select c.code from public.conference_codes c join public.news_posts n on n.id = c.post_id where c.post_id = p_post and n.author_id = (select auth.uid());
 $$;
 
--- 참석자: 현장 코드를 입력해 참석을 남긴다(학회 당일과 다음 날까지)
+-- 참석자: 현장에서 들은 암호를 입력해 참석을 남긴다(학회 당일과 다음 날까지)
 create function public.checkin_conference(p_code text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare v_uid uuid := public.require_user(); v_today date := (now() at time zone 'Asia/Seoul')::date; p public.news_posts; a public.conference_attendance;
 begin
-  select n.* into p from public.news_posts n join public.conference_codes c on c.post_id = n.id where c.code = upper(btrim(coalesce(p_code, '')));
+  select n.* into p from public.news_posts n join public.conference_codes c on c.post_id = n.id
+    where c.code = regexp_replace(coalesce(p_code, ''), '\s', '', 'g') order by n.event_date desc nulls last limit 1;
   if not found then raise exception 'invalid_code'; end if;
   if p.event_date is null or v_today < p.event_date or v_today > p.event_date + 1 then raise exception 'not_today'; end if;
   insert into public.conference_attendance (post_id, user_id, title, event_date, role) values (p.id, v_uid, p.title, p.event_date, 'attendee')
