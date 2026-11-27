@@ -27,7 +27,7 @@ export default function PlazaNews({
   const [busy, setBusy] = useState(false);
   const [confCode, setConfCode] = useState("");
   const [confTalk, setConfTalk] = useState("");
-  const [confRole, setConfRole] = useState<"attendee" | "discussant" | "presenter">("attendee");
+  const [confRole, setConfRole] = useState<"attendee" | "discussant" | "presenter" | "host">("attendee");
   const [confMsg, setConfMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const who = (id: string | null) => (id ? residents.find((r) => r.user_id === id)?.profile.display_name ?? "이웃마을 주민" : "떠난 주민");
 
@@ -46,7 +46,7 @@ export default function PlazaNews({
   };
   const checkin = async (e: FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim(), p_role: confRole, p_talk: confRole === "attendee" ? null : confTalk.trim() || null });
+    const { data, error } = await supabase().rpc("checkin_conference", { p_code: confCode.trim(), p_role: confRole, p_talk: confRole === "attendee" || confRole === "host" ? null : confTalk.trim() || null });
     if (error) {
       const m = error.message;
       return setConfMsg({ ok: false, text: m.includes("invalid_code") ? "암호가 맞지 않아요. 현장에서 들은 암호를 다시 확인해 주세요." : m.includes("not_today") ? "아직 열리지 않았거나 지난 학회예요. 행사일과 다음 날까지만 입력할 수 있어요." : errorMessage(error) });
@@ -73,11 +73,11 @@ export default function PlazaNews({
         <form onSubmit={checkin} className="card space-y-1 p-3" style={{ background: "#f6f2ff" }}>
           <label className="label" htmlFor="conf-code">학회 참석 확인</label>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm" role="radiogroup" aria-label="내 역할">
-            {([["attendee", "참석했어요"], ["discussant", "토론했어요 (은색 뱃지)"], ["presenter", "발표했어요 (금색 뱃지)"]] as const).map(([id, label]) => (
+            {([["attendee", "참석자"], ["discussant", "토론자"], ["presenter", "발표자"], ["host", "개최자"]] as const).map(([id, label]) => (
               <label key={id} className="flex items-center gap-1"><input type="radio" name="conf-role" checked={confRole === id} onChange={() => setConfRole(id)} /> {label}</label>
             ))}
           </div>
-          {confRole !== "attendee" && (
+          {(confRole === "discussant" || confRole === "presenter") && (
             <input className="input" maxLength={150} value={confTalk} onChange={(e) => setConfTalk(e.target.value)} aria-label="발표문 제목" placeholder={confRole === "presenter" ? "발표문 제목 (선택)" : "토론한 발표문 제목 (선택)"} autoComplete="off" />
           )}
           <div className="flex items-start gap-1">
@@ -85,7 +85,6 @@ export default function PlazaNews({
             <button type="submit" className="btn btn-sm btn-primary mt-[5px] shrink-0 whitespace-nowrap" disabled={confCode.trim().length < 2}>참석 확인</button>
           </div>
           {confMsg && <p role={confMsg.ok ? "status" : "alert"} className={`text-sm ${confMsg.ok ? "" : "text-[#c0392b]"}`}>{confMsg.text}</p>}
-          <p className="text-xs text-ink-soft">학회 현장에서 게시자가 알려 주는 암호로 참석을 남기면 학회 뱃지가 생겨요.</p>
         </form>
 
         <form onSubmit={submit} className="card space-y-2 p-3">
