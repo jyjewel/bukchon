@@ -10,6 +10,7 @@ export interface UpdateEntry {
 }
 
 export const UPDATES: UpdateEntry[] = [
+  { id: "2026-11-28-wish-nested-reply", date: "11월 28일", title: "[소원] 답글에도 답글을 달 수 있어요. 포스트잇 답장, 일지·화이트보드 댓글 모두 돼요", body: "" },
   { id: "2026-11-27-conference-badge", date: "11월 27일", title: "학회 참석 기능이 생겼어요. 게시판 학회 소식의 암호로 참석 뱃지를 받고, 연구실 뱃지 보관함에 모아 보세요", body: "" },
   { id: "2026-11-26-snack-notes", date: "11월 26일", title: "간식 상자에 쪽지 보관함이 생겼어요. 간식을 먹어도 받은 한마디는 남아요. 알림은 창을 열면 읽음 처리돼요", body: "" },
   { id: "2026-11-26-wish-notif-reply", date: "11월 26일", title: "[소원] 읽은 알림을 지울 수 있고, 일지·화이트보드 댓글에 대댓글을 달 수 있어요", body: "" },
