@@ -1159,6 +1159,19 @@ await t("학회 명찰: 같은 학회를 여러 마을에 올려도 암호·명�
   ok(await m1.c.rpc("leave_village", { p_village: v2 }));
 });
 
+await t("학회 소식은 개최 일시(시간)와 장소를 적고, 참석 확인은 그 날짜로 열린다", async () => {
+  const at = new Date(Date.now() + 3 * 3600e3).toISOString();
+  const post = ok(await m1.c.from("news_posts").insert({ village_id: village, author_id: m1.id, category: "conference", title: "일시 학회", event_at: at, place: "  규장각 세미나실 " }).select("id").single()).id;
+  const row = ok(await m1.c.from("news_posts").select("event_at, event_date, place").eq("id", post).single());
+  assert.equal(row.place, "규장각 세미나실");
+  assert.equal(row.event_date, new Date(new Date(at).getTime() + 9 * 3600e3).toISOString().slice(0, 10));   // 한국 시간 날짜
+  const code = ok(await m1.c.rpc("enable_conference_checkin", { p_post: post }));                          // 날짜를 따로 안 적어도 켜진다
+  assert.ok(code);
+  ok(await m2.c.rpc("checkin_conference", { p_code: code }));
+  assert.ok((await m1.c.from("news_posts").insert({ village_id: village, author_id: m1.id, category: "conference", title: "긴 장소", place: "가".repeat(101) })).error);
+  ok(await m1.c.from("news_posts").delete().eq("id", post));
+});
+
 await t("학회 명찰: 당일과 다음 날이 지나면 참석을 남길 수 없다", async () => {
   const kst = new Date(Date.now() + 9 * 3600e3);
   const day = (n) => new Date(kst.getTime() + n * 86400e3).toISOString().slice(0, 10);

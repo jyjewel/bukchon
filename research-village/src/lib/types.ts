@@ -250,6 +250,8 @@ export interface NewsPost {
   link_url: string;
   deadline: string | null;
   event_date: string | null;
+  event_at: string | null;
+  place: string | null;
   created_at: string;
 }
 

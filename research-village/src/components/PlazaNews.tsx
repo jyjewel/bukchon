@@ -13,6 +13,9 @@ const deadlineLabel = (d: string) => {
   return new Date(y, m - 1, day).toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
 };
 
+const eventAtLabel = (iso: string) =>
+  new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
 /** 마을 광장: 학회·채용·학술 뉴스를 이웃에게 알리는 곳 */
 export default function PlazaNews({
   villageId, myId, isAdmin, residents, onClose,
@@ -22,6 +25,8 @@ export default function PlazaNews({
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [eventAt, setEventAt] = useState("");
+  const [place, setPlace] = useState("");
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -34,14 +39,17 @@ export default function PlazaNews({
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (link.trim() && !/^https?:\/\//i.test(link.trim())) return setError("링크는 http:// 또는 https:// 로 시작해야 해요.");
+    const isConf = cat === "conference";
+    if (isConf && !eventAt) return setError("개최 일시를 적어 주세요.");
     setBusy(true);
     setError("");
     const { error } = await supabase().from("news_posts").insert({
-      village_id: villageId, author_id: myId, category: cat, title: title.trim(), body: body.trim(), link_url: link.trim(), deadline: deadline || null,
+      village_id: villageId, author_id: myId, category: cat, title: title.trim(), body: body.trim(), link_url: link.trim(), deadline: isConf ? null : deadline || null,
+      event_at: isConf ? new Date(`${eventAt}:00+09:00`).toISOString() : null, place: isConf ? place.trim() || null : null,
     });
     setBusy(false);
     if (error) return setError(errorMessage(error));
-    setTitle(""); setLink(""); setDeadline(""); setBody("");
+    setTitle(""); setLink(""); setDeadline(""); setEventAt(""); setPlace(""); setBody("");
     await news.reload();
   };
   const checkin = async (e: FormEvent) => {
@@ -102,11 +110,25 @@ export default function PlazaNews({
               <label className="label" htmlFor="news-link">링크 <span className="text-ink-soft">(선택)</span></label>
               <input id="news-link" type="url" className="input" maxLength={600} value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://" />
             </div>
-            <div className="min-w-40 flex-1">
-              <label className="label" htmlFor="news-deadline">마감일 <span className="text-ink-soft">(선택)</span></label>
-              <input id="news-deadline" type="date" className="input" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-            </div>
+            {cat !== "conference" && (
+              <div className="min-w-40 flex-1">
+                <label className="label" htmlFor="news-deadline">마감일 <span className="text-ink-soft">(선택)</span></label>
+                <input id="news-deadline" type="date" className="input" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+              </div>
+            )}
           </div>
+          {cat === "conference" && (
+            <div className="flex flex-wrap gap-2">
+              <div className="min-w-48 flex-1">
+                <label className="label" htmlFor="news-event-at">개최 일시</label>
+                <input id="news-event-at" type="datetime-local" className="input" value={eventAt} onChange={(e) => setEventAt(e.target.value)} required />
+              </div>
+              <div className="min-w-48 flex-[2]">
+                <label className="label" htmlFor="news-place">장소 <span className="text-ink-soft">(선택)</span></label>
+                <input id="news-place" className="input" maxLength={100} value={place} onChange={(e) => setPlace(e.target.value)} placeholder="예: 서울대학교 규장각 세미나실" />
+              </div>
+            </div>
+          )}
           <div>
             <label className="label" htmlFor="news-body">한마디 설명 <span className="text-ink-soft">(선택)</span></label>
             <textarea id="news-body" className="input" rows={2} maxLength={600} value={body} onChange={(e) => setBody(e.target.value)} />
@@ -124,7 +146,8 @@ export default function PlazaNews({
                 <p className="flex flex-wrap items-center gap-1">
                   <span className="chip" style={{ background: c?.color }}>{c?.label}</span>
                   {p.deadline && <span className="chip">마감 {deadlineLabel(p.deadline)}</span>}
-                  {p.event_date && <span className="chip" style={{ background: "#e6ccf7" }}>행사 {deadlineLabel(p.event_date)}</span>}
+                  {p.event_at ? <span className="chip" style={{ background: "#e6ccf7" }}>{eventAtLabel(p.event_at)}</span> : p.event_date && <span className="chip" style={{ background: "#e6ccf7" }}>행사 {deadlineLabel(p.event_date)}</span>}
+                  {p.place && <span className="chip">📍 {p.place}</span>}
                   <span className="flex-1" />
                   <span className="text-xs text-ink-soft">{who(p.author_id)} · {relativeTime(p.created_at)}</span>
                 </p>
@@ -134,7 +157,7 @@ export default function PlazaNews({
                   {p.link_url && <a className="text-sm text-[#2f6fd0] underline" href={p.link_url} target="_blank" rel="noopener noreferrer">링크 열기</a>}
                   {(p.author_id === myId || isAdmin) && <button type="button" className="btn btn-sm btn-danger" onClick={() => void remove(p.id)}>지우기</button>}
                 </div>
-                {p.category === "conference" && p.author_id === myId && <ConferenceHost postId={p.id} eventDate={p.event_date} onChanged={() => void news.reload()} />}
+                {p.category === "conference" && p.author_id === myId && <ConferenceHost postId={p.id} eventDate={p.event_date} hasTime={!!p.event_at} onChanged={() => void news.reload()} />}
               </li>
             );
           })}
