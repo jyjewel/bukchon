@@ -5,6 +5,7 @@ import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { SPINE_COLORS, type SpineColor } from "./shelf";
 import { avatarGrid } from "./avatar";
 import { petSprite, wichuSprite } from "./pets";
+import { badgeCaseGrid } from "./badges";
 import { disc, get, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const PORTAL_HOLE = { x: 34, y: 52 };
@@ -13,7 +14,7 @@ export const ROOM_H = 84;
 const WOOD = "#b98552", WOOD_D = "#8e5f3b", WOOD_L = "#dcaa72";
 
 /** 연구실 내부. 꾸미기 설정(style)이 벽지·바닥·커튼·러그·창밖 풍경·반려동물·소품에 쓰인다. */
-export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; favs?: { shelf: number; color: string }[]; style?: LabStyle }): Grid {
+export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; studying: boolean; phase: DayPhase; frame: number; boardCount: number; postitColors: string[]; shelf: string[]; gifts?: string[]; tips?: number; badges?: string[]; favs?: { shelf: number; color: string }[]; style?: LabStyle }): Grid {
   const st = opts.style ?? DEFAULT_LAB_STYLE;
   const wall = st.wall;
   const accent = st.accent; // 커튼·러그 색
@@ -498,6 +499,9 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   rect(g, 87, 44, 5, 2, "#5a5568"); rect(g, 89, 36, 1, 8, "#5a5568"); rect(g, 85, 35, 5, 1, "#5a5568");
   rect(g, 82, 36, 6, 3, opts.studying ? "#ffe07a" : "#e9e2c8"); rect(g, 81, 39, 8, 1, "#5a5568");
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
+
+  // 학회 뱃지 보관함: 오른쪽 바닥에 선 작은 진열장(받은 뱃지가 있을 때만)
+  if ((opts.badges?.length ?? 0) > 0) { const bc = badgeCaseGrid(opts.badges!); stamp(g, bc, ROOM_W - bc.w - 3, 80 - bc.h); }
 
   // 러그 위 반려동물
   if (st.pet === "cat") {

@@ -12,13 +12,13 @@ function pos(x: number, y: number, w: number, h: number) {
 
 /** 연구실 내부 도트 그림. 화이트보드·책장·포스트잇이 실제 데이터를 반영하고, 누르면 해당 탭으로 이동한다. */
 export default function RoomCanvas({
-  owner, inside, studying, boardCount, postitColors, shelf, favs = [], gifts = [], tips = 0, note, onPick, onDesk, onPortal, onOpen,
+  owner, inside, studying, boardCount, postitColors, shelf, favs = [], gifts = [], tips = 0, badges = [], note, onPick, onDesk, onPortal, onOpen, onTags,
 }: {
-  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; favs?: { shelf: number; color: string }[]; gifts?: string[]; tips?: number; note?: string; onPick?: (t: BoardTab) => void; onPortal?: () => void; onOpen?: () => void; onDesk?: () => void;
+  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; favs?: { shelf: number; color: string }[]; gifts?: string[]; tips?: number; badges?: string[]; onTags?: () => void; note?: string; onPick?: (t: BoardTab) => void; onPortal?: () => void; onOpen?: () => void; onDesk?: () => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const avatarKey = JSON.stringify(owner.profile.avatar);
-  const pcKey = postitColors.join(","), shelfKey = shelf.join(","), giftKey = gifts.join(","), favKey = favs.map((f) => `${f.shelf}:${f.color}`).join(",");
+  const pcKey = postitColors.join(","), shelfKey = shelf.join(","), giftKey = gifts.join(","), favKey = favs.map((f) => `${f.shelf}:${f.color}`).join(","), badgeKey = badges.slice(0, 6).join(",");
   const styleKey = JSON.stringify(normalizeLabStyle(owner.profile.lab_style));
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
@@ -27,7 +27,7 @@ export default function RoomCanvas({
     const draw = () => {
       paint(ctx, roomGrid({
         slot: owner.slot, avatar: JSON.parse(avatarKey), inside, studying, phase: currentPhase(), frame,
-        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [], gifts: giftKey ? giftKey.split(",") : [], tips, style: JSON.parse(styleKey), favs: favKey ? favKey.split(",").map((x) => { const [s, c] = x.split(":"); return { shelf: Number(s), color: c }; }) : [],
+        boardCount, postitColors: pcKey ? pcKey.split(",") : [], shelf: shelfKey ? shelfKey.split(",") : [], gifts: giftKey ? giftKey.split(",") : [], tips, badges: badgeKey ? badgeKey.split(",") : [], style: JSON.parse(styleKey), favs: favKey ? favKey.split(",").map((x) => { const [s, c] = x.split(":"); return { shelf: Number(s), color: c }; }) : [],
       }), 0, 0);
       frame++;
     };
@@ -35,7 +35,7 @@ export default function RoomCanvas({
     draw();
     const t = setInterval(draw, 700);
     return () => clearInterval(t);
-  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey, giftKey, favKey, tips, styleKey]);
+  }, [owner.slot, avatarKey, inside, studying, boardCount, pcKey, shelfKey, giftKey, favKey, tips, styleKey, badgeKey]);
   return (
     <div className="relative">
       <canvas ref={ref} width={ROOM_W} height={ROOM_H} className="pixelated block h-auto w-full" role="img" aria-label={`${owner.profile.display_name}의 연구실`} />
@@ -46,6 +46,7 @@ export default function RoomCanvas({
           <button type="button" className="scene-hit" style={pos(102, 6, 34, 50)} aria-label="책장 보기" onClick={() => onPick("shelf")} />
         </>
       )}
+      {onTags && badges.length > 0 && <button type="button" className="scene-hit" style={pos(ROOM_W - 23, 49, 20, 31)} aria-label="뱃지 보관함 열기" onClick={onTags} />}
       {onDesk && <button type="button" className="scene-hit" style={pos(50, 40, 46, 14)} aria-label="책상에 건네기" onClick={onDesk} />}
       {onPortal && <button type="button" className="scene-hit" style={pos(PORTAL_HOLE.x - 8, PORTAL_HOLE.y - 9, 17, 12)} aria-label="포탈 — 눌러서 다른 연구실로 건너가기" onClick={onPortal} />}
       {note && <p className="scene-label" style={{ top: "88%" }}>{note}</p>}

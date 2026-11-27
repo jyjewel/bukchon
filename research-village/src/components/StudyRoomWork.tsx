@@ -18,6 +18,7 @@ import RoomCanvas from "./RoomCanvas";
 import LabDecorator from "./LabDecorator";
 import { Modal, Window } from "./ui";
 import WindowColumn from "./WindowColumn";
+import { useNameTags } from "@/hooks/useNameTags";
 import NameTags from "./NameTags";
 import SnackBox from "./SnackBox";
 import PortalDialog from "./LabPortal";
@@ -33,7 +34,7 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "diary", label: "다이어리" },
   { id: "boards", label: "화이트보드" },
   { id: "results", label: "연구 성과" },
-  { id: "tags", label: "학회 명찰" },
+  { id: "tags", label: "뱃지 보관함" },
   { id: "shelf", label: "좋아하는 책" },
   { id: "archive", label: "찾기 · 내보내기" },
   { id: "drawer", label: "편지 서랍" },
@@ -54,6 +55,7 @@ export default function StudyRoomWork({
   const xmas = useChristmas(me.user_id);
   const [cardYear, setCardYear] = useState<number | null>(null);
   const room = useRoom(me.user_id, true);
+  const nameTags = useNameTags(me.user_id);
   const fav = useFavBooks(me.user_id);
   const [target, setTarget] = useState<OpenTarget | null>(null);
   const notes = useResearchNotes(me.user_id);
@@ -74,7 +76,7 @@ export default function StudyRoomWork({
         <div className="order-2 space-y-4 lg:order-1">
           <Window title={labTitle(me.profile)} tone="butter">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
+                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} badges={(nameTags ?? []).map((t) => t.role)} onTags={() => setSection("tags")} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {MENU_SECTIONS.map((s) => (
                 <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
@@ -98,7 +100,7 @@ export default function StudyRoomWork({
         )}
         <Window title={current.label} tone="butter" actions={<button type="button" className="btn btn-sm btn-xs" aria-pressed={focus} onClick={() => setFocus((f) => !f)}>{focus ? "집중 모드 끄기" : "집중 모드"}</button>}>
           <div className={`lab-main mx-auto ${focus ? "lab-focus max-w-[64rem]" : section === "boards" || section === "results" ? "max-w-[52rem]" : "max-w-[42rem]"}`}>
-            {section === "tags" && <NameTags userId={me.user_id} name={me.profile.display_name} mine />}
+            {section === "tags" && <NameTags userId={me.user_id} mine />}
             {section === "snacks" && <SnackBox residents={residents} myId={me.user_id} />}
             {section === "drawer" && <LetterDrawer onOpen={() => setLetter(true)} cards={xmas.rows} onOpenCard={setCardYear} />}
             {section === "journal" && <JournalCard userId={me.user_id} villages={villages} initialDate={target?.kind === "journal" ? target.key : undefined} />}
