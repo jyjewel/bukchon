@@ -249,6 +249,7 @@ export interface NewsPost {
   body: string;
   link_url: string;
   deadline: string | null;
+  event_date: string | null;
   created_at: string;
 }
 
