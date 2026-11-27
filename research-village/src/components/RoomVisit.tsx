@@ -38,11 +38,11 @@ export default function RoomVisit({
         <div className="order-1"><Window title={labTitle(owner.profile)} tone="butter">
           <RoomCanvas
             owner={owner} inside={inRoom} studying={inRoom} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-            note={inRoom || isGuest ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={(t) => { onTab(t); document.getElementById(t === "shelf" ? "visit-results" : "visit-board")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} badges={(nameTags ?? []).map((t) => t.role)} onTags={() => document.getElementById("visit-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} onDesk={() => { if (give) setGiving(true); }} onPortal={() => setPortal(true)}
+            note={inRoom || isGuest ? undefined : `${name}님은 ${owner.shown === "offline" ? "자리에 없어요" : meta.where}`} onPick={(t) => { onTab(t); document.getElementById(t === "shelf" ? "visit-results" : "visit-board")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} badges={(nameTags ?? []).map((t) => t.role)} onShelf={(k) => document.getElementById(k === "results" ? "visit-results" : k === "favs" ? "visit-favs" : "visit-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} onDesk={() => { if (give) setGiving(true); }} onPortal={() => setPortal(true)}
           />
           <p className="px-2 pb-1 pt-1 text-center text-xs text-ink-soft">{isGuest ? "친구 연구실을 구경 중이에요. 책상을 누르면 선물을 올리고, 화이트보드에 댓글과 포스트잇을 남길 수 있어요" : "책상을 누르면 커피나 간식을 올려 줄 수 있어요"}</p>
         </Window></div>
-        <div className="order-4"><FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} /></div>
+        <div id="visit-favs" className="order-4"><FavoriteShelf books={fav.books} names={fav.names} reload={fav.reload} editable={false} ownerName={name} /></div>
         <div id="visit-results" className="order-3"><Window title={`${name}님의 연구 성과`} tone="lilac">
           <RoomBoards owner={owner} myId={myId} residents={residents} room={room} tab={tab} onTab={onTab} only="shelf" />
         </Window></div>

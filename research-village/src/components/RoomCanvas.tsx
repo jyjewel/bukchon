@@ -12,13 +12,13 @@ function pos(x: number, y: number, w: number, h: number) {
 
 /** 연구실 내부 도트 그림. 화이트보드·책장·포스트잇이 실제 데이터를 반영하고, 누르면 해당 탭으로 이동한다. */
 export default function RoomCanvas({
-  owner, inside, studying, boardCount, postitColors, shelf, favs = [], gifts = [], tips = 0, badges = [], note, onPick, onDesk, onPortal, onOpen, onTags,
+  owner, inside, studying, boardCount, postitColors, shelf, favs = [], gifts = [], tips = 0, badges = [], note, onPick, onDesk, onPortal, onOpen, onShelf,
 }: {
-  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; favs?: { shelf: number; color: string }[]; gifts?: string[]; tips?: number; badges?: string[]; onTags?: () => void; note?: string; onPick?: (t: BoardTab) => void; onPortal?: () => void; onOpen?: () => void; onDesk?: () => void;
+  owner: Resident; inside: boolean; studying: boolean; boardCount: number; postitColors: string[]; shelf: string[]; favs?: { shelf: number; color: string }[]; gifts?: string[]; tips?: number; badges?: string[]; onShelf?: (k: "results" | "favs" | "badges") => void; note?: string; onPick?: (t: BoardTab) => void; onPortal?: () => void; onOpen?: () => void; onDesk?: () => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const avatarKey = JSON.stringify(owner.profile.avatar);
-  const pcKey = postitColors.join(","), shelfKey = shelf.join(","), giftKey = gifts.join(","), favKey = favs.map((f) => `${f.shelf}:${f.color}`).join(","), badgeKey = badges.slice(0, 6).join(",");
+  const pcKey = postitColors.join(","), shelfKey = shelf.join(","), giftKey = gifts.join(","), favKey = favs.map((f) => `${f.shelf}:${f.color}`).join(","), badgeKey = badges.slice(0, 5).join(",");
   const styleKey = JSON.stringify(normalizeLabStyle(owner.profile.lab_style));
   useEffect(() => {
     const ctx = ref.current?.getContext("2d");
@@ -43,10 +43,16 @@ export default function RoomCanvas({
       {onPick && (
         <>
           <button type="button" className="scene-hit" style={pos(52, 5, 48, 32)} aria-label="화이트보드 보기" onClick={() => onPick("whiteboard")} />
-          <button type="button" className="scene-hit" style={pos(102, 6, 34, 50)} aria-label="책장 보기" onClick={() => onPick("shelf")} />
         </>
       )}
-      {onTags && badges.length > 0 && <button type="button" className="scene-hit" style={pos(ROOM_W - 23, 49, 20, 31)} aria-label="뱃지 보관함 열기" onClick={onTags} />}
+      {onShelf && (
+        <>
+          <button type="button" className="scene-hit" style={pos(103, 7, 32, 13)} aria-label="연구 성과 보기" onClick={() => onShelf("results")} />
+          <button type="button" className="scene-hit" style={pos(103, 20, 32, 11)} aria-label="좋아하는 책 보기" onClick={() => onShelf("favs")} />
+          <button type="button" className="scene-hit" style={pos(103, 31, 32, 11)} aria-label="참석 뱃지 보기" onClick={() => onShelf("badges")} />
+          <button type="button" className="scene-hit" style={pos(103, 42, 32, 12)} aria-label="추천받은 책 보기" onClick={() => onShelf("results")} />
+        </>
+      )}
       {onDesk && <button type="button" className="scene-hit" style={pos(50, 40, 46, 14)} aria-label="책상에 건네기" onClick={onDesk} />}
       {onPortal && <button type="button" className="scene-hit" style={pos(PORTAL_HOLE.x - 8, PORTAL_HOLE.y - 9, 17, 12)} aria-label="포탈 — 눌러서 다른 연구실로 건너가기" onClick={onPortal} />}
       {note && <p className="scene-label" style={{ top: "88%" }}>{note}</p>}
