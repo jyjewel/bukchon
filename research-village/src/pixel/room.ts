@@ -5,8 +5,8 @@ import { DEFAULT_LAB_STYLE } from "@/lib/labStyle";
 import { SPINE_COLORS, type SpineColor } from "./shelf";
 import { avatarGrid } from "./avatar";
 import { petSprite, wichuSprite } from "./pets";
-import { badgeCaseGrid } from "./badges";
-import { disc, get, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
+import { miniBadgeGrid } from "./badges";
+import { disc, grid, hash, outline, px, rect, rng, shade, stamp, type Grid } from "./core";
 
 export const PORTAL_HOLE = { x: 34, y: 52 };
 export const ROOM_W = 144;
@@ -130,25 +130,31 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     px(g, x + 3, y - 1, "#e0605a");
   });
 
-  // 책장
+  // 책장 하나에 모두: 1단 연구 성과 · 2단 좋아하는 책 · 3단 참석 뱃지 · 4단 이웃이 추천한 책
   rect(g, 103, 7, 32, 47, WOOD_D);
   rect(g, 105, 9, 28, 43, "#6f4a30");
   const kindColor = (k: string) => ACHIEVEMENT_KINDS.find((x) => x.id === k)?.color ?? "#62b866";
-  let n = 0;
+  const favList = [...(opts.favs ?? [])].sort((p, q) => p.shelf - q.shelf);
+  const badgeList = opts.badges ?? [];
   for (let sIdx = 0; sIdx < 4; sIdx++) {
-    const y0 = 9 + sIdx * 11;
-    rect(g, 105, y0 + 9, 28, 2, WOOD);
+    const y0 = 9 + sIdx * 11, base = y0 + 9;
+    rect(g, 105, base, 28, 2, WOOD);
     let x = 106;
-    while (x < 131 && n < opts.shelf.length) {
-      const c = kindColor(opts.shelf[n]);
-      const w = 2 + (n % 2), h = 6 + ((n * 5) % 3);
-      rect(g, x, y0 + 9 - h, w, h, c);
-      px(g, x, y0 + 9 - h + 1, shade(c, 60));
-      rect(g, x + w - 1, y0 + 9 - h, 1, h, shade(c, -40));
-      rect(g, x, y0 + 6, w, 1, "#fff8e4");
-      x += w; n++;
+    if (sIdx === 0 || sIdx === 1) {
+      const row: string[] = sIdx === 0 ? opts.shelf : favList.map((f) => f.color);
+      for (let n = 0; n < row.length && x < 131; n++) {
+        const c = sIdx === 0 ? kindColor(row[n]) : (SPINE_COLORS[row[n] as SpineColor] ?? SPINE_COLORS.red);
+        const w = 2 + (n % 2), h = 6 + ((n * 5) % 3);
+        rect(g, x, base - h, w, h, c);
+        px(g, x, base - h + 1, shade(c, 60));
+        rect(g, x + w - 1, base - h, 1, h, shade(c, -40));
+        rect(g, x, base - 3, w, 1, "#fff8e4");
+        x += w;
+      }
+      if (sIdx === 0 && opts.shelf.length === 0) { rect(g, 108, y0 + 3, 6, 6, "#fdfdfb"); rect(g, 109, y0 + 5, 4, 1, "#c9ced6"); }
+    } else if (sIdx === 2) {
+      badgeList.slice(0, 5).forEach((r, i) => stamp(g, miniBadgeGrid(r), 106 + i * 5, base - 7));
     }
-    if (sIdx === 0 && opts.shelf.length === 0) { rect(g, 108, y0 + 3, 6, 6, "#fdfdfb"); rect(g, 109, y0 + 5, 4, 1, "#c9ced6"); }
   }
   // 이웃이 추천해 꽂아 둔 책: 맨 아래 칸 오른쪽에서부터 분홍·보라 계열 책
   const tipCols = ["#ff9fb6", "#c9a0f0", "#ffb36b", "#8fd6c0"];
@@ -172,21 +178,6 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
     for (let x = 40; x < 105; x += 4) { px(g, x, 72, shade(accent, -30)); }
   }
 
-  // 좋아하는 책장: 왼쪽 바닥에 선 작은 4단 책장. 단마다 꽂은 책(최대 5권)이 보인다
-  {
-    const wood = "#8a5a3a", woodD = "#5a3a26", woodL = "#b8743a";
-    rect(g, 2, 47, 20, 32, woodD); rect(g, 3, 48, 18, 30, "#6b4a30"); rect(g, 2, 47, 20, 1, woodL); rect(g, 2, 47, 1, 32, wood); rect(g, 21, 47, 1, 32, wood);
-    for (let t = 1; t <= 4; t++) {
-      const yb = 48 + t * 7 - 1;
-      rect(g, 3, yb, 18, 1, woodL); rect(g, 3, yb + 1, 18, 1, wood);
-      const row = (opts.favs ?? []).filter((f) => f.shelf === t).slice(0, 5);
-      row.forEach((f, i) => {
-        const col = SPINE_COLORS[f.color as SpineColor] ?? SPINE_COLORS.red, h = 4 + ((i * 3 + t) % 3);
-        rect(g, 4 + i * 3, yb - h, 2, h, col); px(g, 4 + i * 3, yb - h, shade(col, 40)); px(g, 5 + i * 3, yb - 2, shade(col, -40));
-      });
-    }
-    for (let x = 2; x < 22; x++) { const c = get(g, x, 79); if (c) px(g, x, 79, shade(c, -38)); }   // 바닥에 드리운 그림자: 바닥 색을 어둡게(반투명 색을 쓰면 뒤 배경 색이 비쳐 줄무늬처럼 보인다)
-  }
   // 소품 (꾸미기에서 고른 것)
   if (st.extras.includes("plant")) {
     // 꽃 화분: 작은 잎 위에 분홍·노랑·하늘색 꽃
@@ -501,7 +492,6 @@ export function roomGrid(opts: { slot: number; avatar: Avatar; inside: boolean; 
   if (opts.studying) for (let y = 40; y < 46; y++) for (let x = 80 - (y - 40); x < 90; x++) if ((x + y) % 2 === 0 && hash(x, y) > 0.2) px(g, x, y, "#fff4bf");
 
   // 학회 뱃지 보관함: 오른쪽 바닥에 선 작은 진열장(받은 뱃지가 있을 때만)
-  if ((opts.badges?.length ?? 0) > 0) { const bc = badgeCaseGrid(opts.badges!); stamp(g, bc, ROOM_W - bc.w - 3, 80 - bc.h); }
 
   // 러그 위 반려동물
   if (st.pet === "cat") {

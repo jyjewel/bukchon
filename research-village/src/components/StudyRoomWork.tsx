@@ -76,7 +76,7 @@ export default function StudyRoomWork({
         <div className="order-2 space-y-4 lg:order-1">
           <Window title={labTitle(me.profile)} tone="butter">
               <RoomCanvas owner={me} inside={inside} studying={st === "focus"} boardCount={room.items.length} postitColors={room.postits.filter((p) => !p.reply_to).map((p) => p.color)} shelf={room.achievements.map((a) => a.kind)} favs={fav.books ?? []} gifts={room.gifts.map((g) => g.kind)} tips={room.tips.length}
-                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} badges={(nameTags ?? []).map((t) => t.role)} onTags={() => setSection("tags")} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
+                note={inside ? undefined : `지금은 ${STATUS_META[st].where}`} badges={(nameTags ?? []).map((t) => t.role)} onShelf={(k) => { setTarget(null); setSection(k === "results" ? "results" : k === "favs" ? "shelf" : "tags"); }} onOpen={() => setRoomView("decorate")} onPortal={() => setPortal(true)} />
             <nav aria-label="연구실 항목" className="space-y-1 p-2 max-lg:hidden">
               {MENU_SECTIONS.map((s) => (
                 <button key={s.id} type="button" aria-current={section === s.id ? "page" : undefined} onClick={() => { setTarget(null); setSection(s.id); if (s.id === "notes") void notes.reload(); if (s.id === "diary") void diary.reload(); }}
